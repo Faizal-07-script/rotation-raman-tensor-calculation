@@ -8,7 +8,7 @@ const rich = value => esc(value).replace(/\x60([^\x60]+)\x60/g, '<code>$1</code>
 const compact = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(Number(value).toPrecision(7)).toString() : '—';
 const S = {catalog:null,cells:[],tutorial:[],form:null,result:null,dirty:false,busy:false,tab:'plots',
   error:null,comparisons:[],comparison:null,benchmark:null,validation:null,runtimeHasRun:false,
-  selectedExample:'SLIDE',relation:'free',lastCrystal:null,openGroups:new Set(['introduction']),searchIndex:[]};
+  selectedExample:'SLIDE',relation:'free',lastCrystal:null,openGroups:new Set(),searchIndex:[]};
 let toastTimer,preparedDownloadUrl;
 
 class PythonEngine {
@@ -533,7 +533,7 @@ async function initialize(){
     S.searchIndex=[...Object.entries(RAMAN_DOCS.tools).map(([key,d])=>({href:'#introduction/'+key,label:d.title,category:'Introduction',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()})),
       ...S.cells.map(c=>({href:'#tutorial/cell/'+c.number,label:'Cell '+c.number+' · '+c.title,category:'Python tutorial',text:('cell '+c.number+' cell'+c.number+' '+c.title+' '+c.source).toLowerCase()})),
       ...Object.entries(RAMAN_DOCS.physics).map(([key,d])=>({href:'#physics/'+key,label:d.title,category:'Physics & equations',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()}))];
-    renderNavigation();setMenu(!matchMedia('(max-width:850px)').matches);renderRoute();
+    renderNavigation();setMenu(false);renderRoute();
   }catch(error){$('#main-content').innerHTML='<div class="card"><h1>Workspace could not load.</h1><p>'+esc(error.message)+'</p><button class="button" onclick="location.reload()">Reload workspace</button></div>';}
 }
 initialize();
