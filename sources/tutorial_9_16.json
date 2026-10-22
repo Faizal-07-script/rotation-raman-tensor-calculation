@@ -1,0 +1,1276 @@
+[
+  {
+    "cell": 9,
+    "overview": "Independent audits test the actual Jones states and complete-tensor interference without changing the selected calculation.",
+    "workflow": [
+      "Sample exact fields on the angle grid.",
+      "Classify their sample polarization with normalized Stokes parameters.",
+      "Transform input and detector fields into crystal coordinates and reconstruct entry amplitudes independently.",
+      "Separate entry self-powers from coherent within-phonon interference.",
+      "Attach and report audit evidence with an explicit numerical-error bound."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 7,
+        "title": "Scope of this code section",
+        "explanation": "Independent polarization-state and within-mode interference diagnostics.\n\nThe diagnostics do not choose coefficients, align a polar plot, or replace\nthe selected intensity curve. They make the consequences of that selection\nvisible and test the coherent result by a second, entry-wise calculation.\n",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 8,
+        "end_line": 10,
+        "title": "PAPER_EQUATION_MAP \u2014 Attach equation provenance",
+        "explanation": "The text maps complex-response tensor contraction and phase interference to DOI 10.1039/D1CP03626B, and the conditional circular rule to DOI 10.1039/D1CP02209A. It is report metadata, not an input to an intensity formula.",
+        "why": "A checking program should state which physical claim each source supports. A selection-rule reference cannot be used as a numerical intensity formula.",
+        "check": "Changing prose here must not change a calculated curve."
+      },
+      {
+        "start_line": 11,
+        "end_line": 23,
+        "title": "vector_samples \u2014 Evaluate an exact field on the angular grid",
+        "explanation": "First convert the angle input into a floating NumPy array. For each symbolic field component, lambdify creates a NumPy evaluator; broadcast_to also expands an angle-independent scalar into a full angular row. vstack then returns a dimension-by-angle complex array. The final finite-value test rejects an invalid numerical field.",
+        "why": "Independent audits need all field components in the same array shape even when a circular state is constant. Keeping dtype=complex preserves phase and makes conjugate products reliable.",
+        "check": "A fixed two-component circular vector should return a 2-by-N array with identical columns, and a rotating real analyzer should return two angle-dependent rows."
+      },
+      {
+        "start_line": 24,
+        "end_line": 42,
+        "title": "normalized_stokes \u2014 Classify the actual polarization state",
+        "explanation": "The function reshapes one field into two components and obtains its norm with vdot, which conjugates the first vector. It then evaluates S1=(|Ex|\u00b2\u2212|Ey|\u00b2)/S0, S2=2Re(Ex*Ey)/S0 and S3=2Im(Ex*Ey)/S0. A tolerance identifies circular, linear or intermediate elliptical states.",
+        "why": "A menu label is insufficient to establish the physical polarization at the sample. Stokes parameters inspect the actual complex vector. The sign convention for S3 and the time dependence are stated rather than silently assigning an LCP/RCP name.",
+        "check": "For sigma+=(1,i)/sqrt(2), S3 is +1 in this fixed laboratory basis; for a real nonzero linear state S3 is zero."
+      },
+      {
+        "start_line": 43,
+        "end_line": 70,
+        "title": "optical_state_audit \u2014 Trace incident and detection states back to the sample",
+        "explanation": "At scan angles 0, 45 and 90 degrees, vector_samples evaluates Ein and effective_analyzer. Each column is passed to normalized_stokes. With ki=\u2212Z and ks=+Z, the recorded propagation-relative expectations are \u2212S3 for the incoming state and +S3 for the outgoing state. The returned record also retains B and both exact fields.",
+        "why": "A linear analyzer after a return waveplate is generally an elliptical detection state when viewed at the sample. This audit prevents interpreting the analyzer hardware label as the sample polarization.",
+        "check": "Compare the effective detection S3 values of QWP and CUBIC_SIGMA at intermediate angles; equal circular endpoints do not establish equal scans."
+      },
+      {
+        "start_line": 71,
+        "end_line": 95,
+        "title": "tensor_interference_audit \u2014 Prepare independent crystal-frame field samples",
+        "explanation": "The audit transforms the actual input and effective detection vectors into crystal coordinates, evaluates every nonzero Cartesian tensor entry, adds the resulting amplitudes within each complete phonon tensor, and only then adds powers over orthogonal phonon partners. Entry self-powers are stored separately. Their difference from the coherent result is the signed within-mode interference. A propagated roundoff bound protects exact dark channels without changing a curve. The audit caches incident and effective detector samples by optical profile. For a crystal, T*P.T embeds each transverse state in crystal coordinates; the 2D source uses its two-component fields directly.",
+        "why": "This deliberately uses entry-wise NumPy arithmetic instead of the production harmonic evaluator. Agreement is an independent check of rotation, conjugation, tensor-entry interference and phonon-partner handling. An Ag entry split is an algebraic diagnostic, not three independent phonons.",
+        "check": "Verify coherent_intensity = entry_self_power + interference. A tiny cancellation residue at a theoretical extinction may pass the roundoff bound, while an injected genuinely nonzero incorrect intensity must fail."
+      },
+      {
+        "start_line": 96,
+        "end_line": 112,
+        "title": "tensor_interference_audit \u2014 Add entry amplitudes inside each complete tensor",
+        "explanation": "For every orthogonal partner, detection[row]* is multiplied by R[row,column] and incident[column]. The entry amplitudes are added before abs(amplitude)**2. Separately accumulated abs(entry)**2 terms provide the self-power diagnostic; coherent\u2212self_power reveals all within-partner cross terms.",
+        "why": "This deliberately uses entry-wise NumPy arithmetic instead of the production harmonic evaluator. Agreement is an independent check of rotation, conjugation, tensor-entry interference and phonon-partner handling. An Ag entry split is an algebraic diagnostic, not three independent phonons.",
+        "check": "Verify coherent_intensity = entry_self_power + interference. A tiny cancellation residue at a theoretical extinction may pass the roundoff bound, while an injected genuinely nonzero incorrect intensity must fail."
+      },
+      {
+        "start_line": 113,
+        "end_line": 130,
+        "title": "tensor_interference_audit \u2014 Handle a dark-channel cancellation without altering intensity",
+        "explanation": "The code estimates amplitude roundoff from uncancelled self-powers, propagates it into a power error bound, and combines it with a relative tolerance. This avoids dividing a cancellation residue by an almost-zero intensity. An actual mismatching coherent result raises ArithmeticError.",
+        "why": "This deliberately uses entry-wise NumPy arithmetic instead of the production harmonic evaluator. Agreement is an independent check of rotation, conjugation, tensor-entry interference and phonon-partner handling. An Ag entry split is an algebraic diagnostic, not three independent phonons.",
+        "check": "Verify coherent_intensity = entry_self_power + interference. A tiny cancellation residue at a theoretical extinction may pass the roundoff bound, while an injected genuinely nonzero incorrect intensity must fail."
+      },
+      {
+        "start_line": 131,
+        "end_line": 145,
+        "title": "tensor_interference_audit \u2014 Return complete audit arrays and their interpretation",
+        "explanation": "The record retains the independently reconstructed coherent intensity, self-powers, signed interference, selected result, individual entry amplitudes, labels and error bounds. It explicitly says that component self-powers depend on the chosen basis, whereas the complete coherent result does not.",
+        "why": "This deliberately uses entry-wise NumPy arithmetic instead of the production harmonic evaluator. Agreement is an independent check of rotation, conjugation, tensor-entry interference and phonon-partner handling. An Ag entry split is an algebraic diagnostic, not three independent phonons.",
+        "check": "Verify coherent_intensity = entry_self_power + interference. A tiny cancellation residue at a theoretical extinction may pass the roundoff bound, while an injected genuinely nonzero incorrect intensity must fail."
+      },
+      {
+        "start_line": 146,
+        "end_line": 162,
+        "title": "attach_physics_audit \u2014 Attach audit evidence without replacing results",
+        "explanation": "For each optical profile, the function stores a sample-state audit. It calls tensor_interference_audit and records whether the selected calculation uses a coherent complete tensor or the explicit legacy component prescription. The run is returned with a new physics field; its calculated arrays remain untouched.",
+        "why": "Diagnostics must explain or test a result rather than silently correcting it to a preferred plot. Separating audit data also makes exports reproducible.",
+        "check": "The intensity arrays before and after this function should be equal; only additional physics metadata should appear."
+      },
+      {
+        "start_line": 163,
+        "end_line": 224,
+        "title": "physics_audit_markdown \u2014 Present polarization and interference checks",
+        "explanation": "The reporter reads the audit record, displays the effective detection vector, and builds tables of polarization type and S3 at representative angles. It explains the laboratory-basis versus beam-direction convention and tabulates entry self-powers, interference, coherent intensity and the selected curve. Separate notes identify the source model and the legacy component prescription when applicable.",
+        "why": "The reader needs to know what is being added as amplitudes and what is being added as powers. The tables make constructive and destructive interference visible and disclose the model scope.",
+        "check": "A negative interference term is permitted, but the final measured-model intensity remains nonnegative. The reporter does not modify run[\"curves\"]."
+      }
+    ],
+    "pitfalls": [
+      "The analyzer after a return waveplate is not generally the same Jones state as its linear transmission axis at the detector.",
+      "Same laboratory circular basis labels are not automatically same propagation-relative helicities in backscattering.",
+      "Tensor-entry self-powers are basis-dependent diagnostics; only the complete coherent intensity is invariant."
+    ]
+  },
+  {
+    "cell": 10,
+    "overview": "This cell is the production coordinator: it validates physical inputs, calculates with the common 3D Jones engine, and adds the separate Ag presentation channels.",
+    "workflow": [
+      "Construct a fully declared configuration.",
+      "Check the metric, frame, coefficients and optical policy.",
+      "Select complete symmetry tensors and orthogonal partners.",
+      "Calculate complex amplitudes and powers on a common grid.",
+      "Attach independent physical checks.",
+      "Calculate separate Ag tensor contributions using that same engine.",
+      "Retain complete-mode audits and symbolic/basis-equivalence evidence."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 3,
+        "title": "Scope of this code section",
+        "explanation": "Validate one declared experiment and run the same scattering engine for all modes.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 4,
+        "end_line": 31,
+        "title": "validate_lattice_for_group \u2014 Check the cell metric against the tensor convention",
+        "explanation": "The six lattice parameters are converted into a finite numerical array. The selected crystal system determines the allowed conventional cell relations: orthorhombic right angles; a=b for tetragonal; a=b=c for cubic; conventional hexagonal a=b and gamma=120 degrees for the trigonal/hexagonal settings; and alpha=gamma=90 degrees for unique-y monoclinic tensors.",
+        "why": "The tensor library uses explicit Cartesian axis conventions. Mixing a tensor setting with incompatible cell angles or primitive indices would rotate the wrong physical normal, even if the matrix multiplication itself is valid.",
+        "check": "A cubic preset with unequal a0,b0,c0 must be rejected. A general custom tensor is not forced into a named symmetry metric."
+      },
+      {
+        "start_line": 32,
+        "end_line": 89,
+        "title": "demonstration_config \u2014 Construct an illustrative, fully declared experiment",
+        "explanation": "The function resolves a material preset, obtains its tensor definitions and surface preset, and returns a configuration dictionary. It supplies each branch with its own coefficient dictionary, lattice, hkl, uvw, normal side, azimuth, optical profile, scan grid and display options. The historical workflow label and Ag rule are explicitly recorded.",
+        "why": "One complete input record is the reproducibility contract for every later calculation. The defaults are demonstrations; they are not a prediction of a material\u2019s unknown Raman coefficients.",
+        "check": "Inspect the returned dictionary without running a calculation. Changing a preset must not be confused with experimentally determining its coefficients or lattice ratios."
+      },
+      {
+        "start_line": 90,
+        "end_line": 102,
+        "title": "component_reference_config \u2014 Declare the legacy slide-prescription regression case",
+        "explanation": "Starting from the CaNb2O6 reference optics, the function inserts the explicit unity-metric slide frame and restricts the selected mode to Ag. Its note and direct-state parameters identify theta_i=45 degrees, beta_i=90 degrees, theta_s0=45 degrees and beta_s=90 degrees.",
+        "why": "The old component-power prescription needs a named reference configuration so it can be checked without becoming the general material rule.",
+        "check": "This function is a historical regression input. The edition-14 main interface instead starts from slide_component_config and plots the Ag contributions separately."
+      },
+      {
+        "start_line": 103,
+        "end_line": 123,
+        "title": "qwp_source_config \u2014 Create the original effective optical-source model",
+        "explanation": "The returned dictionary chooses QWP_SOURCE_2D, the QWP chain and real source amplitudes a,A with delta,phi supplied in degrees. It explicitly has no material, point group or crystal-orientation input. The original source uses one complete coherent tensor.",
+        "why": "An effective two-dimensional source tensor is a reference optical model, not a symmetry assignment to an orthorhombic crystal. Its crystal-independent status must be visible.",
+        "check": "Selecting this model should make crystal orientation inactive; a surface label cannot change its output."
+      },
+      {
+        "start_line": 124,
+        "end_line": 135,
+        "title": "physical_start_config \u2014 Provide a principal-surface 3D QWP example",
+        "explanation": "The function starts from the CaNb2O6 QWP preset and selects (100) with [010] in-plane. It labels the example as a coherent 3D extension and states that coefficients are illustrative.",
+        "why": "A principal orthorhombic surface permits an uncomplicated test of the 3D tensor/QWP calculation without assuming the length ratios needed for a tilted surface.",
+        "check": "For this (100) example, changing the positive lattice lengths without changing the axis convention does not tilt the reciprocal normal away from crystal x."
+      },
+      {
+        "start_line": 136,
+        "end_line": 159,
+        "title": "validate_method_policy \u2014 Validate the shared general-model contract",
+        "explanation": "This validator checks the method/model labels and their allowed optical profiles. GENERAL requires a full crystal tensor and retains coherent complete-mode amplitudes; the separate Cartesian display is not its physical intensity rule. Historical QWP, component-reference, circular, linear and cubic routes retain their own declared rules and required parameters. The method and tensor-model keys are validated first. The GENERAL branch requires CRYSTAL_3D and a declared optical profile, enforces a coherent complete-mode tensor and merges explicit paper/control defaults.",
+        "why": "The same low-level multiplication can be used by several experiments, but an accidental mixture of a reference intensity prescription and another optical chain is not a valid new experiment. Invalid hybrids are rejected rather than guessed.",
+        "check": "A GENERAL calculation requesting a component-power-sum complete-mode rule must fail. A QWP_SOURCE_2D model cannot silently become a crystal calculation."
+      },
+      {
+        "start_line": 160,
+        "end_line": 199,
+        "title": "validate_method_policy \u2014 Validate historical routes without combining their rules",
+        "explanation": "QWP and the component-reference prescription receive distinct allowed chains and Ag rules. Circular, linear and cubic workflows validate their own profile lists. A conflicting Ag rule is rejected, and irrelevant paper parameters are removed from older routes.",
+        "why": "The same low-level multiplication can be used by several experiments, but an accidental mixture of a reference intensity prescription and another optical chain is not a valid new experiment. Invalid hybrids are rejected rather than guessed.",
+        "check": "A GENERAL calculation requesting a component-power-sum complete-mode rule must fail. A QWP_SOURCE_2D model cannot silently become a crystal calculation."
+      },
+      {
+        "start_line": 200,
+        "end_line": 223,
+        "title": "assemble_calculated_run \u2014 Calculate records, arrays and exact harmonic summaries",
+        "explanation": "A common linspace creates the angular samples. For each family, record_builder computes amplitudes from the already-selected tensors and optics; evaluate_terms produces arrays and harmonic summaries. Complete circular-channel projections are also evaluated. The returned run stores inputs, geometry, families, terms, curves, summaries and the correct scan label. The angular grid is shared. For each family, record_builder applies the tensor to its actual optics and evaluate_terms computes amplitudes, partner powers, the requested total and continuous extrema.",
+        "why": "This helper assembles numbers without choosing the physical combination policy. The family already specifies whether its records represent one complete tensor, orthogonal phonon partners or the explicit legacy reference split.",
+        "check": "The Cartesian and polar figures must use the same run[\"angles\"] and intensity arrays. The circular projections are diagnostic values, not a replacement for a selected scan."
+      },
+      {
+        "start_line": 224,
+        "end_line": 236,
+        "title": "assemble_calculated_run \u2014 Calculate fixed circular projections as diagnostics",
+        "explanation": "The code projects each complete tensor between fixed circular basis states and adds powers only over the already-defined records. Floating-point overflow and nonfinite results are rejected.",
+        "why": "This helper assembles numbers without choosing the physical combination policy. The family already specifies whether its records represent one complete tensor, orthogonal phonon partners or the explicit legacy reference split.",
+        "check": "The Cartesian and polar figures must use the same run[\"angles\"] and intensity arrays. The circular projections are diagnostic values, not a replacement for a selected scan."
+      },
+      {
+        "start_line": 237,
+        "end_line": 257,
+        "title": "assemble_calculated_run \u2014 Return the reproducible run object and scan semantics",
+        "explanation": "The run stores the same input snapshot, matrix records and arrays used by every downstream view. SECOND scans are labeled theta and co-rotating linear; CONSTANT scans are fixed circular channels; other scans use detection angle alpha.",
+        "why": "This helper assembles numbers without choosing the physical combination policy. The family already specifies whether its records represent one complete tensor, orthogonal phonon partners or the explicit legacy reference split.",
+        "check": "The Cartesian and polar figures must use the same run[\"angles\"] and intensity arrays. The circular projections are diagnostic values, not a replacement for a selected scan."
+      },
+      {
+        "start_line": 258,
+        "end_line": 308,
+        "title": "calculate_qwp_source \u2014 Run the source tensor through its unchanged QWP chain",
+        "explanation": "Source values are resolved, and inactive crystal fields are removed from the copied configuration. A single family is made from QWP_SOURCE_TENSOR. assemble_calculated_run uses transverse_amplitude_record with Q.T*R*Q*x, then attaches independent physics diagnostics.",
+        "why": "Keeping this route free of lattice construction and reference Ag splitting preserves the original optical calculation. Its antisymmetric off-diagonal entries remain properties of this effective source model.",
+        "check": "The chain\u2019s intensity must match the independently checked source closed form. No hkl or uvw field should affect this result."
+      },
+      {
+        "start_line": 309,
+        "end_line": 338,
+        "title": "calculate_experiment \u2014 Copy inputs and build the actual geometry and optics",
+        "explanation": "The configuration is copied, validated and routed to the original source model when appropriate. Otherwise the lattice metric, frame, actual Jones chain and material tensor families are constructed. LINEAR_PAIR duplicates branch metadata with parallel and crossed detector states while preserving one coefficient set. The common assembler calculates all amplitudes; selection diagnostics and independent physics audits are added afterwards. The copied configuration is policy-checked and its sample count validated. The 2D source exits to its dedicated route. Crystal calculations validate the metric, build T, construct the selected Jones chain, and validate circular-rule inputs without using that rule to create an intensity.",
+        "why": "This is the production coordinator. Reference closed-form formulas are outside it, so a target polar shape cannot determine its arrays. The order makes geometry, optical states and coherent tensor physics explicit.",
+        "check": "A failed geometry or invalid coefficient must raise an informative exception before plotting. Same tensor, frame, coefficients and Jones states must give the same intensity regardless of report label."
+      },
+      {
+        "start_line": 339,
+        "end_line": 367,
+        "title": "calculate_experiment \u2014 Select complete families and form paired linear channels",
+        "explanation": "Actual optical parameters are recorded and inactive direct-state controls are cleared. Tensor families are resolved from symmetry. The historical complex-linear route checks reciprocity, and LINEAR_PAIR creates parallel and crossed versions with shared coefficient values.",
+        "why": "This is the production coordinator. Reference closed-form formulas are outside it, so a target polar shape cannot determine its arrays. The order makes geometry, optical states and coherent tensor physics explicit.",
+        "check": "A failed geometry or invalid coefficient must raise an informative exception before plotting. Same tensor, frame, coefficients and Jones states must give the same intensity regardless of report label."
+      },
+      {
+        "start_line": 368,
+        "end_line": 414,
+        "title": "calculate_experiment \u2014 Declare what the model includes",
+        "explanation": "The assumption list states collinear ideal optics, supplied coefficients and omitted propagation/aperture effects. Historical reference, QWP extension, circular-rule and cubic/linear scope are added when applicable. These are provenance statements rather than ad hoc corrections.",
+        "why": "This is the production coordinator. Reference closed-form formulas are outside it, so a target polar shape cannot determine its arrays. The order makes geometry, optical states and coherent tensor physics explicit.",
+        "check": "A failed geometry or invalid coefficient must raise an informative exception before plotting. Same tensor, frame, coefficients and Jones states must give the same intensity regardless of report label."
+      },
+      {
+        "start_line": 415,
+        "end_line": 429,
+        "title": "calculate_experiment \u2014 Run the one amplitude engine and attach checks",
+        "explanation": "The common assembler receives a callback to amplitude_record(Rc,T,optics). Circular diagnostics are added only for circular profiles, and the independent physics audit is attached to the completed run. No reference target formula is evaluated to choose a curve.",
+        "why": "This is the production coordinator. Reference closed-form formulas are outside it, so a target polar shape cannot determine its arrays. The order makes geometry, optical states and coherent tensor physics explicit.",
+        "check": "A failed geometry or invalid coefficient must raise an informative exception before plotting. Same tensor, frame, coefficients and Jones states must give the same intensity regardless of report label."
+      },
+      {
+        "start_line": 430,
+        "end_line": 454,
+        "title": "benchmark_config \u2014 Build an explicit material-comparison preset",
+        "explanation": "The function creates a fresh illustrative material configuration and copies selected display, optical and scan settings from a base experiment. It refuses the original 2D source, which has no material geometry.",
+        "why": "A material comparison must disclose when the new material brings a new tensor, coefficient set and surface preset; it must not pretend that only a label changed.",
+        "check": "This historical helper changes to the material\u2019s demonstration geometry. The edition-14 UI material-change handler has a different policy: it preserves explicitly entered hkl, uvw and optics."
+      },
+      {
+        "start_line": 455,
+        "end_line": 456,
+        "title": "Scope of this code section",
+        "explanation": "One physical-input contract and separate Cartesian Ag presentation channels.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 457,
+        "end_line": 469,
+        "title": "GENERAL_PROFILES \u2014 Declare the nine independently selectable optical protocols",
+        "explanation": "The dictionary maps stable internal profile keys to the labels shown in the optical-method selector. It contains VV, VH, their shared-coefficient pair, direct-linear detection, the elliptical reference, the QWP chain, two fixed circular channels and custom direct Jones states.",
+        "why": "An optical protocol chooses actual input and detection states. It should be independent of the material selector and named explicitly in the saved configuration.",
+        "check": "Each selectable profile must be accepted by optical_chain and covered by UI visibility/parameter handling."
+      },
+      {
+        "start_line": 470,
+        "end_line": 488,
+        "title": "general_config \u2014 Define the common full-3D calculation contract",
+        "explanation": "After checking the requested optical profile against GENERAL_PROFILES, the function creates the material input record and sets GENERAL, CRYSTAL_3D and coherent complete-mode physics. It enables separate Ag presentation channels and supplies the shared parameter defaults and angular resolution.",
+        "why": "The material and optical protocol are independent choices. One calculation engine can therefore support VV, VH, paired linear, circular, QWP and direct Jones experiments without assigning a universal optical method to a material.",
+        "check": "Changing optics here changes the Jones experiment, not the symmetry tensor definition. Complete-mode coherence remains enabled even when Ag components are displayed separately."
+      },
+      {
+        "start_line": 489,
+        "end_line": 500,
+        "title": "slide_component_config \u2014 Start the main application from the slide-frame component example",
+        "explanation": "The common configuration receives the explicit slide XY frame, unity cell metric, negative normal side and Ag-only selection. The input note asks for actual lattice ratios when calculating a physical tilted CaNb2O6 surface.",
+        "why": "The same transverse slide coordinates can be embedded in a proper three-dimensional frame. This reproduces the requested component calculation without pasting its final intensity formula.",
+        "check": "The initial display must contain Ag(xx), Ag(yy) and Ag(zz), each calculated independently by the engine; the normal-side choice is part of the reference frame."
+      },
+      {
+        "start_line": 501,
+        "end_line": 531,
+        "title": "cartesian_tensor_parts \u2014 Partition a tensor without losing allowed entries",
+        "explanation": "The diagonal xx,yy,zz matrices are retained even if an entry is zero. Symmetric off-diagonal pairs are grouped as xy,xz,yz. An explicitly nonsymmetric tensor keeps its ordered off-diagonal entries separate. The sum of all component matrices is checked against the original matrix.",
+        "why": "Orthorhombic Ag is diagonal, but monoclinic and triclinic Ag may contain additional allowed entries. A general implementation must not delete those entries merely to force three diagonal plots.",
+        "check": "The symbolic reconstruction must be zero: sum(parts)\u2212R=0. Symmetric pairs must remain together rather than being counted twice."
+      },
+      {
+        "start_line": 532,
+        "end_line": 554,
+        "title": "attach_display_channels \u2014 Resolve the branch, detector and Ag component policy",
+        "explanation": "For each result, the actual optical profile and coefficient set are retrieved. A nondegenerate Ag tensor is partitioned by cartesian_tensor_parts; every part is sent through amplitude_record and evaluate_terms, producing its own curve, record and extrema. Other modes retain their complete-tensor or complete-partner curves. The function adds display_curves, display_summaries and explicit presentation policies. Each result supplies its actual optical chain and base branch name. Only an Ag irrep with real crystal geometry enters the component split, and the library requires that Ag family to have one phonon partner.",
+        "why": "This is the distinction between the plotted diagnostic components and the coherent complete-mode physics audit. It satisfies separate Ag(xx),Ag(yy),Ag(zz) output while preserving valid within-mode interference in the audit.",
+        "check": "The main Ag curves must not include a summed Ag component-power curve. Paired VV/VH suffixes must remain attached to the correct optical channel and share a normalization group."
+      },
+      {
+        "start_line": 555,
+        "end_line": 578,
+        "title": "attach_display_channels \u2014 Calculate every Ag contribution through the same engine",
+        "explanation": "Each component matrix is passed to amplitude_record with the actual T and optical chain, then to evaluate_terms with the same branch coefficients and angle grid. Its amplitude records, intensity, extrema and normalization group are stored under an explicit component label.",
+        "why": "This is the distinction between the plotted diagnostic components and the coherent complete-mode physics audit. It satisfies separate Ag(xx),Ag(yy),Ag(zz) output while preserving valid within-mode interference in the audit.",
+        "check": "The main Ag curves must not include a summed Ag component-power curve. Paired VV/VH suffixes must remain attached to the correct optical channel and share a normalization group."
+      },
+      {
+        "start_line": 579,
+        "end_line": 603,
+        "title": "attach_display_channels \u2014 Preserve complete non-Ag results and explicit display metadata",
+        "explanation": "Other channels use the complete tensor/orthogonal-partner results unchanged. The function constructs the main display dictionaries and states the component, coherence, degeneracy and normalization policies. The complete-mode audit remains separate.",
+        "why": "This is the distinction between the plotted diagnostic components and the coherent complete-mode physics audit. It satisfies separate Ag(xx),Ag(yy),Ag(zz) output while preserving valid within-mode interference in the audit.",
+        "check": "The main Ag curves must not include a summed Ag component-power curve. Paired VV/VH suffixes must remain attached to the correct optical channel and share a normalization group."
+      },
+      {
+        "start_line": 604,
+        "end_line": 620,
+        "title": "calculate_general \u2014 Run one engine and attach the presentation layer",
+        "explanation": "A copied crystal input is set to the GENERAL coherent contract; the original source model retains its source route. calculate_experiment performs the physics, attach_display_channels creates the requested plots, and the actual style/font provenance is copied into the run.",
+        "why": "Calculation, component presentation and figure formatting are separate responsibilities. The final UI can therefore use one result record for equations, numbers, plots and exports.",
+        "check": "The complete curves are retained in run[\"curves\"] for audits, while the main plotted quantities are run[\"display_curves\"]."
+      },
+      {
+        "start_line": 621,
+        "end_line": 651,
+        "title": "symbolic_intensity_summary \u2014 Derive I(angle) before numerical substitution",
+        "explanation": "For a constant amplitude, the function forms K0*K0*. For C*cos(alpha)+D*sin(alpha), it obtains I0=(|C|\u00b2+|D|\u00b2)/2, Ic=(|C|\u00b2\u2212|D|\u00b2)/2 and Is=Re(CD*). For K0+Kc*cos(2theta)+Ks*sin(2theta), it expands all products and retains second and fourth intensity harmonics. Powers are summed only across the supplied orthogonal records.",
+        "why": "A publication equation should retain symbolic complex coefficients until values are deliberately inserted. Co-rotating linear states can require fourth harmonics that a fixed-input analyzer scan does not.",
+        "check": "Evaluating the symbolic expression after coefficient substitution must reproduce the numerical curve from the amplitude engine."
+      },
+      {
+        "start_line": 652,
+        "end_line": 681,
+        "title": "matching_protocol_audit \u2014 Compare Cartesian and circular representations of one experiment",
+        "explanation": "For each displayed channel, the actual Ein and effective detector are sampled. A NumPy einsum independently evaluates es\u2020RperpEi. A unitary circular basis U transforms both states and R into U\u2020RU, and the contraction is repeated. Both power arrays are compared with the stored curve using scale-aware tolerances.",
+        "why": "A basis change must not change an observable when tensor and states are transformed consistently. This provides an independent check of conjugation and the plotted intensity law.",
+        "check": "Both direct_error and circular_error should be at numerical roundoff for the same physical inputs. The audit never aligns or rescales a failed curve."
+      },
+      {
+        "start_line": 682,
+        "end_line": 708,
+        "title": "protocol_state_comparison \u2014 Distinguish optical scans using state projectors",
+        "explanation": "The function evaluates the effective sample detector for QWP, the elliptical reference and the direct linear analyzer at 0,45,90,135 degrees. It compares vv\u2020 projectors, so a physically irrelevant global phase does not count as a difference.",
+        "why": "Matching endpoints or similar-looking polar curves does not prove that two scans use the same optical detection state. Projector comparison tests the states themselves.",
+        "check": "QWP and the elliptical reference agree at circular endpoints but have nonzero projector distances at intermediate angles."
+      }
+    ],
+    "pitfalls": [
+      "A change of material can change allowed tensor entries, coefficients, phases and lattice metric; surface orientation alone is insufficient.",
+      "run[\"curves\"] retains complete-mode audit results, while the main edition-14 plots/CSV follow display_curves.",
+      "The original effective 2D source has no crystal rotation.",
+      "The optional circular congruence is a conditional rule check, not a universal numeric intensity mask."
+    ]
+  },
+  {
+    "cell": 11,
+    "overview": "An independent symbolic reconstruction checks the special slide component prescription. It is deliberately outside the production curve engine.",
+    "workflow": [
+      "Rotate real crystal unit vectors into the slide measurement frame.",
+      "Derive projected input/output overlap powers.",
+      "Expand each rank-one component intensity.",
+      "Recover the common denominator and regroup terms symbolically.",
+      "Apply the reference angles and compare only when the active reference conditions match."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 2,
+        "title": "Scope of this code section",
+        "explanation": "A separate derivation/check of the user-provided component reference, not a plotting engine.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 3,
+        "end_line": 92,
+        "title": "component_ag_symbolics \u2014 Re-derive the slide component laws independently",
+        "explanation": "The cached derivation rotates each rank-one diagonal component and builds its input/output overlap powers G(theta,beta) and G(theta+alpha,beta_prime). It expands the product, derives the common denominator from rational coefficients, collects a polynomial in the trigonometric factors, checks the regrouping identity and specializes theta=45 degrees and both phases to 90 degrees.",
+        "why": "The regression must reconstruct the reference from geometry and Jones algebra. Deriving the denominator, rather than typing 144 into a final formula, makes the origin of the numerical factors auditable. This independent derivation is not called by the production curve engine.",
+        "check": "The grouped and expanded polynomials must agree exactly. The individual specialized parts must reproduce the engine\u2019s three slide-frame component curves."
+      },
+      {
+        "start_line": 93,
+        "end_line": 122,
+        "title": "component_reference_matches \u2014 Require exact reference conditions before showing its closed form",
+        "explanation": "The function requires the legacy reference workflow, D2h Ag, the component-power rule, matching Jones parameters and the declared reference frame. It compares the actual frame numerically with the explicitly constructed reference frame.",
+        "why": "A special-case expression must not be displayed as though it applies to an arbitrary material or orientation. This predicate prevents a reference equation being pasted into unrelated results.",
+        "check": "A changed frame, changed detector phase or a GENERAL complete-mode calculation must return False, without modifying the input to make it pass."
+      },
+      {
+        "start_line": 123,
+        "end_line": 179,
+        "title": "component_ag_flow_markdown \u2014 Present the historical slide expansion only for a matching run",
+        "explanation": "After the matching test, the reporter shows the input/output Jones vectors, each component law, the derived common denominator, the collected general expansion and its special-angle limit. It identifies the isolated intermediate theta\u2212alpha transcription against the completed theta+alpha sequence and substitutes active coefficient magnitudes for the historical prescription.",
+        "why": "The report preserves a reproducible legacy check while disclosing its component-power interpretation. Edition-14 main plots use separate component channels, so this legacy summed reporter is not their source.",
+        "check": "For a nonmatching run this function returns an empty list. Its displayed summed reference is not the coherent physical response of one general Ag phonon."
+      }
+    ],
+    "pitfalls": [
+      "This cell preserves a historical component-power-sum regression; it is not the current main Ag plotting policy.",
+      "The completed reference uses theta+alpha; an isolated intermediate sign in the slides is not copied inconsistently.",
+      "A special slide formula cannot be transferred unchanged to arbitrary physical lattice ratios or optical states."
+    ]
+  },
+  {
+    "cell": 12,
+    "overview": "One structured mathematical trace now explains the actual calculated tensor-to-intensity sequence and supplies both screen output and LaTeX exports.",
+    "workflow": [
+      "Choose the correct displayed angle symbol.",
+      "Show the reciprocal-metric orientation and proper rotation.",
+      "Show the active incident state, return optics and effective detector.",
+      "Display the complete tensor and component reconstruction.",
+      "Expand every rotated tensor entry and both equivalent field routes.",
+      "Form amplitude, conjugate and intensity harmonics.",
+      "Substitute coefficients only after writing the symbolic law.",
+      "Report continuous extrema and export the same trace."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 2,
+        "title": "Scope of this code section",
+        "explanation": "Readable paper notes and calculation records, with equations tied to their source.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 3,
+        "end_line": 5,
+        "title": "PAPER_NOTES \u2014 Record source roles and reference scope",
+        "explanation": "This text lists the three DOI sources and distinguishes supplied tensor coefficients from a microscopic prediction. It also identifies the separately preserved historical component prescription.",
+        "why": "Bibliography and model limitations should travel with an exported calculation rather than be inferred from a menu title.",
+        "check": "These notes are historical metadata; edition-14 general component output is defined by display_channels and the common trace."
+      },
+      {
+        "start_line": 6,
+        "end_line": 19,
+        "title": "display_intensity \u2014 Clean a legacy displayed equation only",
+        "explanation": "The helper copies the numerical harmonic summary, calculates a roundoff-scale threshold and suppresses only tiny Ic,Is,I4c,I4s display terms. It then generates an eight-digit expression. Raw summaries and exported arrays are not edited.",
+        "why": "Numerical cancellation can leave a negligible harmonic that obscures a readable equation. This cleanup belongs to historical report formatting, not the intensity engine. The new detailed trace instead substitutes values into the symbolic law.",
+        "check": "A physically significant harmonic must remain. The original summary object must be unchanged."
+      },
+      {
+        "start_line": 20,
+        "end_line": 41,
+        "title": "final_intensity_context \u2014 Put provenance beside a final equation",
+        "explanation": "The function obtains the actual workflow, channel optical profile and geometry. For the original source it says that there is no crystal geometry; otherwise it includes hkl,uvw,normal side and psi.",
+        "why": "An intensity expression is only interpretable together with the tensor, optical state and frame that produced it. This label prevents comparing equations whose angles or optics differ.",
+        "check": "The label must identify the per-channel optical profile, particularly for paired parallel/crossed calculations."
+      },
+      {
+        "start_line": 42,
+        "end_line": 73,
+        "title": "paper_steps_markdown \u2014 Label a historical source-specific report",
+        "explanation": "This legacy reporter chooses linear or circular reference notes, prints the active geometry and states, and reports complete tensor amplitudes and final harmonic intensities. Linear scans include fourth harmonics; circular reports include the four circular-basis powers and a separate conditional angular-momentum table. The helper chooses the appropriate circular/linear source, defines an equation renderer that substitutes the correct angular symbol, and prints the active frame and declared assumptions.",
+        "why": "The report connects source equations to actual run data and keeps a necessary selection rule separate from a quantitative intensity. The general edition-14 UI uses detailed_calculation for a shared full derivation instead.",
+        "check": "Do not use this reference-specific helper as an arbitrary GENERAL reporter. Its circular branch expects diagnostics attached by a circular calculation."
+      },
+      {
+        "start_line": 74,
+        "end_line": 106,
+        "title": "paper_steps_markdown \u2014 Explain the selected reference polarization states",
+        "explanation": "Co-rotating linear states use theta and include fourth intensity harmonics. Circular-reference reports describe basis transformation and fixed versus scanned detection. These branches are tied to their dedicated historical workflow assumptions.",
+        "why": "The report connects source equations to actual run data and keeps a necessary selection rule separate from a quantitative intensity. The general edition-14 UI uses detailed_calculation for a shared full derivation instead.",
+        "check": "Do not use this reference-specific helper as an arbitrary GENERAL reporter. Its circular branch expects diagnostics attached by a circular calculation."
+      },
+      {
+        "start_line": 107,
+        "end_line": 139,
+        "title": "paper_steps_markdown \u2014 Report each complete tensor and its computed amplitude",
+        "explanation": "For each selected branch and partner, the actual values, rotated matrices, induced field, amplitude and harmonic coefficients are printed. Final equations are labeled with the run\u2019s optical/geometric provenance.",
+        "why": "The report connects source equations to actual run data and keeps a necessary selection rule separate from a quantitative intensity. The general edition-14 UI uses detailed_calculation for a shared full derivation instead.",
+        "check": "Do not use this reference-specific helper as an arbitrary GENERAL reporter. Its circular branch expects diagnostics attached by a circular calculation."
+      },
+      {
+        "start_line": 140,
+        "end_line": 177,
+        "title": "paper_steps_markdown \u2014 Keep selection rules separate from intensity",
+        "explanation": "The circular branch reports circular-basis matrices and powers, then a separate angular-momentum congruence table and scope declaration. A passing congruence never masks or rescales the plane-wave arrays; the legacy display-roundoff note is appended.",
+        "why": "The report connects source equations to actual run data and keeps a necessary selection rule separate from a quantitative intensity. The general edition-14 UI uses detailed_calculation for a shared full derivation instead.",
+        "check": "Do not use this reference-specific helper as an arbitrary GENERAL reporter. Its circular branch expects diagnostics attached by a circular calculation."
+      },
+      {
+        "start_line": 178,
+        "end_line": 216,
+        "title": "linear_figures \u2014 Retain the paired-linear reference figure",
+        "explanation": "The function groups output channels by branch, creates Cartesian/polar panels and divides both parallel and crossed curves by one branch maximum only when normalization is selected.",
+        "why": "One branch\u2019s VV/VH ratio carries information about tensor anisotropy and phase. Independent normalization of the two channels would discard that ratio. The main edition-14 figures are created by publication_figures.",
+        "check": "Both channels should share the same coefficient set, grid and normalization divisor; normalization must not modify the stored raw arrays."
+      },
+      {
+        "start_line": 217,
+        "end_line": 219,
+        "title": "Scope of this code section",
+        "explanation": "Calculated mathematical steps shared by all materials and optical protocols.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 220,
+        "end_line": 222,
+        "title": "Store one mathematical trace for all renderers",
+        "explanation": "The class keeps an ordered list of section, note and equation records, together with the intended angular variable. Its methods append labels, convert calculated SymPy expressions into LaTeX, and render the same records as Markdown.",
+        "why": "Notebook display and exported LaTeX must come from the same equations. A structured intermediate trace avoids two separately maintained explanations that could disagree.",
+        "check": "Rendering the trace must not re-evaluate or alter the plotted intensity arrays; it typesets already-calculated quantities."
+      },
+      {
+        "start_line": 223,
+        "end_line": 226,
+        "title": "CalculationTrace.__init__ \u2014 Initialize trace storage",
+        "explanation": "Store the selected scan variable and an empty ordered entry list.",
+        "why": "The same trace must know whether alpha or theta is the intended displayed variable.",
+        "check": "No calculation arrays are created or changed here."
+      },
+      {
+        "start_line": 227,
+        "end_line": 229,
+        "title": "CalculationTrace.section \u2014 Append a section marker",
+        "explanation": "Append a record with kind=section and the requested heading.",
+        "why": "Structured headings support both Markdown and TeX without maintaining two separate report sequences.",
+        "check": "Entry order must follow the actual mathematical calculation order."
+      },
+      {
+        "start_line": 230,
+        "end_line": 232,
+        "title": "CalculationTrace.note \u2014 Append an explanatory note",
+        "explanation": "Append plain prose with kind=note.",
+        "why": "Model assumptions and interpretations need to travel with equations while remaining distinguishable from mathematical expressions.",
+        "check": "Notes must describe the selected run, not silently select an optical model."
+      },
+      {
+        "start_line": 233,
+        "end_line": 235,
+        "title": "CalculationTrace.tex \u2014 Append a mathematical equation",
+        "explanation": "Append an already formatted mathematical string with kind=equation.",
+        "why": "General identities can be recorded beside equations rendered from computed SymPy values.",
+        "check": "The string is display content; it is not executed as Python or used to generate a curve."
+      },
+      {
+        "start_line": 236,
+        "end_line": 239,
+        "title": "CalculationTrace.latex \u2014 Render a calculated expression with the correct angle symbol",
+        "explanation": "Sympify the supplied expression, replace internal alpha with the trace variable and call sp.latex.",
+        "why": "The engine reuses one internal angular symbol; a VV/VH report must still show theta rather than mislabeling its scan as an analyzer alpha scan.",
+        "check": "Symbol replacement changes notation, not numerical arrays or the chosen optical chain."
+      },
+      {
+        "start_line": 240,
+        "end_line": 242,
+        "title": "CalculationTrace.eq \u2014 Append a labeled equation",
+        "explanation": "Concatenate a left-hand label with the LaTeX-rendered expression and append it through tex.",
+        "why": "Centralized equation formatting keeps report and export consistent.",
+        "check": "The displayed expression should be the already-computed quantity passed by its caller."
+      },
+      {
+        "start_line": 243,
+        "end_line": 245,
+        "title": "CalculationTrace.chain \u2014 Show explicit factors and their calculated product",
+        "explanation": "Render each supplied matrix/vector factor and then the supplied answer in a single equality chain.",
+        "why": "Manual checking requires seeing which matrices were multiplied and in what order. The method typesets rather than recomputes the product.",
+        "check": "Factor order must match the caller\u2019s actual engine calculation."
+      },
+      {
+        "start_line": 246,
+        "end_line": 256,
+        "title": "CalculationTrace.markdown \u2014 Render the ordered trace for the notebook or website",
+        "explanation": "Translate section records to headings, equation records to display-math blocks and notes to prose, then join them in order.",
+        "why": "One source of mathematical entries can serve different output surfaces without retyping the physics.",
+        "check": "Rendered Markdown must contain the same equation sequence as the full LaTeX export."
+      },
+      {
+        "start_line": 257,
+        "end_line": 275,
+        "title": "latex_text \u2014 Escape prose before writing a TeX document",
+        "explanation": "Ordinary text characters such as underscores, percent signs and braces are escaped individually, while theta and alpha in labels are converted to math symbols. Mathematical equations are handled by the trace methods instead.",
+        "why": "A case label should not accidentally become a TeX command or break compilation. Separating prose escaping from equation rendering preserves mathematical syntax.",
+        "check": "A label containing an underscore must compile as ordinary text; a SymPy matrix equation must not be passed through this prose-escaping function."
+      },
+      {
+        "start_line": 276,
+        "end_line": 325,
+        "title": "trace_geometry \u2014 Display every lattice and frame-construction stage",
+        "explanation": "The trace shows L, L^(\u2212T), Miller indices, the reciprocal normal and its norm, signed Z, the zone condition, the direct-lattice tangent, normalized X0, cross-product Y0 and the azimuthal rotation. It then prints T, T.T, orthogonality, determinant and the tensor transformation T.T*Rc*T. A manual frame prints its actual matrices without pretending that hkl construction was reapplied.",
+        "why": "For a tilted noncubic crystal, the surface normal is a reciprocal-lattice direction. Showing each step makes axis signs, metric assumptions and the difference between psi and the optical scan visible.",
+        "check": "T.T*T must be I and det(T) must be +1. Changing alpha must not change this fixed orientation matrix."
+      },
+      {
+        "start_line": 326,
+        "end_line": 370,
+        "title": "trace_optics \u2014 Display the active Jones chain and its conventions",
+        "explanation": "The trace defines normalized Jones and circular states, beam directions, the transverse projector and the S3/helicity convention. It prints Q and Q.T for the QWP route, or the actual other B, followed by Ein, analyzer, effective sample detector B\u2020e_an and the full detected amplitude. It also states the complex interference identity.",
+        "why": "The return optic changes the detector state at the sample. Conjugation and multiplication order are therefore part of the measurement definition, not formatting choices.",
+        "check": "The trace must show the selected profile\u2019s actual effective detector. Do not substitute a direct elliptical reference state for the QWP return chain merely because their endpoints match."
+      },
+      {
+        "start_line": 371,
+        "end_line": 403,
+        "title": "trace_rank_one \u2014 Construct the rotated rank-one Ag tensor",
+        "explanation": "For xx,yy or zz, the routine rotates the relevant real crystal unit vector, projects it into XY and writes Rperp=q*v*v.T. It expands the direct-state overlap factor G, then evaluates the incident and detector overlaps using the active optical chain, including the return QWP. For the elliptical reference it also applies the declared 45-degree/90-degree phase specialization. The component index selects its real crystal unit vector. Applying T.T and then P gives v, and Rperp=q*v*v.T is written explicitly. The resulting amplitude factors into incident and detector overlaps.",
+        "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
+        "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
+      },
+      {
+        "start_line": 404,
+        "end_line": 425,
+        "title": "trace_rank_one \u2014 Expand the general direct-state overlap product",
+        "explanation": "The trace derives G(theta,beta), writes the double-angle identities, prints Gi and Gs, and expands |q|\u00b2GiGs. This is a general algebraic aid, distinguished from any extra return optical element.",
+        "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
+        "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
+      },
+      {
+        "start_line": 426,
+        "end_line": 440,
+        "title": "trace_rank_one \u2014 Specialize overlaps to the actual chosen optical chain",
+        "explanation": "The true incident vector and B\u2020e_an define eta_i and eta_s. Their conjugates and powers are shown and multiplied into the active component intensity, so the QWP path retains its own intermediate relative phase.",
+        "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
+        "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
+      },
+      {
+        "start_line": 441,
+        "end_line": 452,
+        "title": "trace_rank_one \u2014 Apply the elliptical reference specialization when selected",
+        "explanation": "Only the declared reference profile substitutes theta_i=pi/4, theta_s=pi/4+alpha and beta=beta_prime=pi/2. Its simplified equation is derived from those overlaps rather than pasted into a general material calculation.",
+        "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
+        "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
+      },
+      {
+        "start_line": 453,
+        "end_line": 479,
+        "title": "trace_tensor_definition \u2014 Show the complete response before its component presentation",
+        "explanation": "The susceptibility Taylor expansion identifies Rij^(m)=\u2202chi_ij/\u2202u_m. The trace states the induced Raman polarization and distinguishes a physical prefactor from the plotted arbitrary-unit |A|\u00b2. For an Ag family it prints the full crystal tensor, its exact component reconstruction and its complete rotated tensor before the separate contributions.",
+        "why": "Symmetry determines allowed entries, while coefficients belong to the phonon branch and remain supplied inputs. Separate Ag plots must not conceal the complete underlying tensor or be called independent phonons.",
+        "check": "The component matrices reconstruct the original Ag tensor. A sum of their powers is not inserted into the main Ag display."
+      },
+      {
+        "start_line": 480,
+        "end_line": 508,
+        "title": "trace_record \u2014 Expand full 3D tensor rotation element by element",
+        "explanation": "For each displayed tensor, the routine shows Rc*T, T.T*Rc*T and all nine rotated entries as explicit nine-term sums, retaining zero terms for inspection. It then shows the transverse projection and an equivalent full-3D field chain in crystal coordinates. Return optics, the conjugated analyzer row, scalar amplitude, harmonic coefficients and their conjugates lead to the expanded squared modulus. The original tensor, Rc*T and T.T*Rc*T are shown. Nested loops enumerate nine terms for each of the nine rotated entries, with evaluate=False retaining zeros and signs for manual inspection.",
+        "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
+        "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
+      },
+      {
+        "start_line": 509,
+        "end_line": 526,
+        "title": "trace_record \u2014 Project the rotated tensor and follow the full 3D field",
+        "explanation": "After PRlabP.T, diagonal Ag invokes the rank-one derivation. The incident transverse vector is embedded, transformed into crystal coordinates, acted on by Rc, transformed back and projected to the collected transverse field.",
+        "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
+        "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
+      },
+      {
+        "start_line": 527,
+        "end_line": 545,
+        "title": "trace_record \u2014 Apply return optics and derive a complex scalar amplitude",
+        "explanation": "The trace shows Rperp*Ein, B*Esc, the Hermitian analyzer row and its explicit two-component scalar contraction. It prints the appropriate C,D or K coefficients and their conjugates, then the expanded amplitude and its complex conjugate.",
+        "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
+        "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
+      },
+      {
+        "start_line": 546,
+        "end_line": 560,
+        "title": "trace_record \u2014 Expand the squared modulus in the correct scan basis",
+        "explanation": "FIRST writes second-angle intensity harmonics from C,D. SECOND expands K0,Kc,Ks products and double-angle identities that create fourth harmonics. CONSTANT writes a fixed amplitude and zero angular derivative.",
+        "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
+        "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
+      },
+      {
+        "start_line": 561,
+        "end_line": 584,
+        "title": "trace_final \u2014 Derive the symbolic intensity and harmonic coefficients",
+        "explanation": "The symbolic harmonic summary is converted into I(alpha) or I(theta) before coefficient values are inserted. Each active complex coefficient, magnitude and phase is then displayed, followed by the substituted numeric equation. Derivatives and analytic extrema are printed; linear scans use the stationary quartic in z=exp(2i*theta). A constant curve has no unique extremum angle. The function builds a symbolic summary from actual records, states whether powers are summed over orthogonal partners, and prints every harmonic coefficient before the channel\u2019s symbolic I(angle).",
+        "why": "The user should be able to inspect a paper-ready symbolic law and see exactly how the selected numbers enter it. The angular plotting grid is not used to guess the continuous maximum.",
+        "check": "Substituting the displayed coefficients into the symbolic expression must match the plotted curve within numerical precision. A zero or constant signal must not be assigned an arbitrary unique peak angle."
+      },
+      {
+        "start_line": 585,
+        "end_line": 605,
+        "title": "trace_final \u2014 Substitute complex coefficients explicitly",
+        "explanation": "Each coefficient value, magnitude and phase is displayed. The numeric equation comes from substitution into the symbolic law, preserving exact cancellations instead of printing negligible residual harmonics from an independent floating-point route.",
+        "why": "The user should be able to inspect a paper-ready symbolic law and see exactly how the selected numbers enter it. The angular plotting grid is not used to guess the continuous maximum.",
+        "check": "Substituting the displayed coefficients into the symbolic expression must match the plotted curve within numerical precision. A zero or constant signal must not be assigned an arbitrary unique peak angle."
+      },
+      {
+        "start_line": 606,
+        "end_line": 627,
+        "title": "trace_final \u2014 Show continuous extrema and handle flat signals",
+        "explanation": "FIRST provides the two-harmonic derivative and atan2 maximum. SECOND supplies the stationary quartic. The computed Imin,Imax and peak angle are shown; a flat curve is labeled as having no unique extremum angle.",
+        "why": "The user should be able to inspect a paper-ready symbolic law and see exactly how the selected numbers enter it. The angular plotting grid is not used to guess the continuous maximum.",
+        "check": "Substituting the displayed coefficients into the symbolic expression must match the plotted curve within numerical precision. A zero or constant signal must not be assigned an arbitrary unique peak angle."
+      },
+      {
+        "start_line": 628,
+        "end_line": 656,
+        "title": "detailed_calculation \u2014 Build the shared full derivation for every displayed channel",
+        "explanation": "A CalculationTrace is created with the correct scan symbol. Geometry, optics and the complete tensor definition are appended first. Each displayed channel then contributes every tensor record and a final intensity; independent direct/circular representation errors close the trace. The function returns ordered entries, Markdown and final symbolic expressions.",
+        "why": "One sequence now covers different materials, point groups and optical methods. Reporting follows the actual display_channels so Ag(xx),Ag(yy),Ag(zz) are correlated with the plotted arrays.",
+        "check": "The number and names of final expressions must equal the displayed channel list. Detailed reports must not read mutable widget selections after the run was calculated."
+      },
+      {
+        "start_line": 657,
+        "end_line": 676,
+        "title": "latex_document \u2014 Turn the structured trace into a compilable document",
+        "explanation": "The generated article loads geometry, amsmath, amssymb and graphicx. A fitmath macro measures each display equation and shrinks only an overwide one. Sections and escaped prose are written in order, while equation entries retain their mathematical LaTeX.",
+        "why": "The exported derivation should be a usable source document, not only a screenshot or an isolated equation string. Long matrix products need bounded page width without changing their algebra.",
+        "check": "Compile the source and inspect the output. The width helper affects typesetting only, not numeric coefficients or formulas."
+      },
+      {
+        "start_line": 677,
+        "end_line": 703,
+        "title": "paper_intensity_latex \u2014 Export symbolic, substituted and complete mathematical sources",
+        "explanation": "For every final channel, the helper writes a channel heading and active case/profile note. One document contains the original symbolic expression; another substitutes the channel\u2019s actual values and evaluates to twelve digits. The full document is made directly from all derivation entries.",
+        "why": "A symbolic publication formula and one example\u2019s numerical formula serve different purposes and must not be mixed. Reusing the same trace ensures that export and on-screen calculation agree.",
+        "check": "The archive should contain intensity_symbolic.tex, intensity_numerical.tex and calculation_full.tex. Symbolic coefficients must still be present in the symbolic file."
+      }
+    ],
+    "pitfalls": [
+      "The first source-specific report helpers are retained references; detailed_calculation is the active general derivation.",
+      "A real tensor rotation uses T.T*Rc*T even if Rc is complex. The Hermitian operation belongs to the outgoing Jones bra.",
+      "A fixed-input analyzer scan and co-rotating VV/VH scan have different harmonic structures.",
+      "LaTeX rendering and line-fitting helpers change presentation, never the physical values."
+    ]
+  },
+  {
+    "cell": 13,
+    "overview": "This cell retains historical figures and defines the active scientific figures built from the separate edition-14 display channels.",
+    "workflow": [
+      "Resolve a truthful case label.",
+      "Use one common normalization divisor for each branch and its paired/component channels.",
+      "Draw one polar figure per displayed channel.",
+      "Optionally draw the same values against angle in Cartesian coordinates.",
+      "Draw the actual 3D frame.",
+      "Use the same formatting for the silicon benchmark and compatible saved comparisons."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 3,
+        "title": "Scope of this code section",
+        "explanation": "Create readable calculation records and figures from already-computed results.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 4,
+        "end_line": 14,
+        "title": "run_description \u2014 Name the actual workflow and geometry",
+        "explanation": "The label distinguishes the original 2D source from a crystal calculation. A 3D QWP extension and a plane-wave circular model receive explicit scope labels, and the selected material, point group and hkl are included.",
+        "why": "A label must describe the calculation that was actually performed rather than making a 2D optical source appear to be a material tensor.",
+        "check": "A QWP_SOURCE_2D result must not be labeled CaNb2O6 or assigned a surface."
+      },
+      {
+        "start_line": 15,
+        "end_line": 52,
+        "title": "qwp_source_steps_markdown \u2014 Recover source inputs, basis and incident QWP state",
+        "explanation": "The report follows symbols, bases, QWP, incident field, complex source tensor, circular matrix elements, scattered field, return waveplate, analyzer reference, detected amplitude, intensity, special cases and the computed polar curve. It displays independently checked closed forms beside the actual matrix chain and retains source identity. The reporter obtains the source algebra and actual amplitude record, then displays real source parameters, laboratory/circular bases, Q, its unitarity and Ein=Q*x. It identifies the phase-equivalent circular input.",
+        "why": "The source reference needs to remain verifiable on its own optical and tensor assumptions. It must not call the slide component report or replace its chain by another detection scan.",
+        "check": "The source limits phi=0, A=0 and A=0 with phi=pi should agree with the matrix result. Common global phases may drop out of intensity but relative phases must remain."
+      },
+      {
+        "start_line": 53,
+        "end_line": 81,
+        "title": "qwp_source_steps_markdown \u2014 Report the complete source tensor and returning detection basis",
+        "explanation": "The complex effective source matrix, its circular elements and Esc decomposition are followed by Q.T, the transformed circular basis, reference analyzer axes and their phase factors. The relative phase p2/p1 is retained.",
+        "why": "The source reference needs to remain verifiable on its own optical and tensor assumptions. It must not call the slide component report or replace its chain by another detection scan.",
+        "check": "The source limits phi=0, A=0 and A=0 with phi=pi should agree with the matrix result. Common global phases may drop out of intensity but relative phases must remain."
+      },
+      {
+        "start_line": 82,
+        "end_line": 121,
+        "title": "qwp_source_steps_markdown \u2014 Expand source amplitude, interference and limiting cases",
+        "explanation": "The detected scalar amplitude is shown before |A|\u00b2. The report retains Im(R++R\u2212+*) interference, compares an independently checked closed form, lists special limits and labels the actual plotted expression with source identity.",
+        "why": "The source reference needs to remain verifiable on its own optical and tensor assumptions. It must not call the slide component report or replace its chain by another detection scan.",
+        "check": "The source limits phi=0, A=0 and A=0 with phi=pi should agree with the matrix result. Common global phases may drop out of intensity but relative phases must remain."
+      },
+      {
+        "start_line": 122,
+        "end_line": 157,
+        "title": "steps_markdown \u2014 Dispatch historical reports and show declared input/frame",
+        "explanation": "This legacy entry point dispatches source, cubic, circular and linear references to their dedicated reports. Its remaining older crystal report shows frame, Jones propagation and complete tensor/channel intensities for the earlier first-harmonic workflows. The early branches send source, cubic, circular and linear workflows to their dedicated reporters. The remaining older report labels the actual input snapshot, prints the frame and establishes its angle convention.",
+        "why": "The notebook keeps previous reference reports for reproducibility. The edition-14 GENERAL application must use detailed_calculation, which supports all scan bases and the separate Ag display policy.",
+        "check": "Do not call this older reporter as a universal GENERAL formatter: its older branch includes QWP-specific formulas and C,D assumptions that do not cover GENERAL paired-linear K coefficients."
+      },
+      {
+        "start_line": 158,
+        "end_line": 190,
+        "title": "steps_markdown \u2014 Show the optical chain and legacy reference interpretation",
+        "explanation": "The reporter prints Q when applicable, Ein,B,e_an and B\u2020e_an. Its remaining historical branches then describe either the preserved component prescription or the older QWP amplitude decomposition. The GENERAL application uses the newer trace instead.",
+        "why": "The notebook keeps previous reference reports for reproducibility. The edition-14 GENERAL application must use detailed_calculation, which supports all scan bases and the separate Ag display policy.",
+        "check": "Do not call this older reporter as a universal GENERAL formatter: its older branch includes QWP-specific formulas and C,D assumptions that do not cover GENERAL paired-linear K coefficients."
+      },
+      {
+        "start_line": 191,
+        "end_line": 228,
+        "title": "steps_markdown \u2014 Report each rotated tensor and its first-harmonic amplitude",
+        "explanation": "The legacy loop prints combination rules, tensor/partner labels, matrices, numeric substitutions and field propagation. C,D coefficients are reported for the older first-harmonic paths; this assumption is why the function is not the general paired-linear formatter.",
+        "why": "The notebook keeps previous reference reports for reproducibility. The edition-14 GENERAL application must use detailed_calculation, which supports all scan bases and the separate Ag display policy.",
+        "check": "Do not call this older reporter as a universal GENERAL formatter: its older branch includes QWP-specific formulas and C,D assumptions that do not cover GENERAL paired-linear K coefficients."
+      },
+      {
+        "start_line": 229,
+        "end_line": 254,
+        "title": "steps_markdown \u2014 Report selected totals and source links",
+        "explanation": "The old total follows its explicitly selected combination rule. Final equations and references are attached. This report is retained for historical paths; separate edition-14 Ag plots are generated from display_channels elsewhere.",
+        "why": "The notebook keeps previous reference reports for reproducibility. The edition-14 GENERAL application must use detailed_calculation, which supports all scan bases and the separate Ag display policy.",
+        "check": "Do not call this older reporter as a universal GENERAL formatter: its older branch includes QWP-specific formulas and C,D assumptions that do not cover GENERAL paired-linear K coefficients."
+      },
+      {
+        "start_line": 255,
+        "end_line": 304,
+        "title": "figures_for_run \u2014 Retain legacy whole-mode figure generation",
+        "explanation": "The function draws Cartesian and polar panels from run[\"curves\"], with optional partner/component overlays and historical normalization. It delegates the old LINEAR route and can attach an interference comparison or orientation view.",
+        "why": "Older regression/export workflows still need their original figure helper. The active edition-14 component plots use publication_figures instead, because the legacy helper can draw a total Ag curve.",
+        "check": "Use the publication helper for the user-facing separate Ag policy. In every helper the polar radius must be intensity, not amplitude or sqrt(intensity)."
+      },
+      {
+        "start_line": 305,
+        "end_line": 359,
+        "title": "component_coherent_figure \u2014 Compare a legacy component prescription with coherent physics",
+        "explanation": "Only channels marked as the legacy component prescription are selected. Their independently calculated complete coherent intensity and preserved reference intensity are plotted using exactly the same tensor, coefficients, geometry and optical states. An optional common scale is shared by both curves.",
+        "why": "The difference isolates within-phonon interference rather than changing inputs to obtain a preferred shape. It is an audit figure, not a replacement of the selected result.",
+        "check": "Do not interpret the difference as numerical noise or the component powers as separate phonons. Destructive and constructive cross terms can change the shape."
+      },
+      {
+        "start_line": 360,
+        "end_line": 389,
+        "title": "orientation_figure \u2014 Retain the earlier 3D frame drawing",
+        "explanation": "The plot uses the columns of the actual T for the laboratory axes in crystal coordinates. Gray arrows show crystal x,y,z, colored arrows show X,Y,Z, and the displayed plane is spanned by X and Y. Equal axis ranges and box aspect prevent geometric distortion.",
+        "why": "A visible frame helps inspect a surface orientation and in-plane reference. It is drawn from the computed matrix rather than from an unrelated illustration.",
+        "check": "This helper requires a real crystal geometry. The original effective 2D source has no frame to plot."
+      },
+      {
+        "start_line": 390,
+        "end_line": 421,
+        "title": "comparison_figure \u2014 Retain historical complete-mode overlays",
+        "explanation": "Saved run snapshots are overlaid in Cartesian and polar panels, with line styles identifying each case. Labels include the true workflow and optics. Its historical normalization divides each complete mode by its own maximum.",
+        "why": "The function preserves old comparison behavior, while the active publication_comparison uses selected displayed channels, verifies a common scan definition and uses the new component normalization policy.",
+        "check": "Do not compare alpha and theta as if they were the same physical rotation. Use the active component comparison helper for edition-14 main figures."
+      },
+      {
+        "start_line": 422,
+        "end_line": 422,
+        "title": "Scope of this code section",
+        "explanation": "Scientific polar and Cartesian figures with one visible Ag component per plot.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 423,
+        "end_line": 425,
+        "title": "Import scientific tick-formatting helpers",
+        "explanation": "AutoMinorLocator creates optional Cartesian minor ticks, FuncFormatter formats readable radial values, and ScalarFormatter is retained with the imported plotting utilities.",
+        "why": "Presentation formatting belongs to the plotting layer and must not affect the physical arrays.",
+        "check": "Changing a tick formatter must not change intensity values."
+      },
+      {
+        "start_line": 426,
+        "end_line": 434,
+        "title": "channel_display_scales \u2014 Find one common scale for each branch",
+        "explanation": "The helper groups displayed channels by normalization_group and takes the largest sampled intensity among all of them. Zero-signal groups receive a divisor of one.",
+        "why": "Ag component ratios and paired VV/VH ratios should survive optional normalization. Normalizing each contribution independently would erase those ratios.",
+        "check": "All Ag components of a branch and its parallel/crossed versions must receive the same divisor. Stored raw intensity arrays remain unchanged."
+      },
+      {
+        "start_line": 435,
+        "end_line": 454,
+        "title": "configure_polar_axis \u2014 Apply one readable polar-axis convention",
+        "explanation": "Zero degrees is placed on the right and positive angles increase counterclockwise. Angular ticks are spaced by 45 degrees. A positive radial limit and filtered interior tick candidates keep the large supplied font away from outer angle labels; radial numbers use three significant figures at 112.5 degrees. Grid and spine styles follow the scientific figure settings.",
+        "why": "The geometric meaning of a polar plot depends on angle origin, direction and radius. Common formatting and clear tick placement make comparisons reproducible and legible.",
+        "check": "The radial coordinate is nonnegative intensity. A zero-signal plot still has a valid visible axis, and formatting must not change any physical curve."
+      },
+      {
+        "start_line": 455,
+        "end_line": 466,
+        "title": "short_case_label \u2014 Label a figure with its actual case",
+        "explanation": "The label reads the material and Miller indices for an hkl construction, identifies a manual frame when one was supplied, or says Optical reference when geometry is absent.",
+        "why": "Figure titles must carry enough context to distinguish a source model, surface and material in exported standalone figures.",
+        "check": "A manual frame must not be mislabeled as though hkl inputs were reapplied."
+      },
+      {
+        "start_line": 467,
+        "end_line": 498,
+        "title": "publication_figures \u2014 Draw one main figure per calculated display channel",
+        "explanation": "The function iterates display_channels, uses its common branch scale only when normalization is selected, and draws a separate polar figure from the stored curve. Optional Cartesian figures use the same values in degrees. Titles, axis labels and safe filenames are generated from actual channel names.",
+        "why": "The user requested separate Ag(xx),Ag(yy),Ag(zz) plots. Iterating displayed channels ensures that the main figures and main CSV represent the same quantities, without a summed Ag component-power curve.",
+        "check": "For D2h Ag there should be three polar figures. Adding Cartesian display changes the number of figures, not the underlying intensity arrays."
+      },
+      {
+        "start_line": 499,
+        "end_line": 523,
+        "title": "publication_orientation \u2014 Draw the actual frame with the supplied scientific style",
+        "explanation": "For a crystal result, a 6.5-by-5-inch 3D figure uses the numerical real columns of T. Gray crystal axes and colored measurement axes have explicit labels and equal spatial ranges. The source optical model returns None.",
+        "why": "The orientation drawing is another view of the same geometric result used in T.T*Rc*T. It is not a separate choice of rotation.",
+        "check": "The frame displayed here must equal the exported T, and the aspect ratio must not make an orthogonal frame appear sheared."
+      },
+      {
+        "start_line": 524,
+        "end_line": 555,
+        "title": "publication_cubic_figure \u2014 Plot the six-surface silicon study with a shared scale",
+        "explanation": "For one or all selected protocols, the helper reads each precomputed T2g curve and divides it by the one shared |d|\u00b2 value. Six fixed colors identify (500) through (550). Shared legends, protocol-specific angle labels and the common polar-axis helper complete the figure.",
+        "why": "The benchmark compares actual relative intensity changes across surfaces. Dividing each curve by its own maximum would spoil that comparison.",
+        "check": "All six curves within each panel must use the same d and radius convention. A Matplotlib figure is not a claim of native Origin rendering."
+      },
+      {
+        "start_line": 556,
+        "end_line": 576,
+        "title": "publication_comparison \u2014 Compare frozen component runs with compatible scan definitions",
+        "explanation": "The function selects saved runs containing a requested display channel and requires one scan_basis across them. It then overlays that channel from each snapshot using the selected raw or common-per-mode normalization. Case labels and a legend identify the surfaces.",
+        "why": "A meaningful overlay needs the same angular definition and the correct component rather than an arbitrary total. Frozen runs retain their original inputs even after controls are edited.",
+        "check": "A first-harmonic alpha scan and a second-harmonic theta scan must be rejected as an automatic overlay. Equal scan_basis alone still does not mean the optical states are identical; inspect the recorded optics."
+      }
+    ],
+    "pitfalls": [
+      "The active main function is publication_figures, not the legacy figures_for_run total-mode renderer.",
+      "A polar radius is intensity, not square-root intensity.",
+      "Shared normalization preserves relative component/VV/VH strengths; individual normalization would erase them.",
+      "Compatible scan_basis is necessary for an automatic overlay but does not itself prove identical physical optical states."
+    ]
+  },
+  {
+    "cell": 14,
+    "overview": "The silicon benchmark applies the same 3D tensor/Jones engine to six surfaces and three optical protocols with one common coefficient scale. Its complete T2g-triplet intensity is invariant under orthogonal changes of phonon-partner basis; that invariant does not establish literal agreement with the printed individual LO/TO projection in Eq. 8.",
+    "workflow": [
+      "Fix the article\u2019s cubic frame convention and reference inputs.",
+      "Calculate (500),(510),(520),(530),(540),(550) for VV,VH and sigma+alpha.",
+      "Retain all three complete T2g phonon partners; distinguish their invariant summed intensity from the convention used to label individual projected partners.",
+      "Check/record continuous extrema rather than grid-picked peaks.",
+      "Use the full shared mathematical trace and current publication renderer."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 2,
+        "title": "Scope of this code section",
+        "explanation": "Cubic benchmark, computed by the existing 3D Jones engine.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 3,
+        "end_line": 11,
+        "title": "CUBIC_SOURCE \u2014 Record the cubic benchmark source and reading scope",
+        "explanation": "The dictionary stores the main article title, journal, DOI, URL, page count and SHA-256 identity. It explicitly records that a separately listed supplementary file was unavailable; the benchmark is reconstructed from the main text and independent checks.",
+        "why": "A reproducibility record should distinguish a source that was actually available from an unverified supplement. The hash identifies the supplied main-paper version.",
+        "check": "Do not describe the separate supporting-information document as read or reproduced solely because its publisher listing exists."
+      },
+      {
+        "start_line": 12,
+        "end_line": 12,
+        "title": "Register the cubic article in the shared source registry",
+        "explanation": "The CUBIC_SOURCE dictionary is added under the cubic_2026 key in SOURCES so it can be exported with source metadata.",
+        "why": "One shared reference object avoids inconsistent DOI and scope records across reports.",
+        "check": "The registry assignment does not change the tensor library or intensity law."
+      },
+      {
+        "start_line": 13,
+        "end_line": 17,
+        "title": "CUBIC_PANELS \u2014 Map physical protocols to data files and angle columns",
+        "explanation": "Each protocol entry contains the engine optical key, CSV filename, degree-angle column name and figure label. VV/VH use theta_deg and the circular reference uses alpha_deg.",
+        "why": "The same mapping drives calculation, plotting and Origin export, reducing the risk that a file is given the wrong scan variable or protocol label.",
+        "check": "Keep the CSV headers and plotted angle labels consistent with this mapping."
+      },
+      {
+        "start_line": 18,
+        "end_line": 19,
+        "title": "CUBIC_COLORS \u2014 Give the six surface orientations fixed colors",
+        "explanation": "The six hexadecimal colors encode (500) through (550) in a stable order.",
+        "why": "Consistent colors make the same surface traceable across VV,VH,sigma and exported figures. Color is a presentation choice and never changes its data.",
+        "check": "The index k must select the same color in every panel and export."
+      },
+      {
+        "start_line": 20,
+        "end_line": 22,
+        "title": "CUBIC_READING_NOTES \u2014 Keep benchmark conventions beside the source",
+        "explanation": "This report text records the common frame, optical states, full silicon partner treatment and the distinction between theta and alpha scans.",
+        "why": "Reference reproduction requires axis and polarization conventions in addition to a paper citation.",
+        "check": "Use the actual matrix/state definitions to resolve any ambiguity in a prose equation label."
+      },
+      {
+        "start_line": 23,
+        "end_line": 39,
+        "title": "cubic_frame \u2014 Construct the cubic reference axes explicitly",
+        "explanation": "The function uses the normalized (h,k,l) normal and the in-plane vector (k,\u2212h,0). A cross-related second vector completes the proper frame. When h=k=0, a principal-axis limit avoids division by zero. validate_frame checks orthogonality and determinant.",
+        "why": "A reference polar pattern depends on its in-plane zero as well as surface normal. Locking the stated cubic frame makes the benchmark reproducible.",
+        "check": "The limit for a positive z normal is I; a negative z normal uses a proper sign-adjusted frame rather than a reflection."
+      },
+      {
+        "start_line": 40,
+        "end_line": 61,
+        "title": "cubic_fig1_config \u2014 Lock one of the eighteen silicon reference inputs",
+        "explanation": "The function accepts only integer k=0..5 and VV,VH,SIGMA, requires a positive shared |d|, and sets Si T2g, (5,k,0), [k,\u22125,0], the reference normal side and scan grid. It disables individual normalization and assigns the same magnitude to the branch coefficient.",
+        "why": "The benchmark must have fixed material tensors, frame convention and common coefficient scale; otherwise matching a plot would be ambiguous.",
+        "check": "Invalid surfaces/protocols or a zero common divisor must be rejected. This is a locked silicon benchmark, not an automatic physical model for every cubic material."
+      },
+      {
+        "start_line": 62,
+        "end_line": 71,
+        "title": "cubic_projected_partners \u2014 Rotate the complete phonon-partner basis",
+        "explanation": "The function linearly recombines the three already-rotated complete tensors using columns of T: R_new,j=sum_i T_ij R_rotated,i. In stacked-vector notation this is T.T*[Rx_prime,Ry_prime,Rz_prime]. It projects crystal phonon-polarization components onto the measurement axes when T=[X Y Z] has those axes as columns. The article uses that column convention in Eq. 6, but its printed Eq. 8 instead displays T multiplying the stacked tensors. These two written operations are not identical for individual partners.",
+        "why": "For the complete degenerate silicon triplet, either orthogonal partner mixing preserves sum_j |A_j|^2. The benchmark therefore remains valid without asserting that its individual projected tensors literally reproduce the printed Eq. 8. An individually selected LO or TO branch needs a separately resolved phonon-polarization convention; complete-triplet invariance alone cannot validate that assignment.",
+        "check": "For (500), the program column projection gives R_Z=R_x_prime, whereas literal multiplication by the printed T in Eq. 8 gives R_Z=\u2212R_y_prime. The summed complete Si-triplet intensity is unchanged by the orthogonal recombination, but these individual branch tensors differ. Do not claim literal Eq. 8 agreement or independently validated LO/TO branch intensities from the Si sum check."
+      },
+      {
+        "start_line": 72,
+        "end_line": 111,
+        "title": "cubic_steps_markdown \u2014 Earlier compact benchmark report, replaced later in this cell",
+        "explanation": "The first definition prints the reference frame, input/output states, rotated tensors, projected parts, amplitudes and the complete-partner intensity rule. It uses the active scan symbol. Near the end of the cell a second definition replaces this compact reporter with the full shared mathematical trace.",
+        "why": "Python resolves the name to its most recent definition. Explaining the override prevents readers from assuming the old compact report drives the edition-14 benchmark inspector.",
+        "check": "After the whole cell runs, cubic_steps_markdown must call attach_display_channels and detailed_calculation, not this earlier compact body."
+      },
+      {
+        "start_line": 112,
+        "end_line": 141,
+        "title": "cubic_all_extrema \u2014 Find all equivalent continuous extrema",
+        "explanation": "The harmonic coefficients are converted into complex Fourier coefficients u1,u2. Stationarity becomes a quartic polynomial in z=exp(2i*angle). Roots near the unit circle yield candidate angles, which are extended over 0..360 degrees and tested against Imin and Imax. A flat curve returns no unique angles.",
+        "why": "The angular sampling grid can miss the exact tilted maximum. Continuous stationary roots determine maxima and minima independently of plotting resolution.",
+        "check": "Equivalent angles 180 degrees apart should appear where the model has that periodicity. Constant curves must be identified without arbitrary maxima."
+      },
+      {
+        "start_line": 142,
+        "end_line": 159,
+        "title": "calculate_cubic_fig1 \u2014 Calculate six surfaces in three protocols with the ordinary engine",
+        "explanation": "Nested loops create and calculate one configuration for every protocol and k value, producing eighteen run records. The study stores the shared coefficient, source, surfaces, scale policy and common angle array.",
+        "why": "The benchmark is an application of the same 3D Jones engine as the general calculator, not a separate table of pasted curves.",
+        "check": "There must be six runs under each of VV,VH,SIGMA, all with a common magnitude and corresponding grid."
+      },
+      {
+        "start_line": 160,
+        "end_line": 187,
+        "title": "cubic_fig1_figure \u2014 Earlier benchmark figure helper, replaced by the publication renderer",
+        "explanation": "The first renderer draws six complete T2g curves per panel using a common |d|\u00b2 divisor and fixed protocol limits. At the end of the cell, the function name is rebound to publication_cubic_figure, which applies the current scientific style.",
+        "why": "Retaining the earlier definition documents previous benchmark behavior, while the explicit alias makes the active edition-14 renderer unambiguous.",
+        "check": "After full execution, cubic_fig1_figure is publication_cubic_figure; the exported preview therefore uses the supplied style."
+      },
+      {
+        "start_line": 188,
+        "end_line": 192,
+        "title": "cubic_steps_markdown \u2014 Replace the compact benchmark report with the full common trace",
+        "explanation": "The later definition deep-copies the complete benchmark run, attaches the main displayed-channel metadata and calls detailed_calculation. Python rebinds the function name to this body, so benchmark export and inspection use the same detailed mathematics as the general calculator.",
+        "why": "A single mathematical trace keeps the benchmark and main calculator correlated, while retaining the original calculation and arrays.",
+        "check": "The full report must contain actual matrix steps for all three complete silicon phonon partners."
+      },
+      {
+        "start_line": 193,
+        "end_line": 193,
+        "title": "cubic_fig1_figure \u2014 Bind the benchmark renderer to the scientific publication style",
+        "explanation": "The assignment makes cubic_fig1_figure refer to publication_cubic_figure from Cell 13. All later benchmark previews and exports use that current function.",
+        "why": "A deliberate single binding applies the supplied style consistently to benchmark output without altering physics arrays.",
+        "check": "The resulting figure must retain the same six raw/common-scaled curves and fixed surface colors."
+      }
+    ],
+    "pitfalls": [
+      "The name cubic_steps_markdown is intentionally redefined near the end of the cell; the last definition is active.",
+      "The last assignment binds cubic_fig1_figure to publication_cubic_figure.",
+      "The sum over the three orthogonal silicon partners is not an Ag tensor-entry power sum.",
+      "Only the main article was available for this reconstruction; the separately listed supporting file is not claimed to have been read.",
+      "The program uses column-wise phonon-partner projection, equivalent to T.T acting on the stacked rotated tensors when T=[X Y Z]. Printed Eq. 8 displays T acting on that stack, so literal individual-tensor agreement is not claimed.",
+      "Complete silicon-triplet intensity is invariant under either orthogonal partner mixing. Matching its total polar plots cannot resolve an individual LO/TO labeling convention or establish a material-specific LO/TO branch model."
+    ]
+  },
+  {
+    "cell": 15,
+    "overview": "This cell hands already-calculated silicon arrays to native OriginLab plotting and packages all associated data, equations and verification records.",
+    "workflow": [
+      "Store the Origin script and usage guide as exportable strings.",
+      "Read calculated harmonic summaries for a compact surface comparison.",
+      "Write three seven-column protocol CSVs with degree angles and six surfaces.",
+      "Write raw values, continuous extrema and tensor/input records.",
+      "Add full derivations, validation and scientific Matplotlib previews.",
+      "Run the exported script later in an installed Origin session to create native polar graphs."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 2,
+        "title": "Scope of this code section",
+        "explanation": "OriginLab handoff for the computed Fig. 1 arrays, without recalculating curves.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 3,
+        "end_line": 20,
+        "title": "ORIGIN_FIG1_SCRIPT \u2014 Store the Origin script and its fixed protocol mapping",
+        "explanation": "The raw string contains a separate Python script that will be written into the benchmark ZIP. Defining this string does not import originpro or run Origin inside the notebook. The raw string begins with usage notes, imports csv,Path,originpro, and defines six colors plus the three CSV/protocol/radius-limit entries. None of these imports runs until the exported string is executed in Origin.",
+        "why": "The calculation environment computes the physical arrays; the user\u2019s installed Origin session can then plot those same values and save an OPJU project.",
+        "check": "An Origin script syntax check is not proof of native Origin execution. The application must state that distinction."
+      },
+      {
+        "start_line": 21,
+        "end_line": 39,
+        "title": "ORIGIN_FIG1_SCRIPT \u2014 Parse and validate the exported arrays inside Origin",
+        "explanation": "build_origin_fig1 opens each CSV, checks that it has a degree-angle X column and six surface columns spanning 0..360, then creates a worksheet and assigns X/Y roles and common intensity units.",
+        "why": "The calculation environment computes the physical arrays; the user\u2019s installed Origin session can then plot those same values and save an OPJU project.",
+        "check": "An Origin script syntax check is not proof of native Origin execution. The application must state that distinction."
+      },
+      {
+        "start_line": 40,
+        "end_line": 48,
+        "title": "ORIGIN_FIG1_SCRIPT \u2014 Create native Origin polar graphs",
+        "explanation": "The script creates the polar template, adds each worksheet Y column as theta(X)-radius(Y) plot type 192, sets colors, rescales the layer and applies angular/radial limits. The graph is built from the existing calculated arrays.",
+        "why": "The calculation environment computes the physical arrays; the user\u2019s installed Origin session can then plot those same values and save an OPJU project.",
+        "check": "An Origin script syntax check is not proof of native Origin execution. The application must state that distinction."
+      },
+      {
+        "start_line": 49,
+        "end_line": 64,
+        "title": "ORIGIN_FIG1_SCRIPT \u2014 Save an OPJU file without overwriting an existing project filename",
+        "explanation": "A numeric suffix is selected when the proposed output path exists. op.save writes the project, existence is checked, and the script\u2019s __main__ block starts the workflow when run through runpy in Origin.",
+        "why": "The calculation environment computes the physical arrays; the user\u2019s installed Origin session can then plot those same values and save an OPJU project.",
+        "check": "An Origin script syntax check is not proof of native Origin execution. The application must state that distinction."
+      },
+      {
+        "start_line": 65,
+        "end_line": 94,
+        "title": "CUBIC_ORIGIN_README \u2014 Document the native Origin run and manual fallback",
+        "explanation": "The instructions explain extraction, running plot_in_origin.py inside Origin, worksheet X/Y roles, angular units, common intensity scale, file contents and limiting benchmark checks. It explicitly separates executed Python calculations from unexecuted native Origin plotting. The saved README explains how to extract the CSV/script together and run the script in Origin\u2019s Python Console. It describes worksheet roles, angular direction and a manual polar-plot import path for versions where automation differs.",
+        "why": "A standalone result bundle must be usable without reading the notebook conversation. Users also need to know which validation was actually performed.",
+        "check": "Do not convert the CSV degree-angle column into radians when importing into Origin. Preserve the common |d|\u00b2 divisor."
+      },
+      {
+        "start_line": 95,
+        "end_line": 116,
+        "title": "CUBIC_ORIGIN_README \u2014 Explain every benchmark output and physical scale",
+        "explanation": "The file list distinguishes protocol CSVs, raw long tables, continuous extrema, matrix/input records, calculated steps, validation and Matplotlib previews. It states one common |d|\u00b2 scale and expected limiting maxima/tilt.",
+        "why": "A standalone result bundle must be usable without reading the notebook conversation. Users also need to know which validation was actually performed.",
+        "check": "Do not convert the CSV degree-angle column into radians when importing into Origin. Preserve the common |d|\u00b2 divisor."
+      },
+      {
+        "start_line": 117,
+        "end_line": 135,
+        "title": "CUBIC_ORIGIN_README \u2014 State what has and has not been executed",
+        "explanation": "The notes identify the executed Python and syntax checks and disclose that native Origin requires the user\u2019s installed session. Primary Origin documentation links support the handoff APIs.",
+        "why": "A standalone result bundle must be usable without reading the notebook conversation. Users also need to know which validation was actually performed.",
+        "check": "Do not convert the CSV degree-angle column into radians when importing into Origin. Preserve the common |d|\u00b2 divisor."
+      },
+      {
+        "start_line": 136,
+        "end_line": 153,
+        "title": "cubic_summary_markdown \u2014 Summarize the benchmark without per-curve normalization",
+        "explanation": "For each surface, the helper reads the three calculated T2g summaries and reports VV/VH maxima, the sigma maximum angle and sigma maximum intensity, all under the one |d|\u00b2 scale.",
+        "why": "A compact numeric summary checks the features of the polar plots and makes their angular tilt measurable. It is extracted from computed harmonic summaries rather than measured from a screenshot.",
+        "check": "The sigma maximum moves from 90 degrees at (500) to about 103.2825255885 degrees at (550) for the locked benchmark."
+      },
+      {
+        "start_line": 154,
+        "end_line": 251,
+        "title": "make_cubic_origin_archive \u2014 Package computed silicon arrays for native Origin plotting",
+        "explanation": "The archive includes the Origin script, instructions, source notes, validation and summary. For every protocol it writes one degree-angle column with six common-scaled intensity columns. Long-format raw data, continuous extrema, exact input/tensor records and full calculated steps are stored as well. Matplotlib reference figures are exported separately as PDF,SVG and 600-dpi PNG.",
+        "why": "Origin is the plotting destination; it must receive the already-calculated physical arrays rather than recalculate them with another convention. Exact inputs and matrix records preserve the connection between the notebook and final figure.",
+        "check": "CSV X values are degrees, not radians. Matplotlib previews are labeled as previews, and native Origin execution must occur in an installed Origin session."
+      }
+    ],
+    "pitfalls": [
+      "Defining ORIGIN_FIG1_SCRIPT does not run Origin in the notebook or browser.",
+      "Matplotlib previews must not be described as native Origin output.",
+      "CSV angles are already in degrees.",
+      "The six surfaces share one |d|\u00b2 divisor rather than separate unit maxima."
+    ]
+  },
+  {
+    "cell": 16,
+    "overview": "The active exporter serializes one reproducible result, keeping main Ag component data separate from the coherent complete-mode audit and preserving all mathematical sources. The optical-profile guide explains physical differences without changing the intensity engine.",
+    "workflow": [
+      "Receive the calculated run and its figures/trace as explicit arguments.",
+      "Write input, policy, source, style and validation records.",
+      "Write the plotted component arrays to intensity_raw.csv.",
+      "Write coherent complete-mode arrays to a separately named audit file.",
+      "Export symbolic, substituted and full mathematical TeX sources from the same trace.",
+      "Save PDF,SVG and 600-dpi PNG figures.",
+      "Include saved comparisons with their own input snapshots.",
+      "Export the current checking procedures with purposes, expected equations and measured evidence. Include the optical source reference report when validation has run."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 3,
+        "title": "Scope of this code section",
+        "explanation": "Reproducible ZIP export with explicit inputs and no dependence on widget globals.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 4,
+        "end_line": 55,
+        "title": "make_archive \u2014 Write an input snapshot and historical calculation policy",
+        "explanation": "This original exporter serializes a passed run, report, figures, validation and frozen comparisons. It writes configuration, model policies, tensors, coefficients, raw complete-mode arrays, partner/component arrays and coherence audits. Optional source metadata, circular diagnostics and comparison figures are included. Figures use its historical PNG/SVG export settings. The exporter works only from its arguments. A local JSON writer applies serializable and disallows NaN. It stores actual inputs, complete summaries, assumptions, policy fields, tensor records, selected source metadata and reading notes.",
+        "why": "The explicit arguments avoid reading current widget selections after a previous run was computed. This preserves the old reproducible archive behavior. The main edition-14 application uses make_general_archive to export its separate displayed Ag contributions and the new style.",
+        "check": "Do not use this legacy exporter for the edition-14 main component CSV: its intensity_raw.csv follows run[\"curves\"], the complete-mode record."
+      },
+      {
+        "start_line": 56,
+        "end_line": 100,
+        "title": "make_archive \u2014 Store historical raw mode and partner/component arrays",
+        "explanation": "The main historical CSV follows run[\"curves\"]. A second long-format table follows the actual component_or_partner labels. The angular column is named theta_deg only for SECOND scans; all exported X values are degrees.",
+        "why": "The explicit arguments avoid reading current widget selections after a previous run was computed. This preserves the old reproducible archive behavior. The main edition-14 application uses make_general_archive to export its separate displayed Ag contributions and the new style.",
+        "check": "Do not use this legacy exporter for the edition-14 main component CSV: its intensity_raw.csv follows run[\"curves\"], the complete-mode record."
+      },
+      {
+        "start_line": 101,
+        "end_line": 135,
+        "title": "make_archive \u2014 Retain interference evidence and historical figure exports",
+        "explanation": "Entry self-powers, signed interference, independent coherent values and selected values are exported alongside audit scope. Passed figures are saved using the older PNG/SVG settings; this is separate from the current publication exporter.",
+        "why": "The explicit arguments avoid reading current widget selections after a previous run was computed. This preserves the old reproducible archive behavior. The main edition-14 application uses make_general_archive to export its separate displayed Ag contributions and the new style.",
+        "check": "Do not use this legacy exporter for the edition-14 main component CSV: its intensity_raw.csv follows run[\"curves\"], the complete-mode record."
+      },
+      {
+        "start_line": 136,
+        "end_line": 174,
+        "title": "make_archive \u2014 Serialize frozen comparison inputs and curves",
+        "explanation": "Saved runs are written with their own case labels, methods, optical profiles, scan meanings, material/group names and intensity arrays. An optional comparison image is included. None of these records is taken from a later live UI selection.",
+        "why": "The explicit arguments avoid reading current widget selections after a previous run was computed. This preserves the old reproducible archive behavior. The main edition-14 application uses make_general_archive to export its separate displayed Ag contributions and the new style.",
+        "check": "Do not use this legacy exporter for the edition-14 main component CSV: its intensity_raw.csv follows run[\"curves\"], the complete-mode record."
+      },
+      {
+        "start_line": 175,
+        "end_line": 176,
+        "title": "Scope of this code section",
+        "explanation": "Separate main component data, complete-mode audits, LaTeX and styled figures.",
+        "why": "This module-level documentation identifies the responsibility of the following definitions and prevents confusing reference/report helpers with the active calculation engine.",
+        "check": "Documentation does not execute a calculation or select coefficients."
+      },
+      {
+        "start_line": 177,
+        "end_line": 185,
+        "title": "UPGRADE_SOURCES \u2014 Collect the source links exported with the general result",
+        "explanation": "The dictionary connects tensor/phase response, circular-rule scope, cubic states/geometry and Matplotlib style/polar interfaces to their primary source URLs.",
+        "why": "The downloadable scientific record should identify both the physical equations and the plotting software interfaces used to present them.",
+        "check": "A plotting documentation URL establishes API use; it is not itself a universal journal-format standard."
+      },
+      {
+        "start_line": 186,
+        "end_line": 193,
+        "title": "csv_from_curves \u2014 Write exactly one shared angular column and named curves",
+        "explanation": "StringIO and csv.writer create an in-memory table. The header preserves the supplied channel names, while zip combines the degree-converted angular grid with each supplied curve in that same order.",
+        "why": "A single common grid prevents misaligned angle/intensity columns. The helper accepts the chosen curve dictionary explicitly, so the caller decides whether it is main display data or a separate audit.",
+        "check": "The number of entries per row must equal one plus the number of named channels; exported angles must run over the intended degree range."
+      },
+      {
+        "start_line": 194,
+        "end_line": 221,
+        "title": "make_general_archive \u2014 Store the common run\u2019s policies, checks and provenance",
+        "explanation": "The active exporter records the input snapshot, display policy, displayed harmonic summaries, complete-mode audit, independent reconstruction errors, state-projector comparisons and actual figure/font provenance. It writes separate main-component and complete-mode CSVs, full matrix records, structured mathematical steps, Markdown and three TeX documents. The supplied stylesheet and PDF/SVG/600-dpi PNG figures accompany the result. Saved comparisons use their own frozen component arrays. The active exporter prepares the three LaTeX sources, chooses the angle-column name and writes the input snapshot, displayed and complete harmonic summaries, validation, independent representation errors, protocol projector comparisons, actual style/font and source links. The archive now also contains checking_procedures.json/.md and, after reference validation, optical_reference_validation.json/.md.",
+        "why": "Every output must refer to one calculated result. Keeping the coherent complete-mode audit in separately named files prevents confusing it with the requested separate Ag component plots. Symbolic and substituted equations are kept distinct. These records preserve what was checked, its purpose and the actual residual instead of an unsupported success label.",
+        "check": "For orthorhombic Ag, the main CSV header should contain Ag(xx),Ag(yy),Ag(zz) without a summed Ag component column. Complete-mode interference belongs in complete_modes_audit.csv and its JSON audit."
+      },
+      {
+        "start_line": 222,
+        "end_line": 254,
+        "title": "make_general_archive \u2014 Export main display data and complete-mode audits separately",
+        "explanation": "Exact displayed matrix records and the shared mathematical trace are saved. intensity_raw.csv follows display_curves; complete_modes_audit.csv follows complete curves. Three TeX files, Markdown steps, the unchanged stylesheet and a README explain that distinction.",
+        "why": "Every output must refer to one calculated result. Keeping the coherent complete-mode audit in separately named files prevents confusing it with the requested separate Ag component plots. Symbolic and substituted equations are kept distinct.",
+        "check": "For orthorhombic Ag, the main CSV header should contain Ag(xx),Ag(yy),Ag(zz) without a summed Ag component column. Complete-mode interference belongs in complete_modes_audit.csv and its JSON audit."
+      },
+      {
+        "start_line": 255,
+        "end_line": 275,
+        "title": "make_general_archive \u2014 Save scientific figures and frozen component comparisons",
+        "explanation": "Each passed figure is exported as PDF,SVG and 600-dpi PNG. Comparison inputs and long-format arrays come from saved displayed component runs, preserving their own actual optical profile and angle grid. The ZIP bytes are returned without depending on widget globals.",
+        "why": "Every output must refer to one calculated result. Keeping the coherent complete-mode audit in separately named files prevents confusing it with the requested separate Ag component plots. Symbolic and substituted equations are kept distinct.",
+        "check": "For orthorhombic Ag, the main CSV header should contain Ag(xx),Ag(yy),Ag(zz) without a summed Ag component column. Complete-mode interference belongs in complete_modes_audit.csv and its JSON audit."
+      }
+    ],
+    "pitfalls": [
+      "make_archive is retained for historical whole-mode exports; make_general_archive is the edition-14 main export.",
+      "The main component CSV and the complete-mode audit answer different questions.",
+      "Normalization affects figures only; raw CSV values remain unnormalized.",
+      "Actual installed font provenance is recorded because the requested Arial font may be unavailable."
+    ]
+  }
+]
