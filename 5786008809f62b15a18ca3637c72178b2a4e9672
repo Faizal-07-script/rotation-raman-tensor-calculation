@@ -1,0 +1,19 @@
+{
+  "version": "3",
+  "status": "passed",
+  "date": "2026-10-22",
+  "scope": "Desktop browser preview; live deployment smoke check is performed after publication.",
+  "checks": [
+    "Home starts with the sidebar and Introduction submenu collapsed.",
+    "Guide invitation is optional; close/skip leaves the workspace usable.",
+    "The guide center lists 60 distinct tours, including all 22 Python cells and every Introduction/Physics topic.",
+    "Workspace tour: Next, step jump, close and resume return to the saved step.",
+    "Calculator input tour opens relevant details; Back skips inapplicable source-only controls correctly.",
+    "Closing the calculator guide restores opened orientation details and preserves the visible case label and coefficients.",
+    "Result-tab guide switches to Protocol checks without starting Python.",
+    "Cell 5 guide opens the complete source and fingerprint.",
+    "Orientation topic guide follows its actual lattice and frame subsections.",
+    "Section-prompt preference survives a page reload and can be disabled."
+  ],
+  "scientific_source": "All 22 code cells match the prior scientific source after release-identity and original-reference-label substitutions only."
+}

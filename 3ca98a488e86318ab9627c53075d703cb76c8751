@@ -1,0 +1,659 @@
+{
+  "status": "passed",
+  "version": "3",
+  "checks": [
+    "21 point groups: six-dimensional symmetric basis, 132 covariance checks and 66 irrep-character checks.",
+    "Quarter-wave-plate source: Q, Q.T, incident sigma+, analyzer reference and complex-tensor intensity match the uploaded notebook.",
+    "Method separation: original Quarter-wave-plate source and special cases, coherent 3D Ag, unchanged REFERENCE Ag sum, phase-interference distinction, rejected hybrids and isolated source/report paths pass.",
+    "45 full 3D complex-tensor contractions match the Jones engine; proper-frame and isotropic tensor invariants pass.",
+    "REFERENCE slides 12\u201314: general beta,beta' formula, five special coefficient cases and independently derived denominator agree; the production engine does not call the reference formula.",
+    "Degenerate partner-basis invariance, Si optical-profile limits and basal D6h E1g extinction pass.",
+    "Zero/overflow handling, invalid geometry/reflection rejection, fixed-profile provenance and configuration immutability pass.",
+    "Complex linear model: Eqs. 13a\u2013d, complex full-3D scans, fourth harmonics, continuous extrema, global-phase invariance and the monoclinic projected-coefficient check pass.",
+    "Triclinic convention: printed Eq. 16 is reproduced with the documented angle reversal; the engine keeps the explicit positive-angle matrix convention.",
+    "Circular-channel model: circular Jones channels, mixed Ag, fixed-channel constants, MoS2 Table 2 conditions, N=2 insufficiency, tilted-axis scope and unmodified ell=0 reference curves pass.",
+    "Resonance utility: explicit third-order denominators, complex numerator weights and continuous phase agree with the supplied-term model.",
+    "Physics audit: pure Jones/Stokes states, explicit beam-direction convention, distinct REFERENCE/Quarter-wave-plate detector paths, retained constructive/destructive interference, unchanged reference laws and scripted Circular input checks pass.",
+    "Separate Ag(xx), Ag(yy), Ag(zz) match independent slide-frame laws and the previous individual component arrays; no Ag sum is plotted.",
+    "Historical crystal routes and the common engine agree on 15 complete-mode curves when tensors, frames, coefficients and optical states match.",
+    "The original 2D optical reference and its explicit general 3D embedding agree for identical tensors and optics.",
+    "All 21 point groups pass direct and circular-basis reconstructions for VV, VH and sigma+alpha (210 displayed-channel checks).",
+    "Exact dark channels pass a propagated roundoff bound; an injected nonzero intensity still fails the independent audit.",
+    "Symbolic I(angle) before coefficient substitution matches plotted arrays for eight optical configurations, including paired linear and fixed circular channels.",
+    "QWP, direct-linear and elliptical-state scans remain distinct; identical circular endpoints do not force equal intermediate intensities.",
+    "Supplied sci.mplstyle dimensions, base font, line width, transparency and export DPI are retained; the actual font is explicitly recorded.",
+    "Optical-profile guide: general-complex-tensor VV/VH and interference identities, detector Stokes trajectories, matching custom states, fixed circular limits and a distinct same-tensor example pass.",
+    "QWP source reference: 25/25 checking procedures pass."
+  ],
+  "optical_reference": {
+    "status": "passed",
+    "kind": "QWP source reference validation",
+    "source": {
+      "filename": "Dr_Kumar_Original.ipynb",
+      "sha256": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
+      "date": "2026-10-15",
+      "notebook_cells": 38,
+      "code_cells": 20,
+      "notation": "R[out,in]: first index = detected circular label; second = incident label.",
+      "scope": "The source is an effective complex 2x2 optical model. Its antisymmetric off-diagonal pair is not substituted for a D2h material tensor."
+    },
+    "software_version": "3",
+    "rows": [
+      {
+        "id": "K01",
+        "title": "Circular-basis orthonormality",
+        "source": "Cell 3",
+        "purpose": "Exclude incorrect normalization and missing complex conjugation.",
+        "procedure": "Form the Gram matrix of the two circular vectors.",
+        "expected_latex": "U_\\sigma^\\dagger U_\\sigma=I_2",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 4,
+          "residuals": [
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K02",
+        "title": "Explicit quarter-wave-plate matrix",
+        "source": "Cell 4",
+        "purpose": "Detect an axis-angle or retardance sign error before scattering.",
+        "procedure": "Compare the implemented plate with the matrix printed in the source.",
+        "expected_latex": "Q=\\frac12\\begin{pmatrix}1+i&-1+i\\\\-1+i&1+i\\end{pmatrix}",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 4,
+          "residuals": [
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K03",
+        "title": "Lossless and symmetric plate",
+        "source": "Cell 4",
+        "purpose": "Check norm preservation by this ideal plate and its symmetry in the adopted basis.",
+        "procedure": "Compute Q dagger Q and Q transpose. This is not a unitarity requirement on the Raman tensor.",
+        "expected_latex": "Q^\\dagger Q=I_2,\\qquad Q^T=Q",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 8,
+          "residuals": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K04",
+        "title": "Incident circular state",
+        "source": "Cell 5",
+        "purpose": "Confirm the selected plate actually prepares the intended incident state.",
+        "procedure": "Propagate x-polarized input and compare vectors including the unit global phase.",
+        "expected_latex": "Qe_x=e^{i\\pi/4}\\sigma_+",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 2,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K05",
+        "title": "General circular amplitudes",
+        "source": "Cell 6",
+        "purpose": "Check the output-input index order and the signs of all Cartesian entries.",
+        "procedure": "Contract a general complex 2x2 tensor and compare independent entry formulas.",
+        "expected_latex": "R_{++}=\\frac{R_{xx}+R_{yy}+i(R_{xy}-R_{yx})}{2},\\quad R_{-+}=\\frac{R_{xx}-R_{yy}+i(R_{xy}+R_{yx})}{2}",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 2,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K06",
+        "title": "Modified source tensor",
+        "source": "Cell 6",
+        "purpose": "Verify the extra yy phase and the cancellation of antisymmetric off-diagonal entries in the flipped channel.",
+        "procedure": "Substitute the source tensor into the circular contractions.",
+        "expected_latex": "R_{++}=\\frac{a(1+e^{i\\phi})}{2}+iAe^{i\\delta},\\quad R_{-+}=\\frac{a(1-e^{i\\phi})}{2}",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 2,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K07",
+        "title": "Scattered-field reconstruction",
+        "source": "Cell 7",
+        "purpose": "Ensure no circular amplitude is lost before return propagation.",
+        "procedure": "Compare Cartesian scattering with its complete circular expansion.",
+        "expected_latex": "RQe_x=e^{i\\pi/4}(R_{++}\\sigma_++R_{-+}\\sigma_-)",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 2,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K08",
+        "title": "Return plate and physical angle zero",
+        "source": "Cell 8",
+        "purpose": "Detect a wrong return matrix or an arbitrary analyzer reference that would rotate or mirror a plot.",
+        "procedure": "Reconstruct the two returned circular states, their real axes and their relative phase.",
+        "expected_latex": "Q_b=Q^T,\\quad e_{\\rm ref}=e_y,\\quad e_\\perp=-e_x,\\quad p_2/p_1=i",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 9,
+          "residuals": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K09",
+        "title": "Analyzer endpoint calibration",
+        "source": "Cell 9",
+        "purpose": "Establish what alpha=0 and alpha=90 degrees detect in this optical chain.",
+        "procedure": "Transmit each returned circular state through both calibrated analyzer endpoints.",
+        "expected_latex": "\\mathcal T_{0,+}=1,\\quad\\mathcal T_{0,-}=0,\\quad\\mathcal T_{90,+}=0,\\quad\\mathcal T_{90,-}=1",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 4,
+          "residuals": [
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K10",
+        "title": "Matrix chain versus circular amplitude",
+        "source": "Cell 10",
+        "purpose": "Check matrix ordering and the relative phase that sets the interference sign.",
+        "procedure": "Compare the production amplitude with the independent circular-channel expansion.",
+        "expected_latex": "\\mathcal A=e^{i\\pi/4}p_1(R_{++}\\cos\\alpha+iR_{-+}\\sin\\alpha)",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 2,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K11",
+        "title": "Three intensity pieces",
+        "source": "Cell 11",
+        "purpose": "Identify an incorrect complex conjugate or an incorrect sign in the interference term.",
+        "procedure": "Independently evaluate the two powers and Im(R++ R-+ conjugate).",
+        "expected_latex": "I=P_+\\cos^2\\alpha+P_-\\sin^2\\alpha+2K\\sin\\alpha\\cos\\alpha,\\quad K=\\operatorname{Im}(R_{++}R_{-+}^*)",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 3,
+          "residuals": [
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K12",
+        "title": "Symbolic squared-modulus identity",
+        "source": "Cell 11",
+        "purpose": "Prove the hand formula agrees with the matrix result without inserting it into the plotting engine.",
+        "procedure": "Reduce the symbolic difference between A times A conjugate and the source closed form to zero.",
+        "expected_latex": "\\operatorname{simplify}(I_{\\rm matrix}-I_{\\rm hand})=0",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 1,
+          "residuals": [
+            "0"
+          ],
+          "residual_latex": [
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K13",
+        "title": "Seeded numerical intensity comparison",
+        "source": "Cell 11",
+        "purpose": "Cross-check symbolic processing against independent complex NumPy propagation.",
+        "procedure": "Repeat the source's four seed-1 parameter samples, then 64 phase/sign/zero cases.",
+        "expected_latex": "\\max_j\\lvert I_{{\\rm chain},j}-I_{{\\rm hand},j}\\rvert\\le\\epsilon_{\\rm abs}+\\epsilon_{\\rm rel}S",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "numerical",
+          "maximum_absolute_residual": 1.7763568394002505e-15,
+          "scale": 6.489104507539042,
+          "absolute_tolerance": 1e-13,
+          "relative_tolerance": 1e-10,
+          "allowed_absolute_error": 6.490104507539043e-10,
+          "comparisons": 68,
+          "all_finite": true
+        }
+      },
+      {
+        "id": "K14",
+        "title": "Fourier reconstruction",
+        "source": "Cell 11",
+        "purpose": "Check the harmonic representation used to determine continuous extrema.",
+        "procedure": "Reconstruct the intensity from independently derived constant, cosine and sine coefficients.",
+        "expected_latex": "I=I_0+I_c\\cos2\\alpha+I_s\\sin2\\alpha,\\quad I_0=(P_++P_-)/2,\\quad I_c=(P_+-P_-)/2,\\quad I_s=K",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 1,
+          "residuals": [
+            "0"
+          ],
+          "residual_latex": [
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K15",
+        "title": "Old-tensor limit",
+        "source": "Cell 12",
+        "purpose": "Recover the earlier model when the new relative yy phase vanishes.",
+        "procedure": "Set phi=0 and compare the complete angular law, not only one angle.",
+        "expected_latex": "I_{\\phi=0}=(a^2+A^2-2aA\\sin\\delta)\\cos^2\\alpha",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 1,
+          "residuals": [
+            "0"
+          ],
+          "residual_latex": [
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K16",
+        "title": "Diagonal-tensor phase limit",
+        "source": "Cell 12",
+        "purpose": "Check that a relative diagonal phase shifts the analyzer pattern with the correct sign.",
+        "procedure": "Set A=0 and compare with the independently shifted cosine law.",
+        "expected_latex": "I_{A=0}=a^2\\cos^2(\\alpha-\\phi/2)",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 1,
+          "residuals": [
+            "0"
+          ],
+          "residual_latex": [
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K17",
+        "title": "Pure flipped-channel limit",
+        "source": "Cell 12",
+        "purpose": "Confirm extinction of the same-label channel in a known limiting tensor.",
+        "procedure": "Set A=0 and phi=pi.",
+        "expected_latex": "I=a^2\\sin^2\\alpha",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 1,
+          "residuals": [
+            "0"
+          ],
+          "residual_latex": [
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K18",
+        "title": "All four circular channels",
+        "source": "Cell 15, part 1",
+        "purpose": "Check both input labels and prevent interchange of incident and detected indices.",
+        "procedure": "Derive all four circular amplitudes and compare their squared moduli with the source formulas.",
+        "expected_latex": "R_{\\mu\\nu}=\\sigma_\\mu^\\dagger R\\sigma_\\nu,\\quad I_{\\mu\\nu}=\\lvert R_{\\mu\\nu}\\rvert^2",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 8,
+          "residuals": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K19",
+        "title": "Four channels through real optical chains",
+        "source": "Cell 15, part 2",
+        "purpose": "Validate the physical preparation and detection path rather than relying only on a basis transform.",
+        "procedure": "Prepare each input with its own +/-45-degree plate and compare same/flip endpoint powers; use the source's five seed-5 samples plus a zero case.",
+        "expected_latex": "I_{\\nu\\nu}^{\\rm chain}=I_{\\nu\\nu}^{\\rm circular},\\quad I_{-\\nu,\\nu}^{\\rm chain}=I_{-\\nu,\\nu}^{\\rm circular}",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "numerical",
+          "maximum_absolute_residual": 2.6645352591003757e-15,
+          "scale": 6.241553727734866,
+          "absolute_tolerance": 1e-13,
+          "relative_tolerance": 1e-10,
+          "allowed_absolute_error": 6.242553727734867e-10,
+          "comparisons": 84,
+          "all_finite": true
+        }
+      },
+      {
+        "id": "K20",
+        "title": "Circular-input difference and dissymmetry",
+        "source": "Cell 15, part 3",
+        "purpose": "Check the source's contrast definition and its denominator; do not infer material chirality from this algebraic test.",
+        "procedure": "Subtract complete powers for the two incident labels and compare the analytic difference.",
+        "expected_latex": "\\Delta I=4aA\\cos(\\phi/2)\\sin(\\phi/2-\\delta),\\quad {\\rm CID}=\\Delta I/[2(a^2+A^2)]",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 2,
+          "residuals": [
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0"
+          ]
+        },
+        "assumption": "CID is defined only when a^2+A^2>0; its formula uses the source's fixed-lab convention."
+      },
+      {
+        "id": "K21",
+        "title": "Zero-contrast limits",
+        "source": "Cell 15, part 3",
+        "purpose": "Detect a spurious circular-input difference in limiting cases where it must vanish.",
+        "procedure": "Substitute A=0, phi=pi and delta=phi/2 separately into the computed difference.",
+        "expected_latex": "\\Delta I_{A=0}=\\Delta I_{\\phi=\\pi}=\\Delta I_{\\delta=\\phi/2}=0",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 3,
+          "residuals": [
+            "0",
+            "0",
+            "0"
+          ],
+          "residual_latex": [
+            "0",
+            "0",
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K22",
+        "title": "Alternative-convention mirror check",
+        "source": "Appendix",
+        "purpose": "Identify a documented change of optical convention without forcing different experiments to share one curve.",
+        "procedure": "Use the appendix return plate and lab-x analyzer, then compare with the main source law at -alpha.",
+        "expected_latex": "I_{\\rm appendix}(\\alpha)=I_{\\rm main}(-\\alpha)\\quad\\text{for the declared source tensor}",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 1,
+          "residuals": [
+            "0"
+          ],
+          "residual_latex": [
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K23",
+        "title": "Angular periodicity",
+        "source": "Cell 13; added explicit check",
+        "purpose": "Ensure that the plotted first-harmonic amplitude gives a 180-degree intensity period.",
+        "procedure": "Translate the source scan by pi and reduce the difference symbolically.",
+        "expected_latex": "I(\\alpha+\\pi)=I(\\alpha)",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "symbolic",
+          "identities": 1,
+          "residuals": [
+            "0"
+          ],
+          "residual_latex": [
+            "0"
+          ]
+        }
+      },
+      {
+        "id": "K24",
+        "title": "Dark source and undefined contrast",
+        "source": "Extension of Cell 15",
+        "purpose": "Avoid reporting a finite dissymmetry for a completely dark source.",
+        "procedure": "Set a=A=0 and require all powers to vanish while CID is explicitly undefined.",
+        "expected_latex": "I_{\\mu\\nu}=0,\\quad {\\rm CID}=\\mathrm{undefined}\\quad(a=A=0)",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "defined-domain",
+          "total_power": 0.0,
+          "cid": null,
+          "cid_defined": false
+        }
+      },
+      {
+        "id": "K25",
+        "title": "Deliberately incorrect controls",
+        "source": "Validation extension",
+        "purpose": "Demonstrate that the checker can detect conjugation, interference-sign and intensity errors.",
+        "procedure": "Require rejection of three injected mistakes at declared nontrivial parameters.",
+        "expected_latex": "\\epsilon_{\\rm wrong}>\\epsilon_{\\rm allowed}\\quad\\text{for each injected error}",
+        "scope": "QWP source reference model",
+        "status": "passed",
+        "evidence": {
+          "kind": "negative-controls",
+          "rejected": [
+            true,
+            true,
+            true
+          ],
+          "residuals": [
+            {
+              "kind": "numerical",
+              "maximum_absolute_residual": 0.49120932811580237,
+              "scale": 0.8325284127266882,
+              "absolute_tolerance": 1e-13,
+              "relative_tolerance": 1e-10,
+              "allowed_absolute_error": 8.335284127266883e-11,
+              "comparisons": 1,
+              "all_finite": true
+            },
+            {
+              "kind": "numerical",
+              "maximum_absolute_residual": 0.6692394176378447,
+              "scale": 1.0145501416592977,
+              "absolute_tolerance": 1e-13,
+              "relative_tolerance": 1e-10,
+              "allowed_absolute_error": 1.0155501416592978e-10,
+              "comparisons": 1,
+              "all_finite": true
+            },
+            {
+              "kind": "numerical",
+              "maximum_absolute_residual": 1e-05,
+              "scale": 1e-05,
+              "absolute_tolerance": 1e-13,
+              "relative_tolerance": 1e-10,
+              "allowed_absolute_error": 1.01e-13,
+              "comparisons": 1,
+              "all_finite": true
+            }
+          ]
+        }
+      }
+    ],
+    "passed": 25,
+    "total": 25,
+    "scope": "Reference identities and implementation checks. Passing does not certify material coefficients, experimental propagation or chirality.",
+    "notation_note": "Cells 6-11 intermittently call <sigma-|R|sigma+> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel."
+  },
+  "inactive_circular_rule_fields": "Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.",
+  "elapsed_seconds": 23.22
+}
