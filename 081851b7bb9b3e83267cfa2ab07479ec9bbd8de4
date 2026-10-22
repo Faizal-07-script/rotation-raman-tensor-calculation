@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "version": "2",
+  "source_sha256": "18c0463c7ed1068cf702c9bbe5b5072080e9f148447add903168a646f1d7933c",
+  "checks": [
+    "Notebook: all 22 cells execute with the overview, comparison figure, selected-profile panel and existing controls.",
+    "Exact guide tests pass for a general complex nonsymmetric 2x2 response: VV, VH, elliptical, QWP and direct-linear intensity identities.",
+    "Detector Stokes trajectories, preset/custom equality, fixed circular channels and a distinct same-tensor example pass.",
+    "Existing original-source and material checks, nine optical configurations and eighteen silicon benchmark cases pass.",
+    "Exported guide JSON matches the current optical profile and effective parameters; Markdown includes equations and primary DOI references.",
+    "Separate Ag reference CSV arrays are unchanged; source tensor, rotation, Jones-state and intensity functions are unchanged.",
+    "Browser: all nine Home guide choices and all nine calculator optical choices render without KaTeX errors.",
+    "Browser: current calculation yields three Ag plots; full validation includes 21 model checks and 25/25 source procedures.",
+    "Navigation and calculator section headings have no decorative number prefixes; code-cell and citation identifiers are retained."
+  ],
+  "scope": "Browser guide/menu interactions, current calculation, mathematical rendering and full validation."
+}
