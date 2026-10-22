@@ -270,7 +270,7 @@ $$I_Q=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha+2\operatorname{Im}(p q^*)\sin\alpha\co
 
 **Source scope:** Exact uploaded optical chain plus a program-derived p/q identity valid for any supplied R_perp under that chain.
 
-**References:** Uploaded Version 2 QWP implementation reference (included original notebook); [Jones calculus](https://doi.org/10.1364/JOSA.31.000488)
+**References:** Uploaded original QWP implementation reference (included original notebook); [Jones calculus](https://doi.org/10.1364/JOSA.31.000488)
 
 The actual current angles and Jones matrices are shown in the optical-state preview and calculated mathematical steps. A guide identity is not an experimental calibration.
 

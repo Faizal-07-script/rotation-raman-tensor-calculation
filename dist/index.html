@@ -8,20 +8,22 @@
   <title>Rotation Raman Tensor Calculation</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./vendor/katex.min.css">
-  <link rel="stylesheet" href="./styles.css?v=2-optics">
+  <link rel="stylesheet" href="./styles.css?v=3-guide">
   <script defer src="./vendor/katex.min.js"></script>
   <script defer src="./vendor/highlight.min.js"></script>
   <script defer src="./vendor/python.min.js"></script>
-  <script defer src="./content.js?v=2-optics"></script>
-  <script defer src="./optical-guide.js?v=2-optics"></script>
-  <script defer src="./app.js?v=2-navigation"></script>
+  <script defer src="./content.js?v=3-guide"></script>
+  <script defer src="./optical-guide.js?v=3-guide"></script>
+  <script defer src="./app.js?v=3-guide"></script>
+  <link rel="stylesheet" href="./user-guide.css?v=3">
+  <script defer src="./user-guide.js?v=3"></script>
 </head>
 <body class="desktop-nav-hidden">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="topbar">
     <button id="menu-toggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <a class="brand" href="#home" aria-label="Raman Tensor Lab home"><svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 35 11.5v17L20 37 5 28.5v-17Z M5 11.5 20 20l15-8.5M20 20v17M20 3v17"/><circle cx="20" cy="20" r="6"/></svg><span><strong>RAMAN TENSOR LAB</strong><small>Rotation Raman Tensor Calculation</small></span></a>
-    <div class="header-actions"><span class="version-pill">VERSION 2</span><a class="header-calculator" href="#calculator">Open calculator <span aria-hidden="true">↗</span></a></div>
+    <div class="header-actions"><button type="button" id="user-guide-open" class="guide-header-button" aria-haspopup="dialog"><span aria-hidden="true">?</span> User guide</button><span class="version-pill">VERSION 3</span><a class="header-calculator" href="#calculator">Open calculator <span aria-hidden="true">↗</span></a></div>
   </header>
   <div id="nav-backdrop" class="nav-backdrop"></div>
   <aside id="sidebar" class="sidebar" aria-label="Site navigation">

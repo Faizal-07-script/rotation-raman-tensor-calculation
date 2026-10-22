@@ -130,7 +130,7 @@ window.RAMAN_DOCS = {
 };
 
 RAMAN_DOCS.references.push(
- {id:'kumar-v2',number:10,title:'Raman intensity with the modified Raman tensor — Version 2.0',authors:'Dr. Kumar; user-supplied notebook',publication:'Dated 15 October 2026 · 38 notebook cells, including 20 code cells',url:'./downloads/Dr_Kumar_Version_2.ipynb',role:'Primary implementation reference for the staged checks, special cases, four circular channels and alternative-convention appendix. Preserved without edits. The site consistently uses output-input indices.'},
+ {id:'kumar-original',number:10,title:'Original Raman intensity with the modified Raman tensor',authors:'Dr. Kumar; user-supplied notebook',publication:'Dated 15 October 2026 · 38 notebook cells, including 20 code cells',url:'./downloads/Dr_Kumar_Original.ipynb',role:'Primary implementation reference for the staged checks, special cases, four circular channels and alternative-convention appendix. Preserved without edits. The site consistently uses output-input indices.'},
  {id:'sympy-validation',number:11,title:'Symbolic equality and numerical evaluation',authors:'SymPy documentation',publication:'Official software documentation',url:'https://docs.sympy.org/latest/explanation/gotchas.html',extra:[['Lambdify','https://docs.sympy.org/latest/modules/utilities/lambdify.html']],role:'Explains why symbolic expressions are compared by a reduced difference and how independent NumPy evaluation supplements symbolic checks.'}
 );
 
@@ -140,7 +140,7 @@ RAMAN_DOCS.tools['checking-procedures']={
  sections:[
   {title:'Two distinct scopes',paragraphs:[
    'QWP source reference checks its declared effective 2x2 tensor and QWP optical chain. The Reference validation view runs 25 procedures based on that notebook, including explicitly identified periodicity, dark-source and deliberate-error extensions.',
-   'The Checking procedures view in the calculator applies the same testing pattern to the current material, complex tensor, orientation and optical states. The special source formula is marked not applicable for a different crystal tensor. An orthorhombic D2h tensor is never replaced by the source antisymmetric tensor.'],sources:['kumar-v2','complex']},
+   'The Checking procedures view in the calculator applies the same testing pattern to the current material, complex tensor, orientation and optical states. The special source formula is marked not applicable for a different crystal tensor. An orthorhombic D2h tensor is never replaced by the source antisymmetric tensor.'],sources:['kumar-original','complex']},
   {title:'Where to run and inspect',steps:[
    'In Calculator, select the material, tensor, orientation and actual optical method, then calculate.',
    'Open Checking procedures. Expand a check to read Purpose, Checking procedure, Expected mathematical result and Measured evidence.',
@@ -154,8 +154,8 @@ RAMAN_DOCS.tools['checking-procedures']={
   ],paragraphs:[
    'A symbolic check passes only when every reduced residual is exactly zero. A simplification that does not establish zero is reported as inconclusive, not accepted as a proof.',
    'A numerical check records its absolute residual, comparison scale, absolute and relative tolerances, finite-value test and comparison count. Numerical agreement at finitely many samples complements the symbolic identity; it does not prove an identity for every parameter.',
-   'Three deliberately wrong controls test a missing conjugation, the opposite interference sign and an injected nonzero dark intensity. The validation succeeds only if these wrong controls are rejected.'],sources:['sympy-validation','kumar-v2']},
-  {title:'The 25 reference procedures',procedureCatalog:true,sources:['kumar-v2']},
+   'Three deliberately wrong controls test a missing conjugation, the opposite interference sign and an injected nonzero dark intensity. The validation succeeds only if these wrong controls are rejected.'],sources:['sympy-validation','kumar-original']},
+  {title:'The 25 reference procedures',procedureCatalog:true,sources:['kumar-original']},
   {title:'Notation, phases and physical interpretation',equations:[
    String.raw`R_{\mu\nu}=\sigma_\mu^\dagger R\sigma_\nu,\qquad \mu=\text{output},\quad\nu=\text{input}`,
    String.raw`R_{-+}=\frac{a(1-e^{i\phi})}{2},\qquad R_{-+}=0\ \text{when }a=0\ \text{or }\phi=2\pi n`,
@@ -163,7 +163,7 @@ RAMAN_DOCS.tools['checking-procedures']={
   ],paragraphs:[
    'Some notes in source Cells 6-11 call the sigma+ input to sigma- output contraction R+-. The code contracts the intended vectors. This program uses R-+ consistently for that transition, matching the source four-channel table.',
    'The appendix mirror relation is tested only for the declared source tensor and appendix optical chain. It is not a rule for equating arbitrary QWP, elliptical-state and direct-linear scans.',
-   'The source circular-input contrast is an algebraic observable. Its nonzero value in the effective source model alone does not establish natural Raman optical activity or chirality of CaNb2O6. The dissymmetry is undefined when total power is zero.'],sources:['kumar-v2','circular','complex']},
+   'The source circular-input contrast is an algebraic observable. Its nonzero value in the effective source model alone does not establish natural Raman optical activity or chirality of CaNb2O6. The dissymmetry is undefined when total power is zero.'],sources:['kumar-original','circular','complex']},
   {title:'What validation establishes',paragraphs:[
    'The checks establish consistency of the implemented algebra, numerical calculations and declared conventions. They do not identify unknown tensor coefficients, measure lattice parameters or validate propagation effects absent from the ideal plane-wave model.',
    'The tensor rotation, intensity engine, separate Ag(xx)/Ag(yy)/Ag(zz) plots and existing optical methods remain the same. New checks observe their results and retain failures; they do not modify a curve to match a reference.'],sources:['complex','cubic']}
@@ -172,7 +172,7 @@ RAMAN_DOCS.tools['checking-procedures']={
 RAMAN_DOCS.tools.validation.sections.splice(1,0,{
  title:'Checking procedures with a purpose',
  paragraphs:['The new Checking procedures output describes each expected identity and its purpose, then records the observed symbolic residual or numerical error and tolerance. Reference validation separately executes the source-specific QWP source reference tests. The detailed guide is available under Checking procedures and validation purposes.'],
- sources:['kumar-v2','sympy-validation']
+ sources:['kumar-original','sympy-validation']
 });
 RAMAN_DOCS.tools.results.sections[1].table.rows.push(
  ['checking_procedures.json / .md','Current inputs, purpose, procedure, expected equations and measured checking evidence.'],
@@ -186,17 +186,17 @@ RAMAN_DOCS.physics['scope-checks'].sections.push({
   String.raw`\lvert e_s^\dagger R_\perp E_i\rvert^2=\lvert(U_\sigma^\dagger e_s)^\dagger(U_\sigma^\dagger R_\perp U_\sigma)(U_\sigma^\dagger E_i)\rvert^2`
  ],
  paragraphs:['Orthonormality checks the optical basis; QWP unitarity checks a lossless optical element; proper-frame tests check the geometry. Complete outgoing power checks basis completeness, not lossless Raman scattering. The last equation checks identical physical states in two bases, rather than comparing different experiments. Each purpose and observed residual is retained with the calculated run.'],
- sources:['kumar-v2','jones','sympy-validation']
+ sources:['kumar-original','jones','sympy-validation']
 });
 
 RAMAN_DOCS.tools['optical-comparison']={
  title:'Optical profiles: physics and reference choice',
  lead:'Compare preparation, sample states, return optics, angular scans and interference before comparing polar plots.',
- sections:[{title:'One law, explicitly different experiments',opticalGuide:true,sources:['jones','complex','cubic','circular','kumar-v2']}]};
+ sections:[{title:'One law, explicitly different experiments',opticalGuide:true,sources:['jones','complex','cubic','circular','kumar-original']}]};
 RAMAN_DOCS.physics['optical-comparison']={
  title:'Optical-state comparison and helicity conventions',
  lead:'The exact sample states determine the detected intensity. The guide distinguishes source equations, implementation extensions and experimental calibration.',
- sections:[{title:'States, amplitudes and conditions for agreement',opticalGuide:true,sources:['jones','complex','cubic','circular','kumar-v2']}]};
+ sections:[{title:'States, amplitudes and conditions for agreement',opticalGuide:true,sources:['jones','complex','cubic','circular','kumar-original']}]};
 RAMAN_DOCS.tools['optical-method'].sections.unshift({
  title:'Choose the physical experiment',
  paragraphs:['The nine menu choices use the same tensor contraction with different sample states or scans. The complete comparison diagram, equations and reference-selection table are on Home and in Optical profiles: physics and reference choice. The selected profile is also explained directly beneath the calculator optical-method control.'],

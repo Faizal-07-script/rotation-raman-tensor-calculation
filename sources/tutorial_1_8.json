@@ -498,7 +498,7 @@
         "start_line": 357,
         "end_line": 369,
         "title": "Name rules and preserve optical-source provenance",
-        "explanation": "RULE_LABELS gives readable names for internal policies. AUDIT_VERSION identifies version 2. QWP_SOURCE stores the source notebook hash, adopted main optical chain, explicit 3D extension policy and the fact that the alternative source appendix is not silently selected.",
+        "explanation": "RULE_LABELS gives readable names for internal policies. AUDIT_VERSION identifies version 3. QWP_SOURCE stores the source notebook hash, adopted main optical chain, explicit 3D extension policy and the fact that the alternative source appendix is not silently selected.",
         "why": "A source model and a crystal extension should be traceable without implying that the source already contained a crystallographic rotation library.",
         "check": "The optical source SHA identifies the exact imported reference. The 3D extension supplies a symmetry-allowed projected crystal tensor to the same QWP sequence."
       },

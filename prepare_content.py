@@ -15,7 +15,7 @@ DIST=PROJECT/'dist'
 DATA=DIST/'data'
 DOWNLOADS=DIST/'downloads'
 DATA.mkdir(exist_ok=True);DOWNLOADS.mkdir(exist_ok=True)
-notebook_path=SOURCE/'notebook_v2.ipynb'
+notebook_path=SOURCE/'notebook_v3.ipynb'
 notebook=json.loads(notebook_path.read_text())
 cells=[c for c in notebook['cells'] if c['cell_type']=='code']
 assert len(cells)==22
@@ -42,10 +42,10 @@ for i,cell in enumerate(cells,1):
            for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef,ast.AsyncFunctionDef))]
     content.append(dict(number=i,title=titles[i-1],tag=cell['metadata']['tags'][0],source=source,
         lines=len(source.splitlines()),symbols=nodes,sha256=hashlib.sha256(source.encode()).hexdigest()))
-(DATA/'cells.json').write_text(json.dumps(dict(version='2',source_sha256=source_hash,cells=content)))
+(DATA/'cells.json').write_text(json.dumps(dict(version='3',source_sha256=source_hash,cells=content)))
 
 selected=[i for i in range(2,23) if i not in [17,18,19,22]]
-prefix='''# Generated from the scientific cells of notebook version 2.
+prefix='''# Generated from the scientific cells of notebook version 3.
 # Rich notebook display imports are omitted; scientific functions are unchanged.
 import os
 os.environ['MPLBACKEND']='Agg'
@@ -100,7 +100,7 @@ for item in annotations:
 (DATA/'tutorial.json').write_text(json.dumps(annotations))
 
 shutil.copy2(notebook_path,DOWNLOADS/'ROTATION_RAMAN_TENSOR_CALCULATION.ipynb')
-full_python='''"""Complete notebook source, version 2.
+full_python='''"""Complete notebook source, version 3.
 Run with an IPython/Jupyter kernel for the interactive widget application.
 The .ipynb notebook is the recommended entry point.
 """\n\n'''+ '\n\n'.join(f'# Code cell {item["number"]}: {item["title"]}\n'+item['source'] for item in content)
@@ -111,18 +111,18 @@ shutil.copy2(PROJECT/'web_bridge.py',DOWNLOADS/'web_bridge.py')
 (DOWNLOADS/'requirements.txt').write_text('numpy\nsympy\nmatplotlib\nipywidgets\nIPython\n')
 archive_paths={
     'original_optical_reference.ipynb':SOURCE/'original_optical_reference.ipynb',
-    'Dr_Kumar_Version_2.ipynb':SOURCE/'dr_kumar_version2.ipynb',
+    'Dr_Kumar_Original.ipynb':SOURCE/'dr_kumar_original.ipynb',
 }
 for name,path in archive_paths.items():shutil.copy2(path,DOWNLOADS/name)
 readme='''ROTATION RAMAN TENSOR CALCULATION — PYTHON DOWNLOADS
 
-Current version: 2. Run all 22 cells of the .ipynb in Jupyter or Colab.
+Current version: 3. Run all 22 cells of the .ipynb in Jupyter or Colab.
 The matching .py file contains the complete notebook source for an IPython kernel.
 raman_engine.py contains the same scientific functions without notebook-only
 display imports; web_bridge.py supplies validated JSON/browser interfaces.
 
-Version 2 fixes inactive circular-rule fields blocking noncircular notebook
-profiles and replaces an ambiguous equation-number label with Section 2.2.
+Version 3 adds optional interactive website guides and updates release identity.
+The guide is separate from the scientific Python engine.
 The scientific tensor, rotation and Jones intensity functions are preserved.
 
 The checking-procedures extension records purpose, procedure, expected equation,
@@ -130,10 +130,10 @@ status, symbolic residuals or numerical tolerances. Cell 21 implements the
 25 source-reference procedures from QWP source reference and their generalization
 to the actual selected crystal/Jones run. Cells 16 and 19 export and display
 the same reports. Main Ag components and all existing intensity laws are unchanged.
-The uploaded Version 2 notebook is included as a separate, unmodified reference.
+The uploaded original reference notebook is included as a separate, unmodified reference.
 
 The references folder contains the unmodified optical implementation sources.
-The live website tutorial displays the exact current Version 2 code.
+The live website tutorial displays the exact current Version 3 code.
 
 The site self-hosts its Python WebAssembly runtime and mathematical typesetting.
 Its first calculator start downloads the runtime into your browser. A web worker

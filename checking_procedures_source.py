@@ -1,7 +1,7 @@
 """Integrated into Cell 21: procedures, purposes and measured validation evidence."""
 
 OPTICAL_REFERENCE_SOURCE = dict(
-    filename="Raman_intensity_Kumar_Version_2.ipynb",
+    filename="Dr_Kumar_Original.ipynb",
     sha256="661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
     date="2026-10-15", notebook_cells=38, code_cells=20,
     notation="R[out,in]: first index = detected circular label; second = incident label.",

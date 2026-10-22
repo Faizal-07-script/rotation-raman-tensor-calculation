@@ -11,7 +11,7 @@ OPTICAL_GUIDE_REFERENCES = {
     "cubic": ("Cubic Raman reference: Sec. 2.2, Eqs. (9), (11)", "https://doi.org/10.1002/jrs.70113"),
     "circular": ("Circular selection rules: Eqs. (21-24)", "https://doi.org/10.1039/D1CP02209A"),
     "optical-source": ("Uploaded QWP implementation reference", "Original optical-reference notebook"),
-    "kumar-v2": ("Uploaded Version 2 QWP implementation reference", "Included Version 2 source notebook"),
+    "kumar-original": ("Uploaded Version 3 QWP implementation reference", "Included Version 3 source notebook"),
 }
 
 
@@ -79,7 +79,7 @@ def optical_method_catalog():
             invariant="At alpha=0 and pi/2 the circular endpoints equal the elliptical reference in power; intermediate intensities generally need not match.",
             use_for="The uploaded QWP optical sequence, after its axes, return-path convention and analyzer zero are verified.",
             caution="Q.T is a declared source convention, not a universal reverse-path rule. Keep either the explicit B or its effective detector, never both. The crystal tensor remains 3x3 before transverse restriction.",
-            sources=["kumar-v2", "jones"], provenance="Exact uploaded optical chain plus a program-derived p/q identity valid for any supplied R_perp under that chain."),
+            sources=["kumar-original", "jones"], provenance="Exact uploaded optical chain plus a program-derived p/q identity valid for any supplied R_perp under that chain."),
         "CIRCULAR_SAME": dict(family="Fixed circular channels", scan="None: both sample states are fixed",
             preparation="Fixed sigma_s input", return_path="Identity in the effective-state representation",
             detection="Fixed sigma_s detector", states=[sigma, r"E_i=\sigma_s,\quad e_s=\sigma_s"],

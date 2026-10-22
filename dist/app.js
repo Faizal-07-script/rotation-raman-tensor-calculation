@@ -14,7 +14,7 @@ let toastTimer,preparedDownloadUrl;
 class PythonEngine {
   constructor(){this.worker=null;this.pending=new Map();this.sequence=0;this.ready=false;this.loading=null;}
   create(){
-    this.worker=new Worker('./engine-worker.js');
+    this.worker=new Worker('./engine-worker.js?v=3');
     this.worker.onmessage=event=>{
       const data=event.data;
       if(data.kind==='progress'){$('#operation-message').textContent=data.message;return;}
@@ -129,13 +129,13 @@ function codeBox(source,start=1,label='Python source'){
   return '<div class="code-box"><div class="code-header"><span>'+esc(label)+' · lines '+start+'–'+(start+lines.length-1)+'</span><button data-copy-code>Copy code</button></div><div class="code-surface"><div class="line-numbers" aria-hidden="true">'+lines.map((_,i)=>start+i).join('<br>')+'</div><pre><code class="language-python">'+esc(source.replace(/\n$/,''))+'</code></pre></div></div>';
 }
 function renderTutorial(number){
-  if(!number)return heading('PYTHON TUTORIAL','Read the program, cell by cell.','All 22 source cells are displayed exactly as they appear in version 2. Each logical block explains what is called, what runs next, why it is written that way and how to check it.')+
+  if(!number)return heading('PYTHON TUTORIAL','Read the program, cell by cell.','All 22 source cells are displayed exactly as they appear in version 3. Each logical block explains what is called, what runs next, why it is written that way and how to check it.')+
     '<div class="callout"><strong>A source-linked walkthrough.</strong>The cell source, line numbers, downloadable notebook and browser scientific functions are generated from the same Python edition. Notebook widget callbacks are explained separately from the reusable calculation engine.</div>'+
     '<div class="tutorial-grid">'+S.cells.map(c=>'<a class="cell-card" href="#tutorial/cell/'+c.number+'"><span class="cell-number">'+String(c.number).padStart(2,'0')+'</span><div><h3>'+esc(c.title)+'</h3><p>'+c.lines+' source lines · '+S.tutorial.find(x=>x.cell===c.number).blocks.length+' explained blocks</p></div></a>').join('')+'</div>';
   const c=S.cells.find(x=>x.number===number),d=S.tutorial.find(x=>x.cell===number);if(!c||!d)return notFound();
   const sourceLines=c.source.split('\n');
   return heading('PYTHON TUTORIAL / CELL '+number,c.title,d.overview,'<div class="button-row"><button class="button secondary small" data-download-cell="'+number+'">Download cell .py</button><button class="button secondary small" data-copy-cell="'+number+'">Copy full cell</button></div>')+
-    '<div class="tutorial-meta"><span class="tag">Code cell '+number+' of 22</span><span class="tag">'+c.lines+' source lines</span><span class="tag">'+d.blocks.length+' explained blocks</span><span class="tag success">Version 2 source</span></div>'+
+    '<div class="tutorial-meta"><span class="tag">Code cell '+number+' of 22</span><span class="tag">'+c.lines+' source lines</span><span class="tag">'+d.blocks.length+' explained blocks</span><span class="tag success">Version 3 source</span></div>'+
     '<div class="card" style="margin-top:22px"><h2>Execution sequence</h2><ol class="workflow-list">'+d.workflow.map(x=>'<li>'+rich(x)+'</li>').join('')+'</ol></div>'+
     '<details class="full-source"><summary>Show the complete Cell '+number+' source</summary>'+codeBox(c.source,1,'Complete Cell '+number)+'<p class="small-note" style="padding:12px">Cell SHA-256: '+esc(c.sha256)+'</p></details>'+
     '<div class="section-heading"><h2>Code walkthrough</h2></div><div class="content-section-tools"><button class="icon-button" data-expand-walkthrough>Expand all blocks</button><button class="icon-button" data-collapse-walkthrough>Collapse all blocks</button><button class="icon-button" data-print>Print this page</button></div>'+
@@ -146,22 +146,22 @@ function renderTutorial(number){
 
 function renderReferences(downloadOnly=false){
   const downloads=[
-    ['IPYNB','Current Python notebook','Version 2 · all 22 code cells and notebook controls','ROTATION_RAMAN_TENSOR_CALCULATION.ipynb'],
-    ['ZIP','All Python programs','Version 2 notebook, scientific engine, browser adapter, stylesheet and original references','All_Python_Programs.zip'],
-    ['PY','Complete Python cell source','Matching version 2 source for an IPython/Jupyter kernel','ROTATION_RAMAN_TENSOR_CALCULATION.py'],
+    ['IPYNB','Current Python notebook','Version 3 · all 22 code cells and notebook controls','ROTATION_RAMAN_TENSOR_CALCULATION.ipynb'],
+    ['ZIP','All Python programs','Version 3 notebook, scientific engine, browser adapter, stylesheet and original references','All_Python_Programs.zip'],
+    ['PY','Complete Python cell source','Matching version 3 source for an IPython/Jupyter kernel','ROTATION_RAMAN_TENSOR_CALCULATION.py'],
     ['PY','Reusable scientific engine','The same scientific functions without notebook-only rich-display imports','raman_engine.py'],
     ['PY','Browser JSON adapter','Validated input/output adapter used by this website','web_bridge.py'],
-    ['IPYNB','QWP source reference','Unmodified uploaded notebook · source of the checking procedures','Dr_Kumar_Version_2.ipynb'],
+    ['IPYNB','QWP source reference','Unmodified uploaded notebook · source of the checking procedures','Dr_Kumar_Original.ipynb'],
     ['MD','Optical methods: physics and equations','Nine profiles, exact state definitions, equality conditions and references','Optical_Methods_Guide.md'],
     ['STYLE','Scientific plot style','The supplied sci.mplstyle, embedded in the Python program','sci.mplstyle'],
     ['TXT','Python requirements','Packages for the notebook environment','requirements.txt']
   ];
-  const downloadHtml='<section class="card doc-section" id="downloads"><div class="card-header"><div><h2>Python programs & supporting files</h2><p>The current notebook is the recommended Python entry point.</p></div><span class="tag success">Version 2</span></div>'+downloads.map(([type,title,desc,file])=>'<div class="download-item"><span class="download-icon">'+type+'</span><div><h3>'+title+'</h3><p>'+desc+'</p></div><a class="button secondary small" href="./downloads/'+file+'" download>Download ↓</a></div>').join('')+
+  const downloadHtml='<section class="card doc-section" id="downloads"><div class="card-header"><div><h2>Python programs & supporting files</h2><p>The current notebook is the recommended Python entry point.</p></div><span class="tag success">Version 3</span></div>'+downloads.map(([type,title,desc,file])=>'<div class="download-item"><span class="download-icon">'+type+'</span><div><h3>'+title+'</h3><p>'+desc+'</p></div><a class="button secondary small" href="./downloads/'+file+'" download>Download ↓</a></div>').join('')+
     '<p class="small-note">Original optical implementation sources are preserved in the references folder of the program archive.</p></section>';
   const refs='<section class="card"><h2>Primary references & implementation sources</h2>'+RAMAN_DOCS.references.map(r=>'<article class="reference-item" id="ref-'+r.id+'"><div class="reference-number">['+r.number+']</div><div><h3>'+esc(r.title)+'</h3><p>'+esc(r.authors)+'<br>'+esc(r.publication)+'</p><a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(r.url)+' ↗</a>'+(r.extra?'<div class="source-link-row">'+r.extra.map(([name,url])=>'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(name)+' ↗</a>').join('')+'</div>':'')+'<p style="margin-top:12px">'+esc(r.role)+'</p></div></article>').join('')+'</section>';
   return heading('REFERENCES & DOWNLOADS',downloadOnly?'The complete Python programs.':'Sources you can inspect.','Primary references, source notebooks and matching program downloads are kept together so the equations and implementation can be checked.')+
     (downloadOnly?downloadHtml+refs:refs+downloadHtml)+
-    '<div class="card"><h2>Source correspondence</h2><p class="small-note">Every tutorial cell shows its own source fingerprint. Scientific functions are extracted from that same notebook; only notebook display imports are omitted in the worker. The web adapter validates JSON and formats outputs without introducing an alternative intensity law.</p><p class="small-note">Notebook code SHA-256</p><code style="display:block;word-break:break-all">'+esc(S.sourceHash)+'</code><div class="callout"><strong>Version 2 maintenance</strong>Inactive circular-rule fields no longer block noncircular notebook calculations. Ambiguous equation-number labels now identify the cubic reference Section 2.2. Tensor rotations and intensity formulas are preserved.</div></div>';
+    '<div class="card"><h2>Source correspondence</h2><p class="small-note">Every tutorial cell shows its own source fingerprint. Scientific functions are extracted from that same notebook; only notebook display imports are omitted in the worker. The web adapter validates JSON and formats outputs without introducing an alternative intensity law.</p><p class="small-note">Notebook code SHA-256</p><code style="display:block;word-break:break-all">'+esc(S.sourceHash)+'</code><div class="callout"><strong>Version 3</strong>Optional interactive guides introduce the workspace and explain each page and calculator control. Tensor rotations and intensity formulas are preserved.</div></div>';
 }
 
 function optionList(options,selected){return options.map(([value,label])=>'<option value="'+esc(value)+'" '+(value===selected?'selected':'')+'>'+esc(label)+'</option>').join('');}
@@ -370,7 +370,7 @@ function renderProcedureRows(rows,catalogOnly=false){
 }
 function renderCheckingReport(report,reference=false){
   if(!report)return '<div class="empty-state"><p>Calculate a case to generate its checking procedures.</p></div>';
-  return '<div class="card"><div class="card-header"><div><h3>'+esc(report.kind)+'</h3><p>'+esc(report.case||'Reference identities from the uploaded notebook')+'</p></div><span class="tag '+(report.status==='passed'?'success':'failed')+'">'+esc(report.status)+' · '+report.passed+'/'+report.total+'</span></div><p class="small-note">'+esc(report.scope)+'</p>'+(!reference&&(S.dirty||!S.runtimeHasRun)?'<div class="callout warning">'+(S.dirty?'This evidence belongs to the previous calculated inputs. Calculate to update it.':'Stored result. Calculate to regenerate this evidence in the current browser session.')+'</div>':'')+(report.not_applicable?'<p class="small-note">'+report.not_applicable+' source/model-specific check'+(report.not_applicable===1?' is':'s are')+' explicitly not applicable.</p>':'')+(report.notation_note?'<div class="callout warning">'+esc(report.notation_note)+'</div>':'')+'<div class="button-row">'+(reference?'<button class="button secondary small" data-download-validation '+(S.busy?'disabled':'')+'>Download reference validation JSON</button>':'<button class="button secondary small" data-result-download="checking" '+(S.dirty?'disabled':'')+'>Download checking report JSON</button>')+'<a class="text-link" href="#introduction/checking-procedures">Read the validation guide →</a></div>'+sourceLinks(['kumar-v2','sympy-validation'])+'</div>'+renderProcedureRows(report.rows);
+  return '<div class="card"><div class="card-header"><div><h3>'+esc(report.kind)+'</h3><p>'+esc(report.case||'Reference identities from the uploaded notebook')+'</p></div><span class="tag '+(report.status==='passed'?'success':'failed')+'">'+esc(report.status)+' · '+report.passed+'/'+report.total+'</span></div><p class="small-note">'+esc(report.scope)+'</p>'+(!reference&&(S.dirty||!S.runtimeHasRun)?'<div class="callout warning">'+(S.dirty?'This evidence belongs to the previous calculated inputs. Calculate to update it.':'Stored result. Calculate to regenerate this evidence in the current browser session.')+'</div>':'')+(report.not_applicable?'<p class="small-note">'+report.not_applicable+' source/model-specific check'+(report.not_applicable===1?' is':'s are')+' explicitly not applicable.</p>':'')+(report.notation_note?'<div class="callout warning">'+esc(report.notation_note)+'</div>':'')+'<div class="button-row">'+(reference?'<button class="button secondary small" data-download-validation '+(S.busy?'disabled':'')+'>Download reference validation JSON</button>':'<button class="button secondary small" data-result-download="checking" '+(S.dirty?'disabled':'')+'>Download checking report JSON</button>')+'<a class="text-link" href="#introduction/checking-procedures">Read the validation guide →</a></div>'+sourceLinks(['kumar-original','sympy-validation'])+'</div>'+renderProcedureRows(report.rows);
 }
 function renderValidation(){
   return '<div class="card"><h3>Run the full model-validation suite</h3><p class="small-note">Checks source algebra, symmetry, complex rotations, independent reference equations, all implemented point groups and numerical edge cases. It also executes 25 procedures based on QWP source reference, including explicitly identified extensions, and records their purpose, expected identity and measured residual.</p><div class="button-row"><button class="button secondary" data-run-validation '+(S.busy?'disabled':'')+'>Run full validation</button><a class="text-link" href="#introduction/checking-procedures">Procedures and purposes →</a></div>'+
@@ -438,8 +438,16 @@ function renderRoute(scroll=true){
   const previousScroll=window.scrollY;$('#main-content').innerHTML=html;$('#breadcrumbs').textContent='Workspace / '+breadcrumb;renderNavigation();typeset($('#main-content'));updateStaleStatus();
   if(scroll){window.scrollTo({top:0,behavior:'instant'});if(matchMedia('(max-width:850px)').matches)setMenu(false);}else window.scrollTo({top:previousScroll,behavior:'instant'});
   document.title=(page==='home'?'':breadcrumb+' · ')+'Rotation Raman Tensor Calculation';
+  document.dispatchEvent(new CustomEvent('raman:route',{detail:{page,parts,breadcrumb}}));
 }
 window.addEventListener('hashchange',()=>renderRoute());
+
+window.RamanGuideHost={
+  ready:()=>!!S.catalog,
+  busy:()=>S.busy,
+  setMenu,
+  context:()=>({route:location.hash||'#home',cells:S.cells.map(c=>({number:c.number,title:c.title})),tools:RAMAN_DOCS.tools,physics:RAMAN_DOCS.physics}),
+};
 
 document.addEventListener('input',event=>{
   const target=event.target;

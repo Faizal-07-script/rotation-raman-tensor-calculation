@@ -451,7 +451,7 @@
         "start_line": 230,
         "end_line": 252,
         "title": "Run the full regression suite and preserve its status",
-        "explanation": "The handler clears the validation view, invokes run_self_checks() plus validate_general_upgrade(), records the software version and messages and prints each passing check. Failure records a failed status, reports the exception and re-raises it. validate_optical_reference executes the uploaded Version 2 identities, limits, four circular channels and appendix convention. The full report is retained in state and rendered with its purposes.",
+        "explanation": "The handler clears the validation view, invokes run_self_checks() plus validate_general_upgrade(), records the software version and messages and prints each passing check. Failure records a failed status, reports the exception and re-raises it. validate_optical_reference executes the uploaded original reference identities, limits, four circular channels and appendix convention. The full report is retained in state and rendered with its purposes.",
         "why": "A test suite should fail visibly and retain which version was checked. Passing algebra checks must not be presented as experimental certification of illustrative coefficients.",
         "check": "The printed scope explicitly excludes unknown sample coefficients and omitted propagation effects. A source-reference report must have status passed; otherwise this callback records a validation failure."
       },
@@ -765,7 +765,7 @@
         "title": "Identify the supplied reference and its scope",
         "explanation": "OPTICAL_REFERENCE_SOURCE records the exact uploaded file fingerprint and fixes the output-input circular index convention.",
         "why": "A reference check needs traceable provenance and an explicit material-model boundary.",
-        "check": "The source hash must match Raman_intensity_Kumar_Version_2.ipynb; the original upload is preserved."
+        "check": "The source hash must match Dr_Kumar_Original.ipynb; the original upload is preserved."
       },
       {
         "start_line": 651,

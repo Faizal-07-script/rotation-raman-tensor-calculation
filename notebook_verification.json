@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "version": "2",
+  "version": "3",
   "checks": [
     "21 point groups: six-dimensional symmetric basis, 132 covariance checks and 66 irrep-character checks.",
     "Quarter-wave-plate source: Q, Q.T, incident sigma+, analyzer reference and complex-tensor intensity match the uploaded notebook.",
@@ -29,7 +29,7 @@
     "status": "passed",
     "kind": "QWP source reference validation",
     "source": {
-      "filename": "Raman_intensity_Kumar_Version_2.ipynb",
+      "filename": "Dr_Kumar_Original.ipynb",
       "sha256": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
       "date": "2026-10-15",
       "notebook_cells": 38,
@@ -37,7 +37,7 @@
       "notation": "R[out,in]: first index = detected circular label; second = incident label.",
       "scope": "The source is an effective complex 2x2 optical model. Its antisymmetric off-diagonal pair is not substituted for a D2h material tensor."
     },
-    "software_version": "2",
+    "software_version": "3",
     "rows": [
       {
         "id": "K01",
@@ -655,5 +655,5 @@
     "notation_note": "Cells 6-11 intermittently call <sigma-|R|sigma+> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel."
   },
   "inactive_circular_rule_fields": "Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.",
-  "elapsed_seconds": 31.39
+  "elapsed_seconds": 23.22
 }

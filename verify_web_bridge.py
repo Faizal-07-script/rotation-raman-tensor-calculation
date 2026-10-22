@@ -24,7 +24,7 @@ def run(config):
     original = copy.deepcopy(config)
     result = json.loads(ns["web_calculate"](json.dumps(config)))
     assert config == original
-    assert result["version"] == "2"
+    assert result["version"] == "3"
     assert result["equation_count"] > 0
     assert result["checks"]
     for channel in result["channels"]:
@@ -97,7 +97,7 @@ with zipfile.ZipFile(io.BytesIO(ns["web_export_benchmark"]())) as z:
         assert len(rows) == 362
 checks.append("Silicon benchmark: 18 calculated cases pass their independent identities and OriginLab export.")
 
-record = dict(status="passed", version="2", checks=checks,
+record = dict(status="passed", version="3", checks=checks,
               elapsed_seconds=round(time.monotonic()-started,2),
               engine_sha256=hashlib.sha256((ROOT/"dist/raman_engine.py").read_bytes()).hexdigest())
 (ROOT/"dist/data/web-verification.json").write_text(json.dumps(record,indent=2))

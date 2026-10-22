@@ -1,4 +1,4 @@
-"""Browser adapter for the unchanged scientific functions in notebook version 2.
+"""Browser adapter for the unchanged scientific functions in notebook version 3.
 
 The notebook supplies all tensors, rotations, Jones states, amplitudes,
 mathematical traces, validation and scientific figures. This adapter validates

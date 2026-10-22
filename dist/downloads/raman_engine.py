@@ -1,4 +1,4 @@
-# Generated from the scientific cells of notebook version 2.
+# Generated from the scientific cells of notebook version 3.
 # Rich notebook display imports are omitted; scientific functions are unchanged.
 import os
 os.environ['MPLBACKEND']='Agg'
@@ -715,9 +715,9 @@ RULE_LABELS = {
     "DEGENERATE_PARTNER_SUM": "Unresolved phonon partner-intensity sum",
     "SINGLE_TENSOR": "Single coherent tensor",
 }
-AUDIT_VERSION = "2"
+AUDIT_VERSION = "3"
 QWP_SOURCE = {
-    "filename": "Raman_intensity_Kumar_Version_2.ipynb",
+    "filename": "Dr_Kumar_Original.ipynb",
     "sha256": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
     "adopted_method": "Quarter-wave-plate main calculation: source complex 2×2 model, Q, Q.T, circular basis, analyzer reference, coherent amplitude and squared-modulus intensity",
     "material_tensor_policy": "The selectable 3D rotation model is an explicit extension. It supplies a projected crystal tensor to the unchanged Quarter-wave-plate optical/coherent intensity sequence. The original source does not contain a crystal-orientation library.",
@@ -884,7 +884,7 @@ OPTICAL_GUIDE_REFERENCES = {
     "cubic": ("Cubic Raman reference: Sec. 2.2, Eqs. (9), (11)", "https://doi.org/10.1002/jrs.70113"),
     "circular": ("Circular selection rules: Eqs. (21-24)", "https://doi.org/10.1039/D1CP02209A"),
     "optical-source": ("Uploaded QWP implementation reference", "Original optical-reference notebook"),
-    "kumar-v2": ("Uploaded Version 2 QWP implementation reference", "Included Version 2 source notebook"),
+    "kumar-original": ("Uploaded original QWP implementation reference", "Included original source notebook"),
 }
 
 
@@ -952,7 +952,7 @@ def optical_method_catalog():
             invariant="At alpha=0 and pi/2 the circular endpoints equal the elliptical reference in power; intermediate intensities generally need not match.",
             use_for="The uploaded QWP optical sequence, after its axes, return-path convention and analyzer zero are verified.",
             caution="Q.T is a declared source convention, not a universal reverse-path rule. Keep either the explicit B or its effective detector, never both. The crystal tensor remains 3x3 before transverse restriction.",
-            sources=["kumar-v2", "jones"], provenance="Exact uploaded optical chain plus a program-derived p/q identity valid for any supplied R_perp under that chain."),
+            sources=["kumar-original", "jones"], provenance="Exact uploaded optical chain plus a program-derived p/q identity valid for any supplied R_perp under that chain."),
         "CIRCULAR_SAME": dict(family="Fixed circular channels", scan="None: both sample states are fixed",
             preparation="Fixed sigma_s input", return_path="Identity in the effective-state representation",
             detection="Fixed sigma_s detector", states=[sigma, r"E_i=\sigma_s,\quad e_s=\sigma_s"],
@@ -6147,7 +6147,7 @@ def validate_general_upgrade():
 """Integrated into Cell 21: procedures, purposes and measured validation evidence."""
 
 OPTICAL_REFERENCE_SOURCE = dict(
-    filename="Raman_intensity_Kumar_Version_2.ipynb",
+    filename="Dr_Kumar_Original.ipynb",
     sha256="661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
     date="2026-10-15", notebook_cells=38, code_cells=20,
     notation="R[out,in]: first index = detected circular label; second = incident label.",

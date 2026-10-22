@@ -13,12 +13,12 @@
     "The separate Ag reference intensity arrays are unchanged."
   ],
   "source_sha256": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
-  "elapsed_seconds": 48.66,
+  "elapsed_seconds": 33.92,
   "reference": {
     "status": "passed",
     "kind": "QWP source reference validation",
     "source": {
-      "filename": "Raman_intensity_Kumar_Version_2.ipynb",
+      "filename": "Dr_Kumar_Original.ipynb",
       "sha256": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
       "date": "2026-10-15",
       "notebook_cells": 38,
@@ -26,7 +26,7 @@
       "notation": "R[out,in]: first index = detected circular label; second = incident label.",
       "scope": "The source is an effective complex 2x2 optical model. Its antisymmetric off-diagonal pair is not substituted for a D2h material tensor."
     },
-    "software_version": "2",
+    "software_version": "3",
     "rows": [
       {
         "id": "K01",

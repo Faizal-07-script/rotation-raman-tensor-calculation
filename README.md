@@ -1,4 +1,4 @@
-# Rotation Raman Tensor Calculation — Version 2
+# Rotation Raman Tensor Calculation — Version 3
 
 [**Open the live website on GitHub Pages**](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/)
 
@@ -12,7 +12,7 @@ derivations, polar plots and scientific exports.
 ## Structure
 
 - dist/: complete buildless static application.
-- sources/notebook_v2.ipynb: current notebook, including executed outputs.
+- sources/notebook_v3.ipynb: current notebook, including executed outputs.
 - sources/tutorial_*.json: explanations covering every nonblank source line.
 - sources/reference notebooks: unmodified implementation references.
 - prepare_content.py: extracts the tutorial, scientific functions and downloads.
@@ -31,6 +31,17 @@ regenerating assets with python prepare_content.py. If dependencies are
 installed in a separate directory, set RAMAN_PYTHON_DEPENDENCY_PATH to it.
 Rebuilding preserves the original function source; only rich notebook display
 imports are omitted in the browser engine.
+
+## Optional interactive user guide
+
+The header's **User guide** button opens a workspace tour, the current-page
+walkthrough, calculator input and result tours, and guides for every Introduction,
+Physics and Python-cell page. **Guide this page** is available on each page.
+Guidance supports Next/Back, step selection, close/skip, replay and resume.
+Guide progress and optional section prompts are stored only in this browser.
+A tour never changes coefficients, loads an example, runs Python, exports data,
+or alters a scientific result. It can open a menu, explanatory panel or result tab.
+The application remains usable without taking a tour.
 
 ## Optical-profile guide
 
@@ -76,7 +87,7 @@ Source-specific identities are not applied to another crystal tensor.
 Cell 19 displays the reports and Cell 16 exports matching JSON/Markdown.
 The website has Checking procedures and Reference validation views plus
 an introduction guide. The original upload is preserved as
-sources/dr_kumar_version2.ipynb and a separate downloadable reference.
+sources/dr_kumar_original.ipynb and a separate downloadable reference.
 checking_procedures_verification.json records the source execution,
 all-nine-profile checks, false-result injection tests and export equality.
 
@@ -103,7 +114,7 @@ starts a fresh worker. Downloaded results are independent files.
 
 ## GitHub Pages
 
-The `.github/workflows/pages.yml` workflow checks the Version 2 release and
+The `.github/workflows/pages.yml` workflow checks the Version 3 release and
 publishes `dist/` to GitHub Pages. See [GITHUB_PAGES.md](GITHUB_PAGES.md) for
 repository configuration. The scientific runtime and all assets use relative
 paths and support a repository subdirectory.

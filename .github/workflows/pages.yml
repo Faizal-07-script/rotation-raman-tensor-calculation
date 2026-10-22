@@ -1,4 +1,4 @@
-name: Publish Version 2 website
+name: Publish Version 3 website
 
 on:
   push:
@@ -33,6 +33,7 @@ jobs:
           node --check dist/content.js
           node --check dist/optical-guide.js
           node --check dist/engine-worker.js
+          node --check dist/user-guide.js
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload static website

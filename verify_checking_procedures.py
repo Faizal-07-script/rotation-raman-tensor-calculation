@@ -19,7 +19,7 @@ from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.capture import capture_output
 
 started=time.monotonic()
-original=json.loads((ROOT/"sources/dr_kumar_version2.ipynb").read_text())
+original=json.loads((ROOT/"sources/dr_kumar_original.ipynb").read_text())
 shell=InteractiveShell.instance()
 executed=0
 source_prints=[]
@@ -105,7 +105,7 @@ baseline=ROOT/"browser_verification.json"
 old_curve=ROOT/"validation/reference_intensity.csv"
 assert result["csv"].splitlines()==old_curve.read_text().splitlines()
 checks.append("The separate Ag reference intensity arrays are unchanged.")
-record=dict(status="passed",checks=checks,source_sha256=hashlib.sha256((ROOT/"sources/dr_kumar_version2.ipynb").read_bytes()).hexdigest(),
+record=dict(status="passed",checks=checks,source_sha256=hashlib.sha256((ROOT/"sources/dr_kumar_original.ipynb").read_bytes()).hexdigest(),
             elapsed_seconds=round(time.monotonic()-started,2),reference=reference)
 (QA/"verification.json").write_text(json.dumps(ns["serializable"](record),indent=2))
 (ROOT/"checking_procedures_verification.json").write_text(json.dumps(ns["serializable"](record),indent=2))

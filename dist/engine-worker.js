@@ -29,7 +29,7 @@ self.onmessage = async event => {
     if (!pythonReady) pythonReady = initializePython();
     const py = await pythonReady;
     let result, binary = false;
-    if (type === 'init') result = {ready: true, version: '2'};
+    if (type === 'init') result = {ready: true, version: '3'};
     else {
       py.globals.set('web_input_json', JSON.stringify(payload));
       const expressions = {
