@@ -1,0 +1,948 @@
+[
+  {
+    "cell": 17,
+    "overview": "Create the notebook controls and result containers. This cell declares visible choices and state holders; it does not rotate a tensor or calculate a Raman intensity. The optical-profile guide explains physical differences without changing the intensity engine.",
+    "workflow": [
+      "Import ipywidgets and define reusable control constructors.",
+      "Create independent tensor-model, optical-method and explicit-example selectors.",
+      "Declare crystal, orientation, Jones-state, display and conditional-rule inputs.",
+      "Create calculation/export/validation controls and the twelve output tabs.",
+      "Initialize computed-result state separately from the UI bookkeeping state."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 7,
+        "title": "Import the widget library and set label layout",
+        "explanation": "ipywidgets supplies notebook selectors, numerical fields, buttons and output areas. STYLE gives descriptions the width they need rather than truncating scientific labels.",
+        "why": "Widget presentation is kept separate from the matrix engine, so a different interface can reuse the calculations.",
+        "check": "Importing this cell alone creates no Raman result."
+      },
+      {
+        "start_line": 8,
+        "end_line": 15,
+        "title": "Build a consistent dropdown",
+        "explanation": "dropdown() receives the displayed label/value pairs, an initial internal value and a description. It returns an 800-pixel-wide dropdown with max_width=100% so the container can shrink.",
+        "why": "Using one constructor keeps selector behavior and label layout consistent. The internal value, rather than the displayed prose, enters the calculation.",
+        "check": "The initial value must be one of the provided option values."
+      },
+      {
+        "start_line": 18,
+        "end_line": 21,
+        "title": "Build a numerical field",
+        "explanation": "number() converts the default to float and returns a FloatText with a descriptive label and a compact width.",
+        "why": "The UI accepts ordinary numerical input; later exact() and complex_parameter() perform the scientific conversion and validation.",
+        "check": "A visible decimal is an input value, not a fitted tensor coefficient."
+      },
+      {
+        "start_line": 24,
+        "end_line": 49,
+        "title": "Separate model, optics and example selection",
+        "explanation": "model_pick selects a full 3D crystal tensor or the original effective 2D optical source. optics_pick uses GENERAL_PROFILES. example_pick only selects a named configuration; load_example_button explicitly applies it.",
+        "why": "Changing a report/example label must not silently select a different experiment. Tensor dimensionality and optical states are distinct physical choices.",
+        "check": "Selecting an example in the dropdown does not load it until the button is pressed."
+      },
+      {
+        "start_line": 50,
+        "end_line": 61,
+        "title": "Record a case label and input note",
+        "explanation": "case_label identifies a run; input_note records assumptions such as illustrative lattice ratios or coefficients. Both fields are exported with the configuration.",
+        "why": "A curve needs a reproducible description of its input assumptions, especially when comparing different surfaces or publications.",
+        "check": "Editing either field invalidates the displayed result when observers are connected in Cell 22."
+      },
+      {
+        "start_line": 62,
+        "end_line": 94,
+        "title": "Declare material, symmetry, branch and coefficient controls",
+        "explanation": "material_pick reads the material library; group_pick exposes the 21 implemented point groups plus a custom Cartesian tensor. mode_pick selects phonon branches. coef_accordion later holds each branch coefficient magnitude and phase. ag_relation permits explicit D2h diagonal equalities, and custom_tensor accepts a 3-by-3 numerical JSON matrix.",
+        "why": "The tensor form follows symmetry, while its numerical coefficients remain branch-specific inputs. Equality relations are optional constraints, not automatic fitting assumptions.",
+        "check": "Named material presets lock their declared point group; choose the General material to select a different group or a custom tensor."
+      },
+      {
+        "start_line": 95,
+        "end_line": 107,
+        "title": "Declare surface indices, an in-plane reference and frame rotation",
+        "explanation": "surface_options extends the basic presets with (500) through (550). hkl_fields describe a reciprocal-lattice surface normal; uvw_fields describe a direct-lattice in-plane direction. auto_x enables a projected Cartesian reference, normal_pick selects the normal side, and psi is the frame angle.",
+        "why": "A surface alone does not determine the in-plane zero angle. The normal side and frame angle complete the measurement frame used by T.",
+        "check": "For an explicit in-plane direction, h*u+k*v+l*w must equal zero. The frame angle psi is not the optical scan angle."
+      },
+      {
+        "start_line": 108,
+        "end_line": 121,
+        "title": "Provide the lattice metric",
+        "explanation": "Six fields hold a0, b0, c0 and the three cell angles. The example starts with a unity orthogonal metric.",
+        "why": "The physical normal is proportional to L^(-T)(h,k,l), so noncubic length ratios affect tilted-surface geometry. Tensor components remain Cartesian.",
+        "check": "Lengths must use one common unit; replace illustrative noncubic ratios with values for the sample."
+      },
+      {
+        "start_line": 122,
+        "end_line": 133,
+        "title": "Provide direct Jones states and angular zeros",
+        "explanation": "direct_widgets contains the incident mixing angle and phase, the detector mixing-angle zero and phase. theta_zero shifts a co-rotating linear scan; analyzer_zero shifts the direct linear detection scan.",
+        "why": "Explicit states and angle origins make comparisons reproducible. A fixed profile ignores inactive direct-state controls instead of borrowing their values.",
+        "check": "The direct-state convention is (cos(theta), exp(i*beta)*sin(theta)); all field angles here are in degrees."
+      },
+      {
+        "start_line": 134,
+        "end_line": 149,
+        "title": "Keep the original effective source inputs explicit",
+        "explanation": "source_widgets declares real a and A and the phase angles delta and phi. source_box states that the original 2D source has no crystal-orientation parameter.",
+        "why": "This reference model can be checked faithfully without treating its antisymmetric entries as a material tensor.",
+        "check": "In the original 2D model, changing hkl must not change the calculated source curve."
+      },
+      {
+        "start_line": 150,
+        "end_line": 169,
+        "title": "Separate circular-state selection from conditional rule inputs",
+        "explanation": "circular_spin selects a fixed laboratory circular basis label. N, incident OAM, phonon charges, optional absorption charge and the thin-2D assumption checkbox belong to the separate rule check. optical_preview will display the actual incident and effective detector vectors.",
+        "why": "A necessary angular-momentum congruence does not provide a quantitative vortex-beam intensity. The plane-wave Jones calculation and the conditional rule must remain distinguishable.",
+        "check": "The OAM field is labelled rule only. Changing it must not secretly mask or reshape a Jones intensity curve."
+      },
+      {
+        "start_line": 170,
+        "end_line": 170,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 171,
+        "end_line": 185,
+        "title": "Declare display and sampling options",
+        "explanation": "normalize uses one common maximum for every displayed contribution of one mode, including paired VV/VH channels. Cartesian plots, the 3D frame and the full steps are display choices. points includes both 0 and 360 degrees for the selected angular spacing.",
+        "why": "Common normalization preserves relative component strength. Sampling determines the exported grid, while analytic harmonics determine continuous extrema.",
+        "check": "721 samples means 0.5-degree spacing over the inclusive 0\u2013360-degree interval."
+      },
+      {
+        "start_line": 186,
+        "end_line": 216,
+        "title": "Create actions and comparison controls",
+        "explanation": "The Calculate button initiates physics; export and symbolic-LaTeX buttons start disabled. Comparison controls choose a saved channel and normalization. status reports the current result state, and style_note names the actual installed font.",
+        "why": "An export should be enabled only after a successful calculation, and the requested font should not be confused with a fallback font actually used.",
+        "check": "The export button cannot create a valid result from an uncalculated form."
+      },
+      {
+        "start_line": 217,
+        "end_line": 230,
+        "title": "Allocate independent result containers",
+        "explanation": "Eleven Output widgets receive the mathematical trace, figures, table, frame, audits, validation, LaTeX, downloads, comparisons, tensor library and source links. A separate output belongs to the cubic benchmark.",
+        "why": "Dedicated containers let callbacks replace one view without mixing it into another or leaving previous output above a new result.",
+        "check": "The output widgets hold rendered views; the state dictionary holds the underlying scientific snapshot."
+      },
+      {
+        "start_line": 231,
+        "end_line": 269,
+        "title": "Declare the fixed silicon benchmark controls",
+        "explanation": "The benchmark has one shared coefficient magnitude, angular spacing, six requested surfaces and three protocols. Calculate, inspect and export actions are separate; inspection loads one computed benchmark configuration into the main calculator.",
+        "why": "The fixed reference study should remain a verifiable benchmark rather than silently turning into an arbitrary-material demonstration.",
+        "check": "All 18 cases use the same common d scale and retain all three complete T2g partners."
+      },
+      {
+        "start_line": 270,
+        "end_line": 302,
+        "title": "Map twelve result tabs to their containers",
+        "explanation": "tab_names establishes the order; tab_index provides stable name-to-index lookup. The Tab children list uses the matching Output widgets and benchmark panel, then a loop applies each label.",
+        "why": "Callbacks can select a tab by meaning rather than scattering unexplained numeric indices through the code.",
+        "check": "The order of tab_names and children must remain synchronized."
+      },
+      {
+        "start_line": 303,
+        "end_line": 317,
+        "title": "Initialize result state and UI bookkeeping",
+        "explanation": "state starts with no run and contains the figures, derivation, archive, validation, error, comparison snapshots and benchmark objects. ui stores transaction status, coefficient widgets, definitions and the one-time wiring flag.",
+        "why": "Calculated results should not be reconstructed by reading a partly edited form. Keeping UI flags separate from result data makes that boundary visible.",
+        "check": "state[\"run\"] becomes the source for plots and exports only after Calculate succeeds."
+      }
+    ],
+    "pitfalls": [
+      "The defaults are demonstrations; symmetry does not determine numerical tensor magnitudes or phases.",
+      "The circular OAM controls diagnose a conditional selection rule and do not implement a spatial vortex-light propagation calculation.",
+      "A fixed circular channel can appear as a circle in a polar display because its scalar intensity is independent of the displayed scan angle."
+    ]
+  },
+  {
+    "cell": 18,
+    "overview": "Translate user edits into consistent input forms and invalidate obsolete results. Transactions prevent an example or material update from being interpreted while only half of its fields have changed. The optical-profile guide explains physical differences without changing the intensity engine.",
+    "workflow": [
+      "Suspend reactive callbacks during a multi-field update.",
+      "Build coefficient fields from the actual selected tensor definitions.",
+      "Handle material, symmetry, surface and optical-state changes without mixing their responsibilities.",
+      "Load an explicitly selected example into visible controls.",
+      "Clear stale calculated outputs so the next Calculate action uses the revised form."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 9,
+        "title": "Batch a coherent multi-field update",
+        "explanation": "The context manager saves the previous busy flag, sets it while a preset is loaded, yields to the caller and restores the flag in finally. Nested transactions restore their previous state correctly.",
+        "why": "Observers fire when widget values change. Without a transaction they could react to an incomplete combination of old and new inputs; finally also restores the flag if loading fails.",
+        "check": "The busy guard suppresses input callbacks during a batch; it is not a parallel-computation lock."
+      },
+      {
+        "start_line": 12,
+        "end_line": 28,
+        "title": "Apply only the selected diagonal equality",
+        "explanation": "For D2h Ag, links maps each constrained coefficient to its source. Dependent magnitude and phase fields are disabled, then both values are copied inside a transaction. Free inputs leave all coefficients independent.",
+        "why": "The displayed controls must show exactly the relation used, including relative phase. A hidden assignment of b=c or a=b would otherwise change the experiment silently.",
+        "check": "Changing a copied source coefficient should update all linked dependent fields; free leaves them editable."
+      },
+      {
+        "start_line": 31,
+        "end_line": 36,
+        "title": "Refresh constraints and invalidate the old run",
+        "explanation": "The callback exits during a transaction; otherwise it applies the selected Ag relation and calls invalidate().",
+        "why": "A coefficient change can alter both the magnitude and angular shape of a coherent response. Previously calculated plots and downloads must no longer look current.",
+        "check": "This callback does not calculate a replacement curve; the user presses Calculate next."
+      },
+      {
+        "start_line": 39,
+        "end_line": 59,
+        "title": "Show selected branch coefficient panels",
+        "explanation": "Obsolete layout containers are closed while the actual numeric fields are retained. For each selected branch, a new panel displays its magnitude/phase pairs. Accordion titles are rebuilt, the first visible panel is opened and the result is invalidated.",
+        "why": "Changing the visible branch selection should not reset a coefficient that the user has already entered. Closing obsolete wrappers avoids accumulating notebook display objects.",
+        "check": "Deselecting and reselecting a branch should preserve its fields until a material/group rebuild occurs."
+      },
+      {
+        "start_line": 62,
+        "end_line": 102,
+        "title": "Generate the form from the tensor library",
+        "explanation": "Old coefficient widgets are closed. definitions_for() supplies the actual selected branch templates; parameters_for() discovers their independent symbols. Each symbol gets magnitude/phase fields and an observer. The mode list, optional equality/custom controls and tensor-library display are rebuilt.",
+        "why": "The form should follow the same definitions used by the calculation engine, avoiding a manually maintained coefficient list that could omit a symmetry-allowed parameter.",
+        "check": "The number of complete tensors displayed for a family indicates phonon partners, not the number of free tensor coefficients."
+      },
+      {
+        "start_line": 103,
+        "end_line": 107,
+        "title": "Mark the input-handling section",
+        "explanation": "The standalone string documents the boundary between coefficient-panel helpers and the remaining general input callbacks. It has no computational effect.",
+        "why": "A source walkthrough should distinguish explanatory strings from statements that alter inputs or results.",
+        "check": "Executing this string cannot change the selected material or intensity."
+      },
+      {
+        "start_line": 108,
+        "end_line": 122,
+        "title": "Remove an obsolete scientific snapshot",
+        "explanation": "Close the old figure handles, clear run/derivation/report/archive state, disable export/LaTeX/comparison-add actions and empty the result containers. Saved comparison snapshots are deliberately retained.",
+        "why": "A change in the form must not leave old plots or downloads presented as the result of new inputs. Closing figures also releases plotting resources.",
+        "check": "After clearing, state[\"run\"] is None and result export is disabled."
+      },
+      {
+        "start_line": 125,
+        "end_line": 130,
+        "title": "Mark edited inputs as needing calculation",
+        "explanation": "During a form transaction the callback returns immediately. Otherwise it clears a previous run when one exists and displays a status message explaining that a fresh calculation is required.",
+        "why": "Separating edit handling from calculation avoids repeated symbolic work for every keystroke and prevents stale results from being exported.",
+        "check": "Editing a physical field should remove the current result but preserve explicitly saved comparisons."
+      },
+      {
+        "start_line": 133,
+        "end_line": 135,
+        "title": "Choose a conventional illustrative metric",
+        "explanation": "Trigonal and hexagonal groups receive the conventional hexagonal setting with gamma=120 degrees; other groups receive an orthogonal unity metric as a starting template.",
+        "why": "A point-group tensor setting must be paired with an appropriate indexing convention. These are illustrative ratios, not a lookup of measured material lattice constants.",
+        "check": "A monoclinic or triclinic user may still need to enter the actual lengths and angles."
+      },
+      {
+        "start_line": 138,
+        "end_line": 158,
+        "title": "Load symmetry and coefficient fields for a material",
+        "explanation": "The material entry provides its declared group, metric, space-group label and note. Named materials lock the group; General leaves it selectable. The function resets Ag equality to free and rebuilds the definitions and coefficient controls.",
+        "why": "A material preset should define its tensor setting transparently. It must not retain a restrictive coefficient equality from a previous material.",
+        "check": "The local previous_group assignment is unused bookkeeping and has no numerical effect."
+      },
+      {
+        "start_line": 161,
+        "end_line": 171,
+        "title": "Change the material without changing the optical experiment",
+        "explanation": "Inside one transaction, load_material_fields() updates the tensor setting, default metric and labels. The comment explicitly preserves hkl, uvw, normal side, frame angle and optical method. Afterward the old result is invalidated.",
+        "why": "Material and optics are independent physical inputs. Switching material should not secretly select another detector configuration to make curves appear similar.",
+        "check": "After a material change, review the illustrative coefficient and lattice defaults before calculating."
+      },
+      {
+        "start_line": 174,
+        "end_line": 182,
+        "title": "Load the selected general symmetry setting",
+        "explanation": "A transaction sets the conventional metric template, returns the Ag equality selector to free and recreates coefficients from the selected group; then the previous result is invalidated.",
+        "why": "Changing symmetry can change the allowed tensor entries and phonon partners, so stale fields must be replaced.",
+        "check": "The group selector is intended to be changed under the General material."
+      },
+      {
+        "start_line": 185,
+        "end_line": 195,
+        "title": "Load an explicit surface and in-plane preset",
+        "explanation": "If the selection is a known preset, copy both its hkl and uvw tuple inside a transaction. A Custom hkl selection leaves the manually entered values intact. In either case the old result becomes stale.",
+        "why": "The in-plane reference belongs with the surface preset; it supplies the angular zero needed in addition to the normal.",
+        "check": "Selecting (5k0) loads its associated in-plane direction (k,-5,0), which satisfies the zone condition."
+      },
+      {
+        "start_line": 198,
+        "end_line": 206,
+        "title": "Keep the preset label honest after a manual hkl edit",
+        "explanation": "The function compares the entered hkl values with the currently selected preset. If they differ, it changes the label to Custom hkl inside a transaction and invalidates the result.",
+        "why": "A visible preset label should not claim that manually edited indices still describe that preset.",
+        "check": "Editing uvw is handled by ordinary invalidation, while this callback specifically checks hkl."
+      },
+      {
+        "start_line": 209,
+        "end_line": 212,
+        "title": "Enable or disable manual in-plane indices",
+        "explanation": "The uvw fields are disabled when automatic X is enabled and re-enabled when it is disabled; the result is then invalidated.",
+        "why": "An inactive manual direction should not appear to be an active physical input. In the collected configuration automatic X is represented by uvw=None.",
+        "check": "Automatic X is a coordinate reference selected by the geometry code, not a measured in-plane crystallographic direction."
+      },
+      {
+        "start_line": 215,
+        "end_line": 238,
+        "title": "Parse only the active rule inputs and preserve angular offsets",
+        "explanation": "The first branch checks the selected optical profile. If it is not a CIRCULAR_* profile, the function returns default circular metadata together with the active exact linear-scan and direct-analyzer zeros, without reading hidden charge fields. For an active circular profile, comma-separated phonon charges are parsed as strict integers, the list must be nonempty, and an absorption charge is parsed only when present. The returned metadata also records the circular label, cyclic order, incident OAM and explicit thin-2D scope declaration.",
+        "why": "Validation should follow the active experiment. An invalid or cleared hidden circular-charge field must not block VV, VH, QWP or direct-Jones calculations, while the circular rule must retain strict checks when selected. The angular offsets are retained in either branch because those are used by their corresponding optical profiles.",
+        "check": "Clear the circular charge field, select VV and calculate: the inactive field should be ignored. Select an active circular profile with the same empty field: the explicit validation error should still be raised."
+      },
+      {
+        "start_line": 215,
+        "end_line": 220,
+        "title": "Active-profile guard: return before reading hidden circular fields",
+        "explanation": "The startswith(\"CIRCULAR_\") condition distinguishes the three active circular-channel profiles from the other optical protocols. A noncircular profile returns a fresh metadata dictionary expanded from default_paper_parameters(\"CIRCULAR\"), then overrides theta0_deg and analyzer_zero_deg from their active numerical fields.",
+        "why": "A user can leave an invalid value in a control that later becomes hidden. Ignoring that inactive control prevents an unrelated form state from changing whether the selected optical calculation can run.",
+        "check": "The early return must occur before splitting circular_charges.value or parsing circular_dm.value."
+      },
+      {
+        "start_line": 221,
+        "end_line": 238,
+        "title": "Active circular profile: strictly validate rule metadata",
+        "explanation": "For CIRCULAR_* profiles, split the comma-separated phonon charges, discard whitespace-only pieces and convert every remaining piece with circular_integer(). Reject an empty list. Parse a nonempty absorption charge strictly, and collect the actual visible spin, N, OAM, charges, scope declaration and exact angle offsets.",
+        "why": "These inputs are physically relevant to the selected conditional rule check, so malformed integers or a missing charge list must be reported rather than silently replaced with defaults.",
+        "check": "Inactive-field guarding must not weaken the existing rejection of fractional, Boolean or missing circular-rule charges when that rule is active."
+      },
+      {
+        "start_line": 241,
+        "end_line": 276,
+        "title": "Show relevant controls and the actual sample states",
+        "explanation": "The callback exposes only the controls appropriate to the selected profile, builds optical_chain() from the visible values and renders Ei and the effective detector es=B.H*e_an. SECOND scans are displayed with theta; other scans use alpha. The previous result is invalidated.",
+        "why": "Looking at the analyzer after a return optic is not enough: the Raman contraction uses the effective detection state at the sample. This preview makes differences between QWP, elliptical and direct-linear scans inspectable.",
+        "check": "Fixed circular states have CONSTANT scan basis. VV/VH have SECOND amplitude basis, while fixed-input detection scans normally have FIRST."
+      },
+      {
+        "start_line": 279,
+        "end_line": 284,
+        "title": "Reflect which model inputs are active",
+        "explanation": "The original 2D source hides the crystal and orientation panels, shows its source parameters and disables the optics selector. A crystal model restores those panels and allows optical selection.",
+        "why": "The original effective tensor has no lattice or orientation, so leaving those inputs visible as active would imply a calculation that the source model does not perform.",
+        "check": "Visibility changes describe model scope; they do not rotate a source-only tensor."
+      },
+      {
+        "start_line": 287,
+        "end_line": 297,
+        "title": "Switch model while retaining the prior crystal optical choice",
+        "explanation": "Within a transaction, switching to the original source stores the previous crystal optics and selects QWP. Switching back restores that stored choice. The form visibility and state preview are then updated.",
+        "why": "The source model must use its own specified optical chain. Returning to the crystal model should not discard an independently chosen optical experiment.",
+        "check": "The original-source model intentionally fixes its optics to QWP."
+      },
+      {
+        "start_line": 300,
+        "end_line": 370,
+        "title": "Load a complete visible configuration atomically",
+        "explanation": "The transaction loads the model, optics, labels and either source parameters or crystal fields. Crystal loading rebuilds definitions, sets the metric and axes, selects modes, converts complex coefficients into magnitude/phase controls and serializes a custom numerical matrix. It then loads rule metadata, angular zeros, direct states and display options. Finally it refreshes panels and invalidates any prior result.",
+        "why": "An example should be reproducible by inspecting the visible form. No report label should secretly select optics, and a copied preset must not trigger intermediate calculations while it is being loaded.",
+        "check": "A configuration is loaded but not calculated by this function. It represents numerical widget values, not an arbitrary unresolved symbolic custom tensor."
+      },
+      {
+        "start_line": 373,
+        "end_line": 388,
+        "title": "Apply only the explicitly chosen example",
+        "explanation": "The selected example name chooses the slide-frame, 3D QWP, original 2D source, complex-linear, circular-channel or silicon reference configuration. load_configuration() fills the form and a status message asks for calculation.",
+        "why": "Examples deliberately change a complete configuration, whereas a material-only edit preserves the current optical experiment.",
+        "check": "The final else branch corresponds to the fixed silicon (530) VV example because those are the declared dropdown options."
+      }
+    ],
+    "pitfalls": [
+      "A form transaction prevents intermediate callbacks; it does not run the physics.",
+      "Changing a material preserves the selected orientation and optics, but updates illustrative tensor and lattice defaults that must be reviewed.",
+      "The active-profile guard is a regression safeguard: hidden circular-rule fields are ignored for noncircular optics, while active circular profiles still require a valid integer charge list."
+    ]
+  },
+  {
+    "cell": 19,
+    "overview": "Connect the controls to the common engine and present one calculated snapshot consistently in plots, equations, tables and downloads. Calculation and export are separate actions.",
+    "workflow": [
+      "Collect a complete configuration from active controls.",
+      "Calculate the run, mathematical trace and publication figures.",
+      "Store those objects once and render every result tab from that snapshot.",
+      "Export the stored snapshot or freeze it for comparison.",
+      "Run scientific regressions and the separate silicon benchmark on explicit actions.",
+      "Calculate a current-run checking report and render its purpose/procedure/evidence; Run validation also executes the 25 source-reference procedures."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 3,
+        "title": "Define calculation and result actions",
+        "explanation": "This cell contains the controller layer: it reads the form, calls the physical engine and renders or exports the stored result.",
+        "why": "The matrix engine should remain independent of notebook widgets so it can be reused by another interface.",
+        "check": "Defining these functions does not run them until a button, observer or startup action calls them."
+      },
+      {
+        "start_line": 4,
+        "end_line": 45,
+        "title": "Convert the form into one scientific input dictionary",
+        "explanation": "For the original source, start from qwp_source_config() and replace its four real parameters. For a crystal, start from general_config(), construct every selected branch coefficient with magnitude and phase, strictly parse a 3-by-3 custom numerical JSON tensor when selected, and copy the geometry, optics and display values.",
+        "why": "The calculation receives an explicit snapshot of the form. This prevents the engine from reading widget values while calculating and retains exactly which inputs produced a result.",
+        "check": "General crystal coefficients use complex_parameter(); custom entries use parse_complex(), which does not evaluate arbitrary Python code."
+      },
+      {
+        "start_line": 48,
+        "end_line": 52,
+        "title": "Store an actionable calculation error",
+        "explanation": "The exception type, message and traceback are placed in state[\"last_error\"]. The visible message is HTML-escaped before it is inserted into status.",
+        "why": "Failures should be visible and inspectable, while user-supplied text should not become executable page markup.",
+        "check": "An error report does not substitute a fallback scientific curve."
+      },
+      {
+        "start_line": 55,
+        "end_line": 75,
+        "title": "Display extrema and sampled intensities",
+        "explanation": "The first table uses each displayed channel summary to show Imin, Imax and its continuous-angle maximum. Constant/zero responses have no unique maximum angle. The second table reports the stored plotted arrays at 15-degree intervals.",
+        "why": "The numeric view must correspond to the component curves actually displayed. The extrema are derived from harmonic coefficients rather than inferred from a coarse grid.",
+        "check": "The table is raw intensity data even when figure normalization is enabled; the archive includes the full angular grid."
+      },
+      {
+        "start_line": 78,
+        "end_line": 122,
+        "title": "Explain same-state equivalence and different-state scans",
+        "explanation": "The report lists direct and circular-basis reconstruction errors, projector distances between optical profiles at four angles, and maximum within-mode interference from the complete tensor audit. If available it adds the scope of the conditional circular rule.",
+        "why": "A differing polar plot can arise from a different experiment rather than a failed contraction. Conversely, equivalent states must agree across representations.",
+        "check": "The complete-mode interference audit is separate from the main Ag component plots; it must not be read as an extra component-sum figure."
+      },
+      {
+        "start_line": 125,
+        "end_line": 182,
+        "title": "Calculate once and render the same result everywhere",
+        "explanation": "After the busy guard, clear stale outputs and errors. calculate_general(collect_config()) creates the run; detailed_calculation() creates the mathematical trace; publication_figures() creates the plots. An optional frame is appended. Those objects are stored once, then rendered in the mathematical, plot, frame, table, audit and LaTeX tabs. Figure registry handles are closed after display, while figure objects are retained for export. Only a fully successful path enables export and comparison saving. checking_procedures_for_run uses the same frozen run to generate an evidence record. checking_report_markdown displays each check's purpose and mathematical expectation above the existing protocol comparisons.",
+        "why": "Every view should derive from the same calculated snapshot. Rebuilding a formula independently during display could otherwise disagree with the plotted array. Errors clear the incomplete result rather than leaving mixed old/new views.",
+        "check": "The status reports the actual channel and equation counts. show_steps hides the rendered derivation only; the calculated trace remains available in downloads."
+      },
+      {
+        "start_line": 185,
+        "end_line": 197,
+        "title": "Build a downloadable byte payload",
+        "explanation": "The bytes are base64-encoded into a data URL. The filename is escaped for its HTML attribute and visible label; MIME defaults to application/zip.",
+        "why": "Notebook output needs a user-triggered browser download without relying on a writable user filesystem path.",
+        "check": "This creates a link to already generated bytes; it does not rerun the calculation."
+      },
+      {
+        "start_line": 200,
+        "end_line": 217,
+        "title": "Export the stored calculated snapshot",
+        "explanation": "The handler returns when no run exists. Otherwise make_general_archive() receives the stored run, figures, derivation, validation and saved comparison snapshots. Its returned bytes are retained and linked from the Downloads tab.",
+        "why": "An export should describe the calculation that the user reviewed, including its component policy and input assumptions. It should not silently collect a different form.",
+        "check": "Input observers disable export when the form changes, so the user must calculate the revised form first."
+      },
+      {
+        "start_line": 220,
+        "end_line": 227,
+        "title": "Download the symbolic intensity source",
+        "explanation": "paper_intensity_latex() receives the stored run and trace. The symbolic document is encoded as UTF-8 and linked as a .tex file in Downloads.",
+        "why": "A manuscript equation needs the symbolic coefficient law before numerical substitution, rather than a string copied from an image or fitted to a plot.",
+        "check": "The symbolic file differs intentionally from the numerical-intensity document in the full ZIP."
+      },
+      {
+        "start_line": 230,
+        "end_line": 252,
+        "title": "Run the full regression suite and preserve its status",
+        "explanation": "The handler clears the validation view, invokes run_self_checks() plus validate_general_upgrade(), records the software version and messages and prints each passing check. Failure records a failed status, reports the exception and re-raises it. validate_optical_reference executes the uploaded Version 2 identities, limits, four circular channels and appendix convention. The full report is retained in state and rendered with its purposes.",
+        "why": "A test suite should fail visibly and retain which version was checked. Passing algebra checks must not be presented as experimental certification of illustrative coefficients.",
+        "check": "The printed scope explicitly excludes unknown sample coefficients and omitted propagation effects. A source-reference report must have status passed; otherwise this callback records a validation failure."
+      },
+      {
+        "start_line": 255,
+        "end_line": 278,
+        "title": "Overlay eligible saved snapshots for a selected channel",
+        "explanation": "Close an obsolete comparison figure, return when there is no saved data or selected channel, and call publication_comparison() with the frozen runs and normalization choice. The figure and a numbered input/protocol list are displayed.",
+        "why": "Saved comparisons must retain their original inputs. A plotted overlay needs an accompanying description of which experiment each curve represents.",
+        "check": "Incompatible scan definitions are rejected by publication_comparison() rather than aligned or fitted to make the overlay agree."
+      },
+      {
+        "start_line": 281,
+        "end_line": 291,
+        "title": "Freeze the current result for later comparison",
+        "explanation": "A successful current run is deep-copied into state[\"comparisons\"]. An insertion-order-preserving union of its displayed channel names populates the comparison selector, then the selected overlay is refreshed.",
+        "why": "A shallow reference could change when the main run is edited. A deep snapshot preserves the tensor, geometry, coefficients, optics and arrays together.",
+        "check": "Saving a comparison requires a calculated run; it does not save an uncalculated form."
+      },
+      {
+        "start_line": 294,
+        "end_line": 300,
+        "title": "Remove comparison snapshots and their display",
+        "explanation": "The saved run list is emptied, the previous overlay figure is closed, its state and selector are cleared, and the comparison output is erased.",
+        "why": "Clearing a comparison should release its figure and remove obsolete labels together.",
+        "check": "The current main calculation is unaffected."
+      },
+      {
+        "start_line": 303,
+        "end_line": 307,
+        "title": "Mark edited benchmark controls as stale",
+        "explanation": "Clear the stored study, its archive and validation, disable inspection/export, empty its output and ask for recalculation.",
+        "why": "Benchmark data from a previous common d value or angular grid must not remain downloadable as if it used the new controls.",
+        "check": "This invalidates only the benchmark state, not saved main-calculator comparisons."
+      },
+      {
+        "start_line": 310,
+        "end_line": 328,
+        "title": "Calculate and independently validate all 18 reference cases",
+        "explanation": "calculate_cubic_fig1() creates six surfaces times three protocols. validate_cubic_fig1() checks the study. The study and validation messages are stored, its summary and publication figure are displayed, and inspect/export controls are enabled.",
+        "why": "The reference figure is a computed and tested study, not a static image pasted into the program.",
+        "check": "A failure is reported; inspection and export should remain unavailable for an invalidated study."
+      },
+      {
+        "start_line": 331,
+        "end_line": 339,
+        "title": "Open one benchmark case in the general inspector",
+        "explanation": "Deep-copy the chosen protocol/surface configuration from the computed study, load it into the visible form, call on_run() and select the Mathematical derivation tab.",
+        "why": "The same general engine should explain an individual reference case, including its actual matrices and phonon partners.",
+        "check": "The inspected result must match the corresponding benchmark array for identical inputs."
+      },
+      {
+        "start_line": 342,
+        "end_line": 353,
+        "title": "Export the computed silicon study for OriginLab",
+        "explanation": "When a study exists, make_cubic_origin_archive() packages the stored study and validation. The bytes are retained and linked in Downloads.",
+        "why": "A native plotting handoff should contain calculated data and their provenance, not replace the scientific calculation with a plotting template.",
+        "check": "The exported Origin script still requires an OriginLab installation to execute natively."
+      }
+    ],
+    "pitfalls": [
+      "on_run() performs the calculation; on_export() packages the already stored calculation.",
+      "A closed Matplotlib registry handle does not destroy a figure object retained in state for later savefig export.",
+      "An individual Ag Cartesian contribution is not a separate phonon mode, and its power must not be read as the full coherent Ag response."
+    ]
+  },
+  {
+    "cell": 20,
+    "overview": "Define independent scientific regression checks for tensor symmetry, the imported optical chain, crystal rotation, reference component laws, unresolved phonon partners and numerical edge cases.",
+    "workflow": [
+      "Construct point-group generators in the same Cartesian setting as the library.",
+      "Check tensor-subspace covariance, dimensions and selected irrep characters.",
+      "Compare optical and crystal calculations against independent matrix chains and analytic limits.",
+      "Exercise input rejection, zero signals, overflow and caller immutability.",
+      "Provide a single function that invokes the complete core/model regression set."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 36,
+        "title": "Construct generators in the library Cartesian convention",
+        "explanation": "Rz creates a rotation about z; inv is inversion; the diagonal matrices give twofold rotations or mirrors. c3, c4 and c6 set principal rotational generators, while cycle permutes the cubic Cartesian axes. The dictionary selects the required generators for each of the 21 groups.",
+        "why": "Tensor covariance is meaningful only when generator axes and tensor axes use the same setting. A C2 axis along y must not be tested as though it were along z.",
+        "check": "These matrices operate on tensor coordinates in tests; improper symmetry operations are allowed as crystal symmetries even though an orientation frame itself must have determinant +1."
+      },
+      {
+        "start_line": 39,
+        "end_line": 130,
+        "title": "Test complete symmetric tensor subspaces and irrep labels",
+        "explanation": "Complex trial coefficients exercise all allowed entries. Each tensor must be symmetric and 3-by-3. Under every generator, transformed partner tensors are expressed in the original partner span using least squares; reconstruction and partner-mixing unitarity are checked. Selected representation traces are compared with expected characters. Coefficient derivatives from all families must span the six-dimensional space of symmetric second-rank tensors.",
+        "why": "Matrix shape alone cannot detect a mislabeled irrep, wrong off-diagonal sign or incomplete family. Covariance tests the transformation rule, while character traces distinguish representations.",
+        "check": "The test reports its covariance and character counts. It validates the declared symmetric electric-dipole library, not arbitrary magnetic or nonsymmetric response tensors."
+      },
+      {
+        "start_line": 133,
+        "end_line": 173,
+        "title": "Reproduce the original QWP matrix chain independently",
+        "explanation": "Check the explicit Q matrix, Q.H*Q=I, Q_return=Q.T and the circular incident state. For several complex source parameters, embed the effective 2D model only for regression and compare the engine curve with a closed circular-basis formula at irregular angles.",
+        "why": "A source regression should verify the phase, analyzer zero and matrix order rather than only show a visually similar polar curve. Irregular samples expose accidental agreement at special angles.",
+        "check": "The 2D embedding in this test is an algebraic device; it is not a proposed symmetry tensor for CaNb2O6."
+      },
+      {
+        "start_line": 176,
+        "end_line": 340,
+        "title": "Prevent reference policies from leaking into the source or crystal routes",
+        "explanation": "Verify that the original source has no crystal geometry or exported hkl, and that its amplitude and return phase match its circular derivation. Exercise source special cases. Compare the preserved historical component prescription and the coherent complete tensor against independent contractions, then change a relative phase to show their different interference rules. Invalid hybrid configurations must raise. Finally temporarily replace foreign crystal/reference helpers with functions that fail, run the pure source route and restore the globals in finally.",
+        "why": "A calculation cannot be called a source reproduction if it silently imports another method\u2019s tensor split or optical chain. The forbidden-call tests prove separation of execution paths rather than merely comparing final numbers.",
+        "check": "The preserved historical component-power sum is a regression target; the new main Ag figures remain separate xx/yy/zz contributions."
+      },
+      {
+        "start_line": 343,
+        "end_line": 394,
+        "title": "Compare projection with an independent full 3D contraction",
+        "explanation": "Use a reproducible complex random tensor on three surfaces with a noncubic metric and nonzero frame angle. For three optical chains and five angles, NumPy contracts the embedded incident/detection vectors with the full rotated tensor independently of the reduced calculation. Also test det(T)=+1 and invariance of an isotropic tensor.",
+        "why": "The 2-by-2 optical projection must be justified by equality with the 3D field calculation, especially on tilted surfaces where crystal-z entries can project into the transverse plane.",
+        "check": "There are 45 direct comparisons. Isotropic invariance applies to the complete coherent tensor, not to a basis-dependent sum of its component powers."
+      },
+      {
+        "start_line": 397,
+        "end_line": 469,
+        "title": "Check slide algebra without using it to generate curves",
+        "explanation": "Build the reference frame and calculate three diagonal component tensors using arbitrary incident/detector phases. Compare against independently written overlap-factor laws, then check five coefficient choices in the specialized reference scan. Verify the denominator 144 and the symbolic expansion identity. Replace the closed reference helper with a function that raises and confirm the production matrix calculation still succeeds.",
+        "why": "A reference law should test the program rather than supply the answer being tested. The forbidden-reference call directly guards against pasting a target formula into the production path.",
+        "check": "The historical aggregate reference is retained here to verify earlier arrays; the general display policy is checked separately in Cell 21."
+      },
+      {
+        "start_line": 472,
+        "end_line": 526,
+        "title": "Test phonon-basis invariance and optical limiting cases",
+        "explanation": "Randomly orthogonally mix the Eg, E2g and T2g partner tensors and verify that their unresolved summed powers remain unchanged. Compare silicon\u2019s direct-linear constant response with its different QWP sin-squared response. Verify basal-plane E1g extinction.",
+        "why": "Orthogonal unresolved phonon partners require a power sum that is invariant under a change of partner basis. Different optical chains should retain their genuinely different limits.",
+        "check": "Partner mixing is not the same operation as separating xx, yy and zz entries of one Ag phonon."
+      },
+      {
+        "start_line": 529,
+        "end_line": 569,
+        "title": "Reject invalid input and handle exact numerical limits",
+        "explanation": "Serialize the caller configuration before and after calculation to test immutability. A zero tensor must produce a zero curve with no preferred angle. Invalid in-plane indices, a reflected frame and overflowing amplitudes must raise. Fixed optical profiles must discard inactive direct controls and export their actual parameters.",
+        "why": "A trustworthy result includes correct failure behavior and input provenance, not just a valid-looking curve for the default case.",
+        "check": "An exact zero has no unique maximum direction; a reflection must not be relabeled as a physical orientation rotation."
+      },
+      {
+        "start_line": 572,
+        "end_line": 587,
+        "title": "Run the core and reference-model checks in one call",
+        "explanation": "The return list calls each named validation function and gathers its human-readable result. It also invokes the additional linear, circular, resonance and interference checks defined in Cell 21.",
+        "why": "A single entry point lets startup, a notebook button or another interface execute the same scientific regressions. Function lookup occurs at call time, so Cell 21 must have run before this is invoked.",
+        "check": "Any raised assertion stops the suite. Reaching the returned list means each listed check completed successfully."
+      }
+    ],
+    "pitfalls": [
+      "A preserved historical reference prescription is tested as a reference, not silently applied to the new general Ag plots.",
+      "Symmetry operations can have determinant -1; a measurement orientation frame must still have determinant +1.",
+      "Passing a finite test suite is evidence of algebraic consistency within scope, not a proof of every experimental effect or all crystallographic point groups."
+    ]
+  },
+  {
+    "cell": 21,
+    "overview": "Check the complex-linear and circular models against explicit reference equations, then test the general engine and separate Ag display policy. A passing check certifies the implemented algebra under its assumptions, not unknown sample coefficients or every experimental propagation effect. The final part implements QWP source reference checking procedures with explicit purposes and measured evidence, then generalizes the testing pattern to the current crystal/Jones run.",
+    "workflow": [
+      "Recover complex VV/VH formulas and document angular-sign conventions.",
+      "Test fixed circular channels and the conditional selection-rule scope separately.",
+      "Verify resonance denominators and within-mode interference counterexamples.",
+      "Validate the six-surface silicon benchmark against independent closed forms.",
+      "Check general-route equivalence, all implemented point groups, separate Ag laws, dark channels, symbolic exports and scientific-style settings.",
+      "Describe K01-K25 before execution; a procedure catalog does not imply that any test passed.",
+      "Evaluate symbolic differences and independent numeric matrix paths, special limits, four circular channels and deliberate mistakes.",
+      "Apply the same checking pattern to the actual current tensor and optical states. Mark source-only identities not applicable for a different crystal tensor.",
+      "Return purpose, procedure, expected equation, status and measured evidence to both notebook and web views."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 3,
+        "title": "Declare the reference-model validation section",
+        "explanation": "The module string states that these functions check equations and model scope of the supplied references. It performs no numerical operation.",
+        "why": "Reference compliance includes assumptions and conventions in addition to a final intensity formula.",
+        "check": "Calling the validation entry point is what executes these definitions."
+      },
+      {
+        "start_line": 4,
+        "end_line": 86,
+        "title": "Recover complex VV/VH laws and continuous extrema",
+        "explanation": "Calculate the BP reference and compare both Ag branches and B2g with independent complex-linear equations, including a nonzero fourth harmonic. Use a random complex symmetric 3D tensor to compare co-rotating linear states directly, test continuous extrema against a very fine grid and verify global-phase invariance. A monoclinic projected scan is checked for independence from an excluded zz coefficient.",
+        "why": "Complex phase affects interference; linear scans can contain fourth harmonics. The full matrix chain must resolve which coefficient enters a specific geometry even when a printed specialization is ambiguous.",
+        "check": "A global tensor phase does not change intensity; a relative phase generally does."
+      },
+      {
+        "start_line": 89,
+        "end_line": 136,
+        "title": "Expose a reference angle-sign convention explicitly",
+        "explanation": "For a complex symmetric two-dimensional tensor, compute parallel and crossed contractions with positive-angle vectors and with their reflected-angle counterparts. The independently written printed expression must match the reflected convention and differ from the positive-angle result for this test tensor.",
+        "why": "A mirror of a polar curve can result from an angular convention or off-diagonal sign choice. Such a difference should be explained algebraically rather than hidden with an arbitrary plot rotation.",
+        "check": "The general engine retains its declared positive-angle matrix convention; this regression does not change it."
+      },
+      {
+        "start_line": 139,
+        "end_line": 205,
+        "title": "Keep tensor channels and necessary selection rules distinct",
+        "explanation": "Check circular-basis channels for identity, opposite diagonal and anisotropic tensors. The ideal monolayer example checks diagonal A-type and off-diagonal E-type channels. Fixed circular scans must be constant. Separate loops reproduce permitted absorption/phonon-charge examples. N=2 alone must not distinguish the two helicity labels, an off-axis bulk surface must not be certified as a thin-2D symmetry axis, and changing rule-only OAM must leave plane-wave curves unchanged.",
+        "why": "A congruence is a necessary symmetry condition under stated assumptions, not a numerical intensity model or an unrestricted veto on bulk tilted-surface scattering.",
+        "check": "The m_ph and OAM inputs diagnose a conditional rule; the actual tensor/Jones contraction still determines intensity."
+      },
+      {
+        "start_line": 208,
+        "end_line": 222,
+        "title": "Check a finite third-order response term",
+        "explanation": "Compare resonance_element() with an independently written product of complex denominators over a laser-energy grid. Unwrap the phase to check its continuous branch, then multiply the numerator weight by i and verify the response acquires exactly that phase.",
+        "why": "Discarding an imaginary numerator or using a one-quadrant phase would invalidate a complex Raman coefficient model.",
+        "check": "This tests an explicitly supplied finite sum. It does not derive a material\u2019s electronic bands or coefficients from its name."
+      },
+      {
+        "start_line": 225,
+        "end_line": 317,
+        "title": "Use physical counterexamples to test the audit",
+        "explanation": "Basic Jones states must give the expected Stokes classification and S3 sign. QWP and elliptical-reference detection vectors have unit overlap at circular endpoints but overlap-squared 1/2 at the intermediate test angle. All profiles must preserve normalized pure states. Two diagonal-tensor examples demonstrate constructive/destructive within-mode interference while the historical component-power prescription stays phase-insensitive. Invalid scripted rule inputs and unspecified absorption conditions are rejected or reported as unverified.",
+        "why": "A correct audit should reveal the difference between an incoherent algebraic diagnostic and a coherent phonon response, and between detector states that only agree at endpoints.",
+        "check": "Do not treat same fixed laboratory circular label as an unqualified propagation-relative helicity label; the beam-direction convention is explicit in the physics audit."
+      },
+      {
+        "start_line": 320,
+        "end_line": 410,
+        "title": "Validate all silicon surfaces with independent reductions",
+        "explanation": "For every protocol and each requested (5k0) surface, verify the frame and complete T2g triplet. Compare the calculated intensity divided by |d|\u00b2 with independent closed forms. A separate 3D einsum includes phonon-basis projection, then analytic maxima and sigma-pattern tilt are checked. The (110) longitudinal extinction must not be mistaken for extinction of total silicon intensity. Scaling d and changing a global phase are tested, and the Origin plotting script is syntax-compiled.",
+        "why": "The reference benchmark must retain complete phonon physics and a common normalization. A single phonon-polarization extinction cannot replace an unresolved silicon triplet.",
+        "check": "Compiling the Origin script verifies Python syntax; it does not execute OriginLab natively."
+      },
+      {
+        "start_line": 411,
+        "end_line": 415,
+        "title": "Introduce the general-engine regression section",
+        "explanation": "The second section string separates the upgrade regressions from the earlier reference-model checks.",
+        "why": "The new display policy and common calculation contract need direct tests in addition to preserved source-reference regressions.",
+        "check": "This text has no effect on the calculated arrays."
+      },
+      {
+        "start_line": 416,
+        "end_line": 637,
+        "title": "Verify the unified input contract and separate-component presentation",
+        "explanation": "This suite checks the independently derived Ag component laws, preserved individual reference arrays, historical-route equivalence for identical physical inputs, exact embedding of the original 2D source into a custom 3D tensor, all 21 point groups in three optical profiles, dark-channel roundoff, symbolic-vs-plotted intensities, distinct detector projectors and the supplied scientific style.",
+        "why": "One common engine must preserve physical distinctions while eliminating accidental differences caused by reporting routes. Every plot, symbolic law and audit should describe the same declared inputs.",
+        "check": "The suite validates implemented models and configured style. It does not prove that illustrative coefficients or a unity metric describe a particular experimental sample."
+      },
+      {
+        "start_line": 417,
+        "end_line": 454,
+        "title": "General check 1: separate Ag laws survive complex phases",
+        "explanation": "Use three coefficients with independent complex phases on the slide frame. Independently written xx, yy and zz formulas must match the three displayed arrays, while the hidden complete-mode audit remains a single coherent tensor. Compare each displayed contribution with the preserved previous individual component array.",
+        "why": "The phase of one isolated diagonal contribution cancels in its own squared modulus. Its phase matters again when complete-tensor amplitudes interfere.",
+        "check": "The main displayed channel set must be exactly Ag(xx), Ag(yy), Ag(zz), with no aggregate Ag channel."
+      },
+      {
+        "start_line": 455,
+        "end_line": 476,
+        "title": "General check 2: equal inputs agree across reporting routes",
+        "explanation": "Loop over QWP, complex-linear, circular and three silicon reference configurations. Compare each complete-mode curve from the original reference route with the common general engine.",
+        "why": "A method label should not change a contraction when its tensor, frame, coefficients and actual Jones states are unchanged.",
+        "check": "Differences between genuinely different optical states are tested elsewhere and must not be forced away here."
+      },
+      {
+        "start_line": 477,
+        "end_line": 505,
+        "title": "General check 3: explicit 2D-to-3D embedding",
+        "explanation": "Evaluate the original source tensor, place it in the XY block of a zero 3-by-3 custom matrix, set an identity orientation and use identical QWP optics. Its 3D curve must equal the original effective-source curve.",
+        "why": "This demonstrates the algebraic relation between transverse Jones notation and the full crystal representation without asserting that the effective antisymmetric source is a material symmetry tensor.",
+        "check": "The test includes the original antisymmetric entries; it does not replace them with a symmetric approximation."
+      },
+      {
+        "start_line": 506,
+        "end_line": 544,
+        "title": "General check 4: every implemented point group",
+        "explanation": "Construct the general material with each point group, all its template families and complex trial coefficients. Use an appropriate conventional principal metric and run VV, VH and sigma+alpha. matching_protocol_audit() compares direct and circular-basis representations for every displayed channel.",
+        "why": "A common engine should operate on every library tensor form without a material-specific intensity formula or special coefficient fitting.",
+        "check": "The check counts 21 groups and the actual displayed channels; this loop uses a principal (001) setting."
+      },
+      {
+        "start_line": 545,
+        "end_line": 572,
+        "title": "General check 5: exact dark channels and a deliberate error",
+        "explanation": "A principal isotropic A1 crossed channel should be dark. Its tiny numerical residues must pass a propagated roundoff bound. Then replace its curve with a nonzero 1e-8 signal and require the independent interference audit to raise.",
+        "why": "Relative error divided by almost zero intensity is ill-conditioned. A useful tolerance must accept arithmetic roundoff while still detecting a real wrong result.",
+        "check": "The test changes a deep copy only. It never alters a production curve to make an audit pass."
+      },
+      {
+        "start_line": 573,
+        "end_line": 605,
+        "title": "General check 6: symbolic expressions equal plotted samples",
+        "explanation": "For eight optical profiles, derive harmonic coefficients symbolically before substituting branch values. Lambdify that intensity law on the stored angle grid and require a real result matching the plotted array.",
+        "why": "Exported I(angle) must be calculated from the same amplitude records, rather than reconstructed by a separate fitted expression or copied from a target plot.",
+        "check": "The symbolic equality test includes VV/VH pairs, fixed circular states, direct Jones states and the QWP path."
+      },
+      {
+        "start_line": 606,
+        "end_line": 622,
+        "title": "General check 7: preserve genuinely different detector scans",
+        "explanation": "Require QWP, elliptical-reference and direct-linear detection projectors to be different over the scan. For QWP versus the reference, verify equal circular endpoints and a nonzero intermediate projector distance.",
+        "why": "Agreement at alpha=0 and 90 degrees does not establish equality at intermediate angles; relative phases between circular components matter.",
+        "check": "This is a polarization-state test. It neither shifts angular zeros nor rescales intensities to align curves."
+      },
+      {
+        "start_line": 623,
+        "end_line": 637,
+        "title": "General check 8: verify the configured figure style",
+        "explanation": "Check the default size, font size, line width and export DPI in rcParams, and confirm that the embedded style still requests Arial. Return all collected check messages.",
+        "why": "Scientific figure formatting should be reproducible and should not drift when reference plotting helpers are reused.",
+        "check": "Arial availability is separate from the requested style; the actual local fallback is recorded in PLOT_STYLE_STATUS."
+      },
+      {
+        "start_line": 638,
+        "end_line": 650,
+        "title": "Identify the supplied reference and its scope",
+        "explanation": "OPTICAL_REFERENCE_SOURCE records the exact uploaded file fingerprint and fixes the output-input circular index convention.",
+        "why": "A reference check needs traceable provenance and an explicit material-model boundary.",
+        "check": "The source hash must match Raman_intensity_Kumar_Version_2.ipynb; the original upload is preserved."
+      },
+      {
+        "start_line": 651,
+        "end_line": 757,
+        "title": "Define what is checked and why",
+        "explanation": "This catalog maps every K01-K25 procedure to the source's numbered code section, purpose, method and expected equation. It contains no preassigned pass status.",
+        "why": "A visitor can understand the validation before running it.",
+        "check": "Verify the output-input index convention and distinguish original checks from explicit extensions."
+      },
+      {
+        "start_line": 760,
+        "end_line": 771,
+        "title": "Measure numerical residuals",
+        "explanation": "Broadcast both independent results, reject nonfinite data, calculate their maximum residual and compare it with atol+rtol*scale.",
+        "why": "A computed tolerance makes numerical agreement assessable and allows errors to fail.",
+        "check": "Changing one intensity by 1e-5 must be rejected."
+      },
+      {
+        "start_line": 774,
+        "end_line": 782,
+        "title": "Test exact symbolic identities",
+        "explanation": "Expand exponential forms and simplify each residual. Only all-zero residuals pass; an unresolved expression remains inconclusive.",
+        "why": "Symbolic structural equality alone does not establish equality of algebraic expressions.",
+        "check": "Read the actual reduced residual list rather than trusting a printed True."
+      },
+      {
+        "start_line": 785,
+        "end_line": 794,
+        "title": "Define four powers and a safe contrast",
+        "explanation": "Transform a numeric response into the circular basis; sum each input column and form the difference and optional CID.",
+        "why": "Output and input indices must stay distinct. A dark response has no defined normalized contrast.",
+        "check": "For a zero matrix, total_power=0 and cid=None."
+      },
+      {
+        "start_line": 797,
+        "end_line": 921,
+        "title": "Execute the source-reference checking sequence",
+        "explanation": "Rebuild the main optical chain, compare independent hand equations, repeat seeded numeric samples, test limits and all four circular channels, then verify the appendix and negative controls.",
+        "why": "The source formula is an independent reference, never the curve generator for another material.",
+        "check": "Every K01-K25 item must contain measured evidence; three deliberately wrong controls must be rejected."
+      },
+      {
+        "start_line": 924,
+        "end_line": 1012,
+        "title": "Generalize checks to the current calculation",
+        "explanation": "Use the frozen run's actual matrices and Jones vectors to test norms, return optics, explicit propagation, circular reconstruction, complete output power, rotation and projection.",
+        "why": "The general model must be validated with its own tensor. The source special antisymmetric tensor is not imposed on orthorhombic crystals.",
+        "check": "The special source closed-form comparison is not applicable for CRYSTAL_3D; it is tested for QWP_SOURCE_2D."
+      },
+      {
+        "start_line": 1015,
+        "end_line": 1027,
+        "title": "Export the same validation explanation",
+        "explanation": "Format each purpose, procedure, expected mathematical identity, status and evidence in Markdown for notebook display and result archives.",
+        "why": "Human-readable reports and JSON records must describe the same checks.",
+        "check": "Confirm report counts and residuals agree with the web report and exported JSON."
+      }
+    ],
+    "pitfalls": [
+      "A necessary angular-momentum congruence is not sufficient to determine an intensity.",
+      "The general point-group loop uses conventional principal settings; the separate random full-3D test exercises tilted geometry.",
+      "A global complex phase cancels from intensity, while relative phases can change interference.",
+      "Native Origin execution is not verified by compiling its generated Python script."
+    ]
+  },
+  {
+    "cell": 22,
+    "overview": "Assemble the final notebook application and wire its callbacks once. Running this cell opens the integrated interface, loads the slide-frame example, calculates it and executes the validation suite. The optical-profile guide explains physical differences without changing the intensity engine.",
+    "workflow": [
+      "Arrange crystal, orientation, optical-state, display and comparison controls into settings panels.",
+      "Build the application layout with the model, optical and example selectors at the top.",
+      "Register observers and button actions exactly once.",
+      "Display source links and the explicit default configuration.",
+      "Calculate the initial result and run the independent checks."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 2,
+        "title": "Describe the integrated application",
+        "explanation": "The section string documents that material edits preserve independently selected optical states.",
+        "why": "The final interface should make the common calculation contract visible.",
+        "check": "This text is not an additional calculation policy."
+      },
+      {
+        "start_line": 3,
+        "end_line": 14,
+        "title": "Assemble the crystal-input panel",
+        "explanation": "The VBox groups material and group selectors, notes, branch choice, coefficient information, optional Ag constraints, coefficient accordion and custom tensor input.",
+        "why": "Related controls should be readable together, while lower-level functions remain reusable outside the notebook layout.",
+        "check": "Visibility of the optional fields is managed by the callbacks in Cell 18."
+      },
+      {
+        "start_line": 15,
+        "end_line": 29,
+        "title": "Assemble the orientation-input panel",
+        "explanation": "Group the surface preset, hkl and uvw rows, automatic-X choice, normal side, frame angle and six lattice fields. An explicit note reminds the user of the zone condition and illustrative ratios.",
+        "why": "A reproducible orientation requires a lattice metric and in-plane reference in addition to the Miller surface indices.",
+        "check": "Changing psi rotates the frame; selecting a new optical profile changes Jones states instead."
+      },
+      {
+        "start_line": 30,
+        "end_line": 47,
+        "title": "Group Jones, display and comparison settings",
+        "explanation": "optical_inputs holds the actual state preview and profile-specific controls. Five settings tabs organize crystal/source input, orientation, Jones states, display options and comparison actions. A loop applies the tab labels.",
+        "why": "The top-level interface remains compact without hiding which parameters belong to the crystal and which belong to optics.",
+        "check": "Container construction arranges existing widgets; it does not duplicate their values or calculate a result."
+      },
+      {
+        "start_line": 48,
+        "end_line": 57,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 59,
+        "end_line": 76,
+        "title": "Construct the final application view",
+        "explanation": "The app VBox places the title, independent model/optics/example selectors and explicit load button above the settings. It then adds the style note, calculation/export actions, validation action, status and result tabs.",
+        "why": "The user first declares the physical model and experiment, then calculates and reviews outputs from one integrated application.",
+        "check": "The visible order follows the actual input-to-result workflow."
+      },
+      {
+        "start_line": 79,
+        "end_line": 158,
+        "title": "Wire once, display the app and initialize a verified example",
+        "explanation": "The wired guard displays an existing view without registering callbacks twice. Ordinary input edits invalidate results; special selectors call their specific handlers. hkl and direct-state fields get dedicated observers. Buttons map to calculation, export, comparison and benchmark actions, while benchmark-control edits invalidate its separate state. After wiring, the function shows source links, loads the slide-frame example, calculates it and runs validation.",
+        "why": "Duplicate observers can trigger repeated work and recursive updates when a cell is rerun. Wiring once and loading through the same public callbacks keeps startup behavior consistent with later user actions.",
+        "check": "Re-running this function in the same initialized state displays the app only. A fresh kernel is required to rebuild definitions from edited earlier cells reliably."
+      },
+      {
+        "start_line": 80,
+        "end_line": 104,
+        "title": "Startup phase 1: guard repeated wiring and watch ordinary inputs",
+        "explanation": "The wired check returns early on a repeated start. Otherwise a list of ordinary fields is built and each receives the invalidate observer for value changes.",
+        "why": "This prevents duplicate callback registration and clears stale scientific results when any relevant form value changes.",
+        "check": "ui[\"busy\"] inside invalidate() suppresses these callbacks during atomic example loading."
+      },
+      {
+        "start_line": 105,
+        "end_line": 124,
+        "title": "Startup phase 2: connect specialized observers",
+        "explanation": "Material, symmetry, model, optics, surface, mode and equality controls get their own handlers. Circular-state and angle-zero edits refresh the actual Jones preview. hkl fields keep preset labels honest, and custom direct-state edits refresh optics.",
+        "why": "Some edits change the form structure or physical interpretation, so generic invalidation alone is insufficient.",
+        "check": "No observer is allowed to fit or rotate a calculated curve to match a reference image."
+      },
+      {
+        "start_line": 125,
+        "end_line": 141,
+        "title": "Startup phase 3: connect explicit actions",
+        "explanation": "Each button is paired with its named callback. The benchmark magnitude/grid fields invalidate only their study. The wired flag is set before the view is displayed.",
+        "why": "Calculate, export, validate, save comparison and run benchmark are different operations and should remain explicit user actions.",
+        "check": "The flag protects against wiring the same button callback multiple times."
+      },
+      {
+        "start_line": 142,
+        "end_line": 158,
+        "title": "Startup phase 4: explain provenance and calculate the initial case",
+        "explanation": "Source URLs and a note on material-dependent inputs are rendered. load_configuration(slide_component_config()) fills the default form, on_run() calculates its result, and on_validate() runs the independent checks.",
+        "why": "A populated starting example lets the user inspect a complete calculation immediately, while provenance and model inputs remain visible.",
+        "check": "Validation can take longer than drawing a curve because it executes independent regressions over many geometries and groups."
+      },
+      {
+        "start_line": 159,
+        "end_line": 161,
+        "title": "Open the notebook application",
+        "explanation": "The final start_application() call executes the initialization described above.",
+        "why": "Earlier cells only define functions, models and controls; this call makes the assembled notebook usable.",
+        "check": "Run all preceding code cells in order before running the final cell."
+      }
+    ],
+    "pitfalls": [
+      "Run the cells in order so every function referenced during startup is already defined.",
+      "The one-time wiring guard is useful for redisplay; editing earlier definitions is best followed by a fresh kernel and Run All.",
+      "The initial unity-metric (211) case reproduces the slide frame; it is not a declaration of measured CaNb2O6 lattice ratios."
+    ]
+  }
+]
