@@ -22,9 +22,9 @@
     "Inactive conditional fields cannot block the paired VV/VH profile.",
     "A reflected manual frame is rejected.",
     "Scientific PNG, PDF and SVG figure downloads have valid file signatures.",
-    "Full result ZIP: 40 valid entries, including figures, data, mathematics and comparison inputs.",
+    "Full result ZIP: 44 valid entries, including figures, data, mathematics and comparison inputs.",
     "Silicon benchmark: 18 calculated cases pass their independent identities and OriginLab export."
   ],
-  "elapsed_seconds": 34.05,
-  "engine_sha256": "6b24e0e42b4339b9e31156e61f85dd853ddb69c747a8432fe4f40b78b172320f"
+  "elapsed_seconds": 59.32,
+  "engine_sha256": "2c13394adddcd9a1d312586d4a9d2b4cbfa4561df72ebbdd481daa30b43bc0bf"
 }

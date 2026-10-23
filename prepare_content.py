@@ -111,7 +111,8 @@ for item in annotations:
 (DATA/'tutorial.json').write_text(json.dumps(annotations))
 
 shutil.copy2(notebook_path,DOWNLOADS/'ROTATION_RAMAN_TENSOR_CALCULATION.ipynb')
-full_python='''"""Complete notebook source, version 4.
+full_python='''"""261024 - Raman Tensor Rotation Ver 4.0.
+Complete notebook source, version 4.
 Run with an IPython/Jupyter kernel for the interactive widget application.
 The .ipynb notebook is the recommended entry point.
 """\n\n'''+ '\n\n'.join(f'# %% Code cell {item["number"]}: {item["title"]}\n'+item['source'] for item in content)
@@ -127,6 +128,7 @@ archive_paths={
 for name,path in archive_paths.items():shutil.copy2(path,DOWNLOADS/name)
 readme='''ROTATION RAMAN TENSOR CALCULATION — PYTHON DOWNLOADS
 
+Program: 261024 - Raman Tensor Rotation Ver 4.0
 Current version: 4. Run all 22 cells of the .ipynb in Jupyter or Colab.
 The matching .py file contains the complete notebook source for an IPython kernel.
 raman_engine.py contains the same scientific functions without notebook-only
@@ -149,8 +151,9 @@ records the Python startup inputs; Silicon_Startup_Polar_Plot.png is the checked
 startup figure. The website also starts with Si (500); example_input_v4.json
 records the same input configuration. Other material examples remain available.
 Symbols_And_References.md collects the symbol definitions, unit conventions and
-sources shown directly below every calculated equation in the notebook and website.
-The full, symbolic and numerical LaTeX exports include those explanations.
+sources. Full mathematics places one short symbol list after all equations.
+Explained derivation keeps detailed definitions and sources after each equation.
+The result ZIP contains both Markdown and LaTeX views.
 SAITO_FEEDBACK_AUDIT.md distinguishes implemented changes from the still-pending
 independent colleague review and documentation consultation with Kumar-san.
 
@@ -187,7 +190,7 @@ with zipfile.ZipFile(DOWNLOADS/'All_Python_Programs.zip','w',zipfile.ZIP_DEFLATE
 
 # Each published revision has a separate filename. Keep the stable names as
 # compatibility copies, but use the named revision for the website's main links.
-stem='Raman_Tensor_V4_Si500_'+revision.replace('-','').upper()+'_'+source_hash[:8]
+stem='261024 - Raman Tensor Rotation Ver 4.0'
 named_files={
     'notebook':(stem+'.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.ipynb'),
     'python':(stem+'.py','ROTATION_RAMAN_TENSOR_CALCULATION.py'),
@@ -216,7 +219,7 @@ readme_text=readme_path.read_text()
 for label,key in [('Download the current Python notebook','notebook'),('Download all Python programs','bundle')]:
     record=release['files'][key]
     pattern=r'(\['+re.escape(label)+r'\]\()([^\n)]+/downloads/)[^\n)]+(\))'
-    readme_text=re.sub(pattern,lambda match:match[1]+match[2]+record['filename']+'?sha='+record['sha256'][:12]+match[3],readme_text)
+    readme_text=re.sub(pattern,lambda match:match[1]+match[2]+record['filename'].replace(' ','%20')+'?sha='+record['sha256'][:12]+match[3],readme_text)
 readme_path.write_text(readme_text)
 
 # Browser caches must see a new URL whenever first-party JavaScript or CSS changes.

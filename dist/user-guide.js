@@ -95,7 +95,7 @@
   function resultsTour() {
     const tabs = [
       ['plots','Polar plots','Main Ag curves show separate Cartesian powers. Each figure offers SVG, PNG, and PDF export after a fresh calculation. The complete coherent-mode response remains in the audit.'],
-      ['math','Mathematical steps','Follow the frame construction, tensor rotation, Jones states, amplitude contraction, conjugation, and intensity. Expand individual calculation blocks as needed.'],
+      ['math','Mathematical steps','Choose 1. Full mathematics for every equation with one short symbol list at the bottom. Choose 2. Explained derivation for the same equations with detailed definitions, units and sources. Expand the calculation blocks as needed.'],
       ['values','Intensity values','Inspect the calculated continuous extrema and channel summaries. The raw CSV export contains angular samples rather than only fitted extrema.'],
       ['frame','3D frame','Inspect crystal and measurement axes, the selected surface normal, and the orientation matrix. This view requires the relevant 3D geometry output.'],
       ['procedures','Checking procedures','Read each procedure’s purpose, scope, expected equation, and evidence. A stored reference report is identified until a new calculation regenerates current evidence.'],

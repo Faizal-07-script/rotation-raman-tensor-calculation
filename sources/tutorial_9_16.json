@@ -529,7 +529,7 @@
       },
       {
         "start_line": 220,
-        "end_line": 522,
+        "end_line": 558,
         "title": "Local symbol, unit and reference annotations",
         "explanation": "Declare the reviewed reference ledger, define symbols and units, distinguish overloaded notation and attach the matching rows and source notes to each equation.",
         "why": "Use one definition layer for the notebook, website, Markdown and LaTeX exports.",
@@ -593,231 +593,255 @@
       },
       {
         "start_line": 509,
-        "end_line": 520,
+        "end_line": 556,
         "title": "symbols_and_references_markdown",
         "explanation": "symbols_and_references_markdown",
         "why": "Keep the same local definitions beside every exported and displayed equation.",
         "check": "Physical SI polarization is separate from the relative response; angles are radians in equations and degrees in controls."
       },
       {
-        "start_line": 523,
+        "title": "Collect the short symbol list",
+        "start_line": 514,
         "end_line": 525,
+        "explanation": "Collect only symbols used in this calculation. Preserve definitions that use the same letter in different roles.",
+        "why": "Keep the first view readable while retaining all equations and the separate detailed view.",
+        "check": "Both views contain the same equations; every used symbol appears in the short list."
+      },
+      {
+        "title": "Collect the calculation sources",
+        "start_line": 528,
+        "end_line": 530,
+        "explanation": "List the sources once for the full-mathematics footer.",
+        "why": "Keep the first view readable while retaining all equations and the separate detailed view.",
+        "check": "Both views contain the same equations; every used symbol appears in the short list."
+      },
+      {
+        "title": "Render one glossary after the mathematics",
+        "start_line": 533,
+        "end_line": 542,
+        "explanation": "Add one short table of symbols and units, followed by the calculation references.",
+        "why": "Keep the first view readable while retaining all equations and the separate detailed view.",
+        "check": "Both views contain the same equations; every used symbol appears in the short list."
+      },
+      {
+        "start_line": 559,
+        "end_line": 561,
         "title": "Store one mathematical trace for all renderers",
         "explanation": "The class keeps an ordered list of section, note and equation records, together with the intended angular variable. Its methods append labels, convert calculated SymPy expressions into LaTeX, and render the same records as Markdown.",
         "why": "Notebook display and exported LaTeX must come from the same equations. A structured intermediate trace avoids two separately maintained explanations that could disagree.",
         "check": "Rendering the trace must not re-evaluate or alter the plotted intensity arrays; it typesets already-calculated quantities."
       },
       {
-        "start_line": 526,
-        "end_line": 531,
+        "start_line": 562,
+        "end_line": 567,
         "title": "CalculationTrace.__init__ \u2014 Initialize trace storage",
         "explanation": "Store the selected scan variable and an empty ordered entry list.",
         "why": "The same trace must know whether \u03b1 or \u03b8 is the intended displayed variable.",
         "check": "No calculation arrays are created or changed here."
       },
       {
-        "start_line": 532,
-        "end_line": 536,
+        "start_line": 568,
+        "end_line": 572,
         "title": "CalculationTrace.section \u2014 Append a section marker",
         "explanation": "Append a record with kind=section and the requested heading.",
         "why": "Structured headings support both Markdown and TeX without maintaining two separate report sequences.",
         "check": "Entry order must follow the actual mathematical calculation order."
       },
       {
-        "start_line": 537,
-        "end_line": 539,
+        "start_line": 573,
+        "end_line": 575,
         "title": "CalculationTrace.note \u2014 Append an explanatory note",
         "explanation": "Append plain prose with kind=note.",
         "why": "Model assumptions and interpretations need to travel with equations while remaining distinguishable from mathematical expressions.",
         "check": "Notes must describe the selected run, not silently select an optical model."
       },
       {
-        "start_line": 540,
-        "end_line": 542,
+        "start_line": 576,
+        "end_line": 578,
         "title": "CalculationTrace.tex \u2014 Append a mathematical equation",
         "explanation": "Append an already formatted mathematical string with kind=equation.",
         "why": "General identities can be recorded beside equations rendered from computed SymPy values.",
         "check": "The string is display content; it is not executed as Python or used to generate a curve."
       },
       {
-        "start_line": 543,
-        "end_line": 546,
+        "start_line": 579,
+        "end_line": 582,
         "title": "CalculationTrace.latex \u2014 Render a calculated expression with the correct angle symbol",
         "explanation": "Sympify the supplied expression, replace internal \u03b1 with the trace variable and call sp.latex.",
         "why": "The engine reuses one internal angular symbol; a VV/VH report must still show \u03b8 rather than mislabeling its scan as an analyzer \u03b1 scan.",
         "check": "Symbol replacement changes notation, not numerical arrays or the chosen optical chain."
       },
       {
-        "start_line": 547,
-        "end_line": 549,
+        "start_line": 583,
+        "end_line": 585,
         "title": "CalculationTrace.eq \u2014 Append a labeled equation",
         "explanation": "Concatenate a left-hand label with the LaTeX-rendered expression and append it through tex.",
         "why": "Centralized equation formatting keeps report and export consistent.",
         "check": "The displayed expression should be the already-computed quantity passed by its caller."
       },
       {
-        "start_line": 550,
-        "end_line": 552,
+        "start_line": 586,
+        "end_line": 588,
         "title": "CalculationTrace.chain \u2014 Show explicit factors and their calculated product",
         "explanation": "Render each supplied matrix/vector factor and then the supplied answer in a single equality chain.",
         "why": "Manual checking requires seeing which matrices were multiplied and in what order. The method typesets rather than recomputes the product.",
         "check": "Factor order must match the caller\u2019s actual engine calculation."
       },
       {
-        "start_line": 553,
-        "end_line": 565,
+        "start_line": 589,
+        "end_line": 603,
         "title": "CalculationTrace.markdown \u2014 Render the ordered trace for the notebook or website",
         "explanation": "Translate section records to headings, equation records to display-math blocks and notes to prose, then join them in order.",
         "why": "One source of mathematical entries can serve different output surfaces without retyping the physics.",
         "check": "Rendered Markdown must contain the same equation sequence as the full LaTeX export."
       },
       {
-        "start_line": 566,
-        "end_line": 583,
+        "start_line": 604,
+        "end_line": 621,
         "title": "latex_text \u2014 Escape prose before writing a TeX document",
         "explanation": "Ordinary text characters such as underscores, percent signs and braces are escaped individually, while \u03b8 and \u03b1 in labels are converted to math symbols. Mathematical equations are handled by the trace methods instead.",
         "why": "A case label should not accidentally become a TeX command or break compilation. Separating prose escaping from equation rendering preserves mathematical syntax.",
         "check": "A label containing an underscore must compile as ordinary text; a SymPy matrix equation must not be passed through this prose-escaping function."
       },
       {
-        "start_line": 584,
-        "end_line": 633,
+        "start_line": 622,
+        "end_line": 671,
         "title": "trace_geometry \u2014 Display every lattice and frame-construction stage",
         "explanation": "The trace shows L, L^(\u2212T), Miller indices, the reciprocal normal and its norm, signed Z, the zone condition, the direct-lattice tangent, normalized X0, cross-product Y0 and the azimuthal rotation. It then prints T, T.T, orthogonality, determinant and the tensor transformation T.T*Rc*T. A manual frame prints its actual matrices without pretending that hkl construction was reapplied.",
         "why": "For a tilted noncubic crystal, the surface normal is a reciprocal-lattice direction. Showing each step makes axis signs, metric assumptions and the difference between \u03c8 and the optical scan visible.",
         "check": "T.T*T must be I and det(T) must be +1. Changing \u03b1 must not change this fixed orientation matrix."
       },
       {
-        "start_line": 634,
-        "end_line": 680,
+        "start_line": 672,
+        "end_line": 718,
         "title": "trace_optics \u2014 Display the active Jones chain and its conventions",
         "explanation": "The trace defines normalized Jones and circular states, beam directions, the transverse projector and the S3/helicity convention. It prints Q and Q.T for the QWP route, or the actual other B, followed by Ein, analyzer, effective sample detector B\u2020e_an and the full detected amplitude. It also states the complex interference identity.",
         "why": "The return optic changes the detector state at the sample. Conjugation and multiplication order are therefore part of the measurement definition, not formatting choices.",
         "check": "The trace must show the selected profile\u2019s actual effective detector. Do not substitute a direct elliptical reference state for the QWP return chain merely because their endpoints match."
       },
       {
-        "start_line": 681,
-        "end_line": 713,
+        "start_line": 719,
+        "end_line": 751,
         "title": "trace_rank_one \u2014 Construct the rotated rank-one Ag tensor",
         "explanation": "For xx,yy or zz, the routine rotates the relevant real crystal unit vector, projects it into XY and writes Rperp=q*v*v.T. It expands the direct-state overlap factor G, then evaluates the incident and detector overlaps using the active optical chain, including the return QWP. For the elliptical reference it also applies the declared 45-degree/90-degree phase specialization. The component index selects its real crystal unit vector. Applying T.T and then P gives v, and Rperp=q*v*v.T is written explicitly. The resulting amplitude factors into incident and detector overlaps.",
         "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
         "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
       },
       {
-        "start_line": 714,
-        "end_line": 735,
+        "start_line": 752,
+        "end_line": 773,
         "title": "trace_rank_one \u2014 Expand the general direct-state overlap product",
         "explanation": "The trace derives G(\u03b8,\u03b2), writes the double-angle identities, prints Gi and Gs, and expands |q|\u00b2GiGs. This is a general algebraic aid, distinguished from any extra return optical element.",
         "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
         "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
       },
       {
-        "start_line": 736,
-        "end_line": 750,
+        "start_line": 774,
+        "end_line": 788,
         "title": "trace_rank_one \u2014 Specialize overlaps to the actual chosen optical chain",
         "explanation": "The true incident vector and B\u2020e_an define eta_i and eta_s. Their conjugates and powers are shown and multiplied into the active component intensity, so the QWP path retains its own intermediate relative phase.",
         "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
         "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
       },
       {
-        "start_line": 751,
-        "end_line": 762,
+        "start_line": 789,
+        "end_line": 800,
         "title": "trace_rank_one \u2014 Apply the elliptical reference specialization when selected",
         "explanation": "Only the declared reference profile substitutes \u03b8\u1d62=\u03c0/4, \u03b8\u209b=\u03c0/4+\u03b1 and \u03b2=\u03b2\u2032=\u03c0/2. Its simplified equation is derived from those overlaps rather than pasted into a general material calculation.",
         "why": "A diagonal component gives a transparent rank-one derivation that mirrors the slide order without replacing the actual matrix calculation. The active-overlap section makes the derivation valid for QWP, linear and custom Jones experiments too.",
         "check": "The vector is obtained from T rather than by dividing by q, so q=0 remains valid. Active overlap products must agree with the same component\u2019s matrix amplitude power."
       },
       {
-        "start_line": 763,
-        "end_line": 789,
+        "start_line": 801,
+        "end_line": 827,
         "title": "trace_tensor_definition \u2014 Show the complete response before its component presentation",
         "explanation": "The susceptibility Taylor expansion identifies Rij^(m)=\u2202chi_ij/\u2202u_m. The trace states the induced Raman polarization and distinguishes a physical prefactor from the plotted arbitrary-unit |A|\u00b2. For an Ag family it prints the full crystal tensor, its exact component reconstruction and its complete rotated tensor before the separate contributions.",
         "why": "Symmetry determines allowed entries, while coefficients belong to the phonon branch and remain supplied inputs. Separate Ag plots must not conceal the complete underlying tensor or be called independent phonons.",
         "check": "The component matrices reconstruct the original Ag tensor. A sum of their powers is not inserted into the main Ag display."
       },
       {
-        "start_line": 790,
-        "end_line": 818,
+        "start_line": 828,
+        "end_line": 856,
         "title": "trace_record \u2014 Expand full 3D tensor rotation element by element",
         "explanation": "For each displayed tensor, the routine shows Rc*T, T.T*Rc*T and all nine rotated entries as explicit nine-term sums, retaining zero terms for inspection. It then shows the transverse projection and an equivalent full-3D field chain in crystal coordinates. Return optics, the conjugated analyzer row, scalar amplitude, harmonic coefficients and their conjugates lead to the expanded squared modulus. The original tensor, Rc*T and T.T*Rc*T are shown. Nested loops enumerate nine terms for each of the nine rotated entries, with evaluate=False retaining zeros and signs for manual inspection.",
         "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
         "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
       },
       {
-        "start_line": 819,
-        "end_line": 836,
+        "start_line": 857,
+        "end_line": 874,
         "title": "trace_record \u2014 Project the rotated tensor and follow the full 3D field",
         "explanation": "After PRlabP.T, diagonal Ag invokes the rank-one derivation. The incident transverse vector is embedded, transformed into crystal coordinates, acted on by Rc, transformed back and projected to the collected transverse field.",
         "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
         "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
       },
       {
-        "start_line": 837,
-        "end_line": 855,
+        "start_line": 875,
+        "end_line": 893,
         "title": "trace_record \u2014 Apply return optics and derive a complex scalar amplitude",
         "explanation": "The trace shows Rperp*Ein, B*Esc, the Hermitian analyzer row and its explicit two-component scalar contraction. It prints the appropriate C,D or K coefficients and their conjugates, then the expanded amplitude and its complex conjugate.",
         "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
         "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
       },
       {
-        "start_line": 856,
-        "end_line": 870,
+        "start_line": 894,
+        "end_line": 908,
         "title": "trace_record \u2014 Expand the squared modulus in the correct scan basis",
         "explanation": "FIRST writes second-angle intensity harmonics from C,D. SECOND expands K0,Kc,Ks products and double-angle identities that create fourth harmonics. CONSTANT writes a fixed amplitude and zero angular derivative.",
         "why": "This is the detailed mathematical audit requested for each channel. Both the direct 3D polarization route and projected Jones route expose signs and matrix ordering. Coefficients remain linear until the detected amplitude is squared.",
         "check": "For a first-harmonic amplitude retain the Re(CD*) term; for co-rotating linear states retain fourth intensity harmonics. The 2D source skips fabricated crystal-rotation steps."
       },
       {
-        "start_line": 871,
-        "end_line": 894,
+        "start_line": 909,
+        "end_line": 932,
         "title": "trace_final \u2014 Derive the symbolic intensity and harmonic coefficients",
         "explanation": "The symbolic harmonic summary is converted into I(\u03b1) or I(\u03b8) before coefficient values are inserted. Each active complex coefficient, magnitude and phase is then displayed, followed by the substituted numeric equation. Derivatives and analytic extrema are printed; linear scans use the stationary quartic in z=exp(2i*\u03b8). A constant curve has no unique extremum angle. The function builds a symbolic summary from actual records, states whether powers are summed over orthogonal partners, and prints every harmonic coefficient before the channel\u2019s symbolic I(angle).",
         "why": "The user should be able to inspect a paper-ready symbolic law and see exactly how the selected numbers enter it. The angular plotting grid is not used to guess the continuous maximum.",
         "check": "Substituting the displayed coefficients into the symbolic expression must match the plotted curve within numerical precision. A zero or constant signal must not be assigned an arbitrary unique peak angle."
       },
       {
-        "start_line": 895,
-        "end_line": 915,
+        "start_line": 933,
+        "end_line": 953,
         "title": "trace_final \u2014 Substitute complex coefficients explicitly",
         "explanation": "Each coefficient value, magnitude and phase is displayed. The numeric equation comes from substitution into the symbolic law, preserving exact cancellations instead of printing negligible residual harmonics from an independent floating-point route.",
         "why": "The user should be able to inspect a paper-ready symbolic law and see exactly how the selected numbers enter it. The angular plotting grid is not used to guess the continuous maximum.",
         "check": "Substituting the displayed coefficients into the symbolic expression must match the plotted curve within numerical precision. A zero or constant signal must not be assigned an arbitrary unique peak angle."
       },
       {
-        "start_line": 916,
-        "end_line": 937,
+        "start_line": 954,
+        "end_line": 975,
         "title": "trace_final \u2014 Show continuous extrema and handle flat signals",
         "explanation": "FIRST provides the two-harmonic derivative and atan2 maximum. SECOND supplies the stationary quartic. The computed Imin,Imax and peak angle are shown; a flat curve is labeled as having no unique extremum angle.",
         "why": "The user should be able to inspect a paper-ready symbolic law and see exactly how the selected numbers enter it. The angular plotting grid is not used to guess the continuous maximum.",
         "check": "Substituting the displayed coefficients into the symbolic expression must match the plotted curve within numerical precision. A zero or constant signal must not be assigned an arbitrary unique peak angle."
       },
       {
-        "start_line": 938,
-        "end_line": 966,
+        "start_line": 976,
+        "end_line": 1009,
         "title": "detailed_calculation \u2014 Build the shared full derivation for every displayed channel",
         "explanation": "A CalculationTrace is created with the correct scan symbol. Geometry, optics and the complete tensor definition are appended first. Each displayed channel then contributes every tensor record and a final intensity; independent direct/circular representation errors close the trace. The function returns ordered entries, Markdown and final symbolic expressions.",
         "why": "One sequence now covers different materials, point groups and optical methods. Reporting follows the actual display_channels so Ag(xx),Ag(yy),Ag(zz) are correlated with the plotted arrays.",
         "check": "The number and names of final expressions must equal the displayed channel list. Detailed reports must not read mutable widget selections after the run was calculated."
       },
       {
-        "start_line": 967,
-        "end_line": 995,
+        "start_line": 1010,
+        "end_line": 1048,
         "title": "latex_document \u2014 Turn the structured trace into a compilable document",
         "explanation": "The generated article loads geometry, amsmath, amssymb and graphicx. A fitmath macro measures each display equation and shrinks only an overwide one. Sections and escaped prose are written in order, while equation entries retain their mathematical LaTeX.",
         "why": "The exported derivation should be a usable source document, not only a screenshot or an isolated equation string. Long matrix products need bounded page width without changing their algebra.",
         "check": "Compile the source and inspect the output. The width helper affects typesetting only, not numeric coefficients or formulas."
       },
       {
-        "start_line": 996,
-        "end_line": 1026,
+        "start_line": 1049,
+        "end_line": 1080,
         "title": "paper_intensity_latex \u2014 Export symbolic, substituted and complete mathematical sources",
         "explanation": "For every final channel, the helper writes a channel heading and active case/profile note. One document contains the original symbolic expression; another substitutes the channel\u2019s actual values and evaluates to twelve digits. The full document is made directly from all derivation entries.",
         "why": "A symbolic publication formula and one example\u2019s numerical formula serve different purposes and must not be mixed. Reusing the same trace ensures that export and on-screen calculation agree.",
         "check": "The archive should contain intensity_symbolic.tex, intensity_numerical.tex and calculation_full.tex. Symbolic coefficients must still be present in the symbolic file."
       },
       {
-        "start_line": 1028,
-        "end_line": 1028,
+        "start_line": 1082,
+        "end_line": 1082,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
@@ -1380,23 +1404,23 @@
       },
       {
         "start_line": 222,
-        "end_line": 256,
+        "end_line": 260,
         "title": "make_general_archive \u2014 Export main display data and complete-mode audits separately",
         "explanation": "Exact displayed matrix records and the shared mathematical trace are saved. intensity_raw.csv follows display_curves; complete_modes_audit.csv follows complete curves. Three TeX files, Markdown steps, the unchanged stylesheet and a README explain that distinction.",
         "why": "Every output must refer to one calculated result. Keeping the coherent complete-mode audit in separately named files prevents confusing it with the requested separate Ag component plots. Symbolic and substituted equations are kept distinct.",
         "check": "For orthorhombic Ag, the main CSV header should contain Ag(xx),Ag(yy),Ag(zz) without a summed Ag component column. Complete-mode interference belongs in complete_modes_audit.csv and its JSON audit."
       },
       {
-        "start_line": 257,
-        "end_line": 277,
+        "start_line": 261,
+        "end_line": 281,
         "title": "make_general_archive \u2014 Save scientific figures and frozen component comparisons",
         "explanation": "Each passed figure is exported as PDF,SVG and 600-dpi PNG. Comparison inputs and long-format arrays come from saved displayed component runs, preserving their own actual optical profile and angle grid. The ZIP bytes are returned without depending on widget globals.",
         "why": "Every output must refer to one calculated result. Keeping the coherent complete-mode audit in separately named files prevents confusing it with the requested separate Ag component plots. Symbolic and substituted equations are kept distinct.",
         "check": "For orthorhombic Ag, the main CSV header should contain Ag(xx),Ag(yy),Ag(zz) without a summed Ag component column. Complete-mode interference belongs in complete_modes_audit.csv and its JSON audit."
       },
       {
-        "start_line": 279,
-        "end_line": 279,
+        "start_line": 283,
+        "end_line": 283,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",

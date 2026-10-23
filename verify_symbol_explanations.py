@@ -51,9 +51,20 @@ for key,item in catalog['examples'].items():
         assert all(ref in ns['DERIVATION_REFERENCES'] for ref in entry['reference_ids'])
         assert all(row['meaning'] and row['units'] for row in entry['symbols'])
         assert len({row['id'] for row in entry['symbols']})==len(entry['symbols'])
-    assert trace['markdown'].count('**Symbols and units**')==len(equations)
+    assert trace['explained_markdown'].count('**Symbols and units**')==len(equations)
     tex=ns['paper_intensity_latex'](run,trace)
-    assert tex['full'].count('Symbols and units')==len(equations)
+    assert tex['full'].count('Symbols and units')==1
+    assert tex['explained'].count('Symbols and units')==len(equations)
+    assert trace['markdown']==trace['mathematics_markdown']
+    assert trace['mathematics_markdown'].count('## Symbols and units')==1
+    assert '**Symbols and units**' not in trace['mathematics_markdown']
+    for entry in equations:
+        assert '$$'+entry['value']+'$$' in trace['mathematics_markdown']
+        assert '$$'+entry['value']+'$$' in trace['explained_markdown']
+    assert {row['id'] for row in trace['symbol_legend']}=={row['id'] for entry in equations for row in entry['symbols']}
+    import re
+    assert re.findall(r'\\\[\\fitmath\{(.*?)\}\\\]',tex['full'],re.S)==re.findall(r'\\\[\\fitmath\{(.*?)\}\\\]',tex['explained'],re.S)
+    assert tex['full'].count(r'\[\fitmath{')==len(equations)
     assert 'Symbols and units' in tex['symbolic'] and 'Symbols and units' in tex['numerical']
     equation_count+=len(equations)
     examples.append(dict(key=key,equations=len(equations),definitions=sum(len(e['symbols']) for e in equations)))
@@ -66,6 +77,10 @@ for key,item in catalog['examples'].items():
             assert json.loads(z.read('mathematical_steps.json'))==trace['entries']
             assert z.read('calculation_steps.md').decode()==trace['markdown']
             assert z.read('calculation_full.tex').decode()==tex['full']
+            assert z.read('calculation_explained.tex').decode()==tex['explained']
+            assert z.read('calculation_mathematics.md').decode()==trace['mathematics_markdown']
+            assert z.read('calculation_explained.md').decode()==trace['explained_markdown']
+            assert json.loads(z.read('symbol_legend.json'))==trace['symbol_legend']
             assert json.loads(z.read('derivation_references.json'))==ns['DERIVATION_REFERENCES']
             assert z.read('symbols_and_references.md').decode()==ns['symbols_and_references_markdown']()
 
@@ -87,6 +102,6 @@ record=dict(status='passed',version='4',startup=dict(material='Si',surface=[5,0,
     examples=examples,total_example_equations=equation_count,profiles=profiles,
     overloaded_symbols='Calligraphic amplitude/source A; unit Jones/physical E; projection/response/physical P; phase, transpose and equilibrium evaluation.',
     units='Local meanings and unit conventions checked for every calculated equation across all examples and profiles.',
-    exports='Markdown, JSON and all three LaTeX documents preserve the same definitions and reference ledger.')
+    exports='Markdown, JSON and both full derivation views and the symbolic/numerical LaTeX documents preserve the same definitions and reference ledger.')
 (ROOT/'symbol_explanations_verification.json').write_text(json.dumps(record,indent=2)+'\n')
 print(json.dumps(record,indent=2),flush=True)

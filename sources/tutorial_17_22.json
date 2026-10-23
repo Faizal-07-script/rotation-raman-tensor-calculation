@@ -125,39 +125,39 @@
       },
       {
         "start_line": 218,
-        "end_line": 231,
+        "end_line": 236,
         "title": "Allocate independent result containers",
         "explanation": "Eleven Output widgets receive the mathematical trace, figures, table, frame, audits, validation, LaTeX, downloads, comparisons, tensor library and source links. A separate output belongs to the cubic benchmark.",
         "why": "Dedicated containers let callbacks replace one view without mixing it into another or leaving previous output above a new result.",
         "check": "The output widgets hold rendered views; the state dictionary holds the underlying scientific snapshot."
       },
       {
-        "start_line": 232,
-        "end_line": 270,
+        "start_line": 237,
+        "end_line": 275,
         "title": "Declare the fixed silicon benchmark controls",
         "explanation": "The benchmark has one shared coefficient magnitude, angular spacing, six requested surfaces and three protocols. Calculate, inspect and export actions are separate; inspection loads one computed benchmark configuration into the main calculator.",
         "why": "The fixed reference study should remain a verifiable benchmark rather than silently turning into an arbitrary-material demonstration.",
         "check": "All 18 cases use the same common d scale and retain all three complete T2g partners."
       },
       {
-        "start_line": 271,
-        "end_line": 303,
+        "start_line": 276,
+        "end_line": 308,
         "title": "Map twelve result tabs to their containers",
         "explanation": "tab_names establishes the order; tab_index provides stable name-to-index lookup. The Tab children list uses the matching Output widgets and benchmark panel, then a loop applies each label.",
         "why": "Callbacks can select a tab by meaning rather than scattering unexplained numeric indices through the code.",
         "check": "The order of tab_names and children must remain synchronized."
       },
       {
-        "start_line": 304,
-        "end_line": 318,
+        "start_line": 309,
+        "end_line": 323,
         "title": "Initialize result state and UI bookkeeping",
         "explanation": "state starts with no run and contains the figures, derivation, archive, validation, error, comparison snapshots and benchmark objects. ui stores transaction status, coefficient widgets, definitions and the one-time wiring flag.",
         "why": "Calculated results should not be reconstructed by reading a partly edited form. Keeping UI flags separate from result data makes that boundary visible.",
         "check": "state[\"run\"] becomes the source for plots and exports only after Calculate succeeds."
       },
       {
-        "start_line": 320,
-        "end_line": 320,
+        "start_line": 325,
+        "end_line": 325,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
@@ -232,143 +232,143 @@
       },
       {
         "start_line": 108,
-        "end_line": 122,
+        "end_line": 123,
         "title": "Remove an obsolete scientific snapshot",
         "explanation": "Close the old figure handles, clear run/derivation/report/archive state, disable export/LaTeX/comparison-add actions and empty the result containers. Saved comparison snapshots are deliberately retained.",
         "why": "A change in the form must not leave old plots or downloads presented as the result of new inputs. Closing figures also releases plotting resources.",
         "check": "After clearing, state[\"run\"] is None and result export is disabled."
       },
       {
-        "start_line": 125,
-        "end_line": 130,
+        "start_line": 126,
+        "end_line": 131,
         "title": "Mark edited inputs as needing calculation",
         "explanation": "During a form transaction the callback returns immediately. Otherwise it clears a previous run when one exists and displays a status message explaining that a fresh calculation is required.",
         "why": "Separating edit handling from calculation avoids repeated symbolic work for every keystroke and prevents stale results from being exported.",
         "check": "Editing a physical field should remove the current result but preserve explicitly saved comparisons."
       },
       {
-        "start_line": 133,
-        "end_line": 135,
+        "start_line": 134,
+        "end_line": 136,
         "title": "Choose a conventional illustrative metric",
         "explanation": "Trigonal and hexagonal groups receive the conventional hexagonal setting with \u03b3=120 degrees; other groups receive an orthogonal unity metric as a starting template.",
         "why": "A point-group tensor setting must be paired with an appropriate indexing convention. These are illustrative ratios, not a lookup of measured material lattice constants.",
         "check": "A monoclinic or triclinic user may still need to enter the actual lengths and angles."
       },
       {
-        "start_line": 138,
-        "end_line": 158,
+        "start_line": 139,
+        "end_line": 159,
         "title": "Load symmetry and coefficient fields for a material",
         "explanation": "The material entry provides its declared group, metric, space-group label and note. Named materials lock the group; General leaves it selectable. The function resets Ag equality to free and rebuilds the definitions and coefficient controls.",
         "why": "A material preset should define its tensor setting transparently. It must not retain a restrictive coefficient equality from a previous material.",
         "check": "The local previous_group assignment is unused bookkeeping and has no numerical effect."
       },
       {
-        "start_line": 161,
-        "end_line": 171,
+        "start_line": 162,
+        "end_line": 172,
         "title": "Change the material without changing the optical experiment",
         "explanation": "Inside one transaction, load_material_fields() updates the tensor setting, default metric and labels. The comment explicitly preserves hkl, uvw, normal side, frame angle and optical method. Afterward the old result is invalidated.",
         "why": "Material and optics are independent physical inputs. Switching material should not secretly select another detector configuration to make curves appear similar.",
         "check": "After a material change, review the illustrative coefficient and lattice defaults before calculating."
       },
       {
-        "start_line": 174,
-        "end_line": 182,
+        "start_line": 175,
+        "end_line": 183,
         "title": "Load the selected general symmetry setting",
         "explanation": "A transaction sets the conventional metric template, returns the Ag equality selector to free and recreates coefficients from the selected group; then the previous result is invalidated.",
         "why": "Changing symmetry can change the allowed tensor entries and phonon partners, so stale fields must be replaced.",
         "check": "The group selector is intended to be changed under the General material."
       },
       {
-        "start_line": 185,
-        "end_line": 195,
+        "start_line": 186,
+        "end_line": 196,
         "title": "Load an explicit surface and in-plane preset",
         "explanation": "If the selection is a known preset, copy both its hkl and uvw tuple inside a transaction. A Custom hkl selection leaves the manually entered values intact. In either case the old result becomes stale.",
         "why": "The in-plane reference belongs with the surface preset; it supplies the angular zero needed in addition to the normal.",
         "check": "Selecting (5k0) loads its associated in-plane direction (k,-5,0), which satisfies the zone condition."
       },
       {
-        "start_line": 198,
-        "end_line": 206,
+        "start_line": 199,
+        "end_line": 207,
         "title": "Keep the preset label honest after a manual hkl edit",
         "explanation": "The function compares the entered hkl values with the currently selected preset. If they differ, it changes the label to Custom hkl inside a transaction and invalidates the result.",
         "why": "A visible preset label should not claim that manually edited indices still describe that preset.",
         "check": "Editing uvw is handled by ordinary invalidation, while this callback specifically checks hkl."
       },
       {
-        "start_line": 209,
-        "end_line": 212,
+        "start_line": 210,
+        "end_line": 213,
         "title": "Enable or disable manual in-plane indices",
         "explanation": "The uvw fields are disabled when automatic X is enabled and re-enabled when it is disabled; the result is then invalidated.",
         "why": "An inactive manual direction should not appear to be an active physical input. In the collected configuration automatic X is represented by uvw=None.",
         "check": "Automatic X is a coordinate reference selected by the geometry code, not a measured in-plane crystallographic direction."
       },
       {
-        "start_line": 215,
-        "end_line": 238,
+        "start_line": 216,
+        "end_line": 239,
         "title": "Parse only the active rule inputs and preserve angular offsets",
         "explanation": "The first branch checks the selected optical profile. If it is not a CIRCULAR_* profile, the function returns default circular metadata together with the active exact linear-scan and direct-analyzer zeros, without reading hidden charge fields. For an active circular profile, comma-separated phonon charges are parsed as strict integers, the list must be nonempty, and an absorption charge is parsed only when present. The returned metadata also records the circular label, cyclic order, incident OAM and explicit thin-2D scope declaration.",
         "why": "Validation should follow the active experiment. An invalid or cleared hidden circular-charge field must not block VV, VH, QWP or direct-Jones calculations, while the circular rule must retain strict checks when selected. The angular offsets are retained in either branch because those are used by their corresponding optical profiles.",
         "check": "Clear the circular charge field, select VV and calculate: the inactive field should be ignored. Select an active circular profile with the same empty field: the explicit validation error should still be raised."
       },
       {
-        "start_line": 215,
-        "end_line": 220,
+        "start_line": 216,
+        "end_line": 221,
         "title": "Active-profile guard: return before reading hidden circular fields",
         "explanation": "The startswith(\"CIRCULAR_\") condition distinguishes the three active circular-channel profiles from the other optical protocols. A noncircular profile returns a fresh metadata dictionary expanded from default_paper_parameters(\"CIRCULAR\"), then overrides \u03b80_deg and analyzer_zero_deg from their active numerical fields.",
         "why": "A user can leave an invalid value in a control that later becomes hidden. Ignoring that inactive control prevents an unrelated form state from changing whether the selected optical calculation can run.",
         "check": "The early return must occur before splitting circular_charges.value or parsing circular_dm.value."
       },
       {
-        "start_line": 221,
-        "end_line": 238,
+        "start_line": 222,
+        "end_line": 239,
         "title": "Active circular profile: strictly validate rule metadata",
         "explanation": "For CIRCULAR_* profiles, split the comma-separated phonon charges, discard whitespace-only pieces and convert every remaining piece with circular_integer(). Reject an empty list. Parse a nonempty absorption charge strictly, and collect the actual visible spin, N, OAM, charges, scope declaration and exact angle offsets.",
         "why": "These inputs are physically relevant to the selected conditional rule check, so malformed integers or a missing charge list must be reported rather than silently replaced with defaults.",
         "check": "Inactive-field guarding must not weaken the existing rejection of fractional, Boolean or missing circular-rule charges when that rule is active."
       },
       {
-        "start_line": 241,
-        "end_line": 276,
+        "start_line": 242,
+        "end_line": 277,
         "title": "Show relevant controls and the actual sample states",
         "explanation": "The callback exposes only the controls appropriate to the selected profile, builds optical_chain() from the visible values and renders Ei and the effective detector es=B.H*e_an. SECOND scans are displayed with \u03b8; other scans use \u03b1. The previous result is invalidated.",
         "why": "Looking at the analyzer after a return optic is not enough: the Raman contraction uses the effective detection state at the sample. This preview makes differences between QWP, elliptical and direct-linear scans inspectable.",
         "check": "Fixed circular states have CONSTANT scan basis. VV/VH have SECOND amplitude basis, while fixed-input detection scans normally have FIRST."
       },
       {
-        "start_line": 279,
-        "end_line": 284,
+        "start_line": 280,
+        "end_line": 285,
         "title": "Reflect which model inputs are active",
         "explanation": "The original 2D source hides the crystal and orientation panels, shows its source parameters and disables the optics selector. A crystal model restores those panels and allows optical selection.",
         "why": "The original effective tensor has no lattice or orientation, so leaving those inputs visible as active would imply a calculation that the source model does not perform.",
         "check": "Visibility changes describe model scope; they do not rotate a source-only tensor."
       },
       {
-        "start_line": 287,
-        "end_line": 297,
+        "start_line": 288,
+        "end_line": 298,
         "title": "Switch model while retaining the prior crystal optical choice",
         "explanation": "Within a transaction, switching to the original source stores the previous crystal optics and selects QWP. Switching back restores that stored choice. The form visibility and state preview are then updated.",
         "why": "The source model must use its own specified optical chain. Returning to the crystal model should not discard an independently chosen optical experiment.",
         "check": "The original-source model intentionally fixes its optics to QWP."
       },
       {
-        "start_line": 300,
-        "end_line": 370,
+        "start_line": 301,
+        "end_line": 371,
         "title": "Load a complete visible configuration atomically",
         "explanation": "The transaction loads the model, optics, labels and either source parameters or crystal fields. Crystal loading rebuilds definitions, sets the metric and axes, selects modes, converts complex coefficients into magnitude/phase controls and serializes a custom numerical matrix. It then loads rule metadata, angular zeros, direct states and display options. Finally it refreshes panels and invalidates any prior result.",
         "why": "An example should be reproducible by inspecting the visible form. No report label should secretly select optics, and a copied preset must not trigger intermediate calculations while it is being loaded.",
         "check": "A configuration is loaded but not calculated by this function. It represents numerical widget values, not an arbitrary unresolved symbolic custom tensor."
       },
       {
-        "start_line": 373,
-        "end_line": 390,
+        "start_line": 374,
+        "end_line": 391,
         "title": "Apply only the explicitly chosen example",
         "explanation": "The selected example name chooses the slide-frame, 3D QWP, original 2D source, complex-linear, circular-channel or silicon reference configuration. load_configuration() fills the form and a status message asks for calculation.",
         "why": "Examples deliberately change a complete configuration, whereas a material-only edit preserves the current optical experiment.",
         "check": "The final else branch corresponds to the fixed silicon (500) VV example because those are the declared dropdown options."
       },
       {
-        "start_line": 392,
-        "end_line": 392,
+        "start_line": 393,
+        "end_line": 393,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
@@ -436,103 +436,103 @@
       },
       {
         "start_line": 125,
-        "end_line": 182,
+        "end_line": 179,
         "title": "Calculate once and render the same result everywhere",
         "explanation": "After the busy guard, clear stale outputs and errors. calculate_general(collect_config()) creates the run; detailed_calculation() creates the mathematical trace; publication_figures() creates the plots. An optional frame is appended. Those objects are stored once, then rendered in the mathematical, plot, frame, table, audit and LaTeX tabs. Figure registry handles are closed after display, while figure objects are retained for export. Only a fully successful path enables export and comparison saving. checking_procedures_for_run uses the same frozen run to generate an evidence record. checking_report_markdown displays each check's purpose and mathematical expectation above the existing protocol comparisons.",
         "why": "Every view should derive from the same calculated snapshot. Rebuilding a formula independently during display could otherwise disagree with the plotted array. Errors clear the incomplete result rather than leaving mixed old/new views.",
         "check": "The status reports the actual channel and equation counts. show_steps hides the rendered derivation only; the calculated trace remains available in downloads."
       },
       {
-        "start_line": 185,
-        "end_line": 197,
+        "start_line": 182,
+        "end_line": 194,
         "title": "Build a downloadable byte payload",
         "explanation": "The bytes are base64-encoded into a data URL. The filename is escaped for its HTML attribute and visible label; MIME defaults to application/zip.",
         "why": "Notebook output needs a user-triggered browser download without relying on a writable user filesystem path.",
         "check": "This creates a link to already generated bytes; it does not rerun the calculation."
       },
       {
-        "start_line": 200,
-        "end_line": 217,
+        "start_line": 197,
+        "end_line": 214,
         "title": "Export the stored calculated snapshot",
         "explanation": "The handler returns when no run exists. Otherwise make_general_archive() receives the stored run, figures, derivation, validation and saved comparison snapshots. Its returned bytes are retained and linked from the Downloads tab.",
         "why": "An export should describe the calculation that the user reviewed, including its component policy and input assumptions. It should not silently collect a different form.",
         "check": "Input observers disable export when the form changes, so the user must calculate the revised form first."
       },
       {
-        "start_line": 220,
-        "end_line": 227,
+        "start_line": 217,
+        "end_line": 224,
         "title": "Download the symbolic intensity source",
         "explanation": "paper_intensity_latex() receives the stored run and trace. The symbolic document is encoded as UTF-8 and linked as a .tex file in Downloads.",
         "why": "A manuscript equation needs the symbolic coefficient law before numerical substitution, rather than a string copied from an image or fitted to a plot.",
         "check": "The symbolic file differs intentionally from the numerical-intensity document in the full ZIP."
       },
       {
-        "start_line": 230,
-        "end_line": 252,
+        "start_line": 227,
+        "end_line": 249,
         "title": "Run the full regression suite and preserve its status",
         "explanation": "The handler clears the validation view, invokes run_self_checks() plus validate_general_upgrade(), records the software version and messages and prints each passing check. Failure records a failed status, reports the exception and re-raises it. validate_optical_reference executes the uploaded original reference identities, limits, four circular channels and appendix convention. The full report is retained in state and rendered with its purposes.",
         "why": "A test suite should fail visibly and retain which version was checked. Passing algebra checks must not be presented as experimental certification of illustrative coefficients.",
         "check": "The printed scope explicitly excludes unknown sample coefficients and omitted propagation effects. A source-reference report must have status passed; otherwise this callback records a validation failure."
       },
       {
-        "start_line": 255,
-        "end_line": 278,
+        "start_line": 252,
+        "end_line": 275,
         "title": "Overlay eligible saved snapshots for a selected channel",
         "explanation": "Close an obsolete comparison figure, return when there is no saved data or selected channel, and call publication_comparison() with the frozen runs and normalization choice. The figure and a numbered input/protocol list are displayed.",
         "why": "Saved comparisons must retain their original inputs. A plotted overlay needs an accompanying description of which experiment each curve represents.",
         "check": "Incompatible scan definitions are rejected by publication_comparison() rather than aligned or fitted to make the overlay agree."
       },
       {
-        "start_line": 281,
-        "end_line": 291,
+        "start_line": 278,
+        "end_line": 288,
         "title": "Freeze the current result for later comparison",
         "explanation": "A successful current run is deep-copied into state[\"comparisons\"]. An insertion-order-preserving union of its displayed channel names populates the comparison selector, then the selected overlay is refreshed.",
         "why": "A shallow reference could change when the main run is edited. A deep snapshot preserves the tensor, geometry, coefficients, optics and arrays together.",
         "check": "Saving a comparison requires a calculated run; it does not save an uncalculated form."
       },
       {
-        "start_line": 294,
-        "end_line": 300,
+        "start_line": 291,
+        "end_line": 297,
         "title": "Remove comparison snapshots and their display",
         "explanation": "The saved run list is emptied, the previous overlay figure is closed, its state and selector are cleared, and the comparison output is erased.",
         "why": "Clearing a comparison should release its figure and remove obsolete labels together.",
         "check": "The current main calculation is unaffected."
       },
       {
-        "start_line": 303,
-        "end_line": 307,
+        "start_line": 300,
+        "end_line": 304,
         "title": "Mark edited benchmark controls as stale",
         "explanation": "Clear the stored study, its archive and validation, disable inspection/export, empty its output and ask for recalculation.",
         "why": "Benchmark data from a previous common d value or angular grid must not remain downloadable as if it used the new controls.",
         "check": "This invalidates only the benchmark state, not saved main-calculator comparisons."
       },
       {
-        "start_line": 310,
-        "end_line": 328,
+        "start_line": 307,
+        "end_line": 325,
         "title": "Calculate and independently validate all 18 reference cases",
         "explanation": "calculate_cubic_fig1() creates six surfaces times three protocols. validate_cubic_fig1() checks the study. The study and validation messages are stored, its summary and publication figure are displayed, and inspect/export controls are enabled.",
         "why": "The reference figure is a computed and tested study, not a static image pasted into the program.",
         "check": "A failure is reported; inspection and export should remain unavailable for an invalidated study."
       },
       {
-        "start_line": 331,
-        "end_line": 339,
+        "start_line": 328,
+        "end_line": 336,
         "title": "Open one benchmark case in the general inspector",
         "explanation": "Deep-copy the chosen protocol/surface configuration from the computed study, load it into the visible form, call on_run() and select the Mathematical derivation tab.",
         "why": "The same general engine should explain an individual reference case, including its actual matrices and phonon partners.",
         "check": "The inspected result must match the corresponding benchmark array for identical inputs."
       },
       {
-        "start_line": 342,
-        "end_line": 353,
+        "start_line": 339,
+        "end_line": 350,
         "title": "Export the computed silicon study for OriginLab",
         "explanation": "When a study exists, make_cubic_origin_archive() packages the stored study and validation. The bytes are retained and linked in Downloads.",
         "why": "A native plotting handoff should contain calculated data and their provenance, not replace the scientific calculation with a plotting template.",
         "check": "The exported Origin script still requires an OriginLab installation to execute natively."
       },
       {
-        "start_line": 355,
-        "end_line": 355,
+        "start_line": 352,
+        "end_line": 352,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",

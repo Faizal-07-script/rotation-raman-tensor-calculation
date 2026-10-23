@@ -2,7 +2,7 @@
 
 
 
-Every calculated equation has its own definitions directly below it in the notebook and website. This file collects the same definitions for reference.
+Choose Full mathematics for all equations with one short symbol list at the end. Explained derivation keeps the detailed definitions and sources below each equation. This file collects the complete definitions for reference.
 
 
 

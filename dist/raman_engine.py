@@ -3427,9 +3427,45 @@ def equation_notes_markdown(item):
     return "\n".join(rows)
 
 
+# Short definitions are used once at the end of the full-mathematics view.
+# The explained view retains each equation's complete definitions and sources.
+SHORT_SYMBOL_MEANINGS = {'lattice': 'Direct-lattice matrix and its crystal basis vectors.', 'miller': 'Surface Miller indices.', 'direction_indices': 'In-plane direct-lattice direction; hu + kv + lw = 0.', 'reciprocal_normal': 'Surface normal before normalization; the 2π factor is omitted.', 'tangent': 'In-plane reference before normalization.', 'frame_axes': 'Measurement unit axes in crystal coordinates; 0 means before rotation.', 'lab_normal': 'Measurement normal in measurement coordinates, (0,0,1).', 'normal_sign': 'Chosen normal direction, +1 or −1.', 'frame_angle': 'In-plane rotation of the measurement frame.', 'frame': 'Frame matrix: measurement components → crystal components.', 'in_plane_rotation': 'Rotation about the measurement normal.', 'coordinate_vector': 'The same vector in crystal and measurement coordinates.', 'reference_axis': 'Cartesian unit vectors; ref is the automatic in-plane reference.', 'tensor': 'Raman tensor in crystal, measurement, transverse or reference coordinates.', 'physical_tensor': 'Susceptibility derivative with respect to the phonon normal coordinate.', 'projector': '2 × 3 selector of measurement X and Y components.', 'identity': '3 × 3 identity matrix.', 'incident_state': 'Unit incident Jones state and its 3D embeddings.', 'detector_state': 'Unit Jones state; s is detection at the sample, an is the analyzer.', 'return_optics': 'Return-path Jones matrix.', 'qwp': 'Quarter-wave-plate matrix and transverse rotation matrix.', 'circular_basis': 'Fixed-XY circular Jones states, (1,±i)/√2.', 'mixing_angle': 'Jones mixing angle between X and Y components.', 'linear_angle': 'VV/VH scan angle; i and s label incident and detection mixing angles.', 'analyzer_angle': 'Detection-state scan angle for the selected optical profile.', 'jones_phase': 'Relative Y-to-X phase; i and s label incidence and detection.', 'source_phase': 'Off-diagonal and yy phases in the effective 2D source tensor.', 'coefficient_phase': 'Phase of a complex tensor coefficient.', 'coefficient_magnitude': 'Magnitude of a complex tensor coefficient.', 'coefficients': 'Active complex tensor coefficients; Si T2g partners share d.', 'source_A': 'Real off-diagonal source coefficient; distinct from calligraphic amplitude.', 'source_a': 'Real diagonal source coefficient in the effective 2D model.', 'rank_one_coefficient': 'Selected Ag Cartesian coefficient: a, b or c.', 'rotated_axis': 'Rotated crystal axis and its XY projection; projection need not be unit length.', 'overlap': 'η is a polarization overlap; G is its squared magnitude.', 'scattered_response': 'Reduced field or induced response from a relative tensor and unit Jones state.', 'amplitude': 'Detected complex amplitude; j labels a phonon partner.', 'amplitude_harmonics': 'Constant, cosine and sine coefficients in the amplitude expansion.', 'intensity': 'Relative intensity, harmonic coefficients and extrema; partner powers are summed.', 'maximum_angle': 'Angle at a continuous maximum; undefined for a constant curve.', 'delta_extrema': 'First-harmonic modulation magnitude; distinct from lowercase source phase δ.', 'extrema_polynomial': 'Stationary-point coefficients and z = exp(2iθ); these u values are not phonon coordinates.', 'susceptibility': 'Electric susceptibility; superscript 0 is its equilibrium value.', 'normal_coordinate': 'Phonon normal coordinate with a chosen displacement or mass normalization.', 'vacuum_permittivity': 'Vacuum electric permittivity.', 'physical_electric_field': 'Physical incident electric field in crystal coordinates.', 'transverse_field': 'Electric field in the transverse-wave condition.', 'physical_polarization': 'Physical Raman-induced polarization density of phonon m.', 'physical_intensity': 'Measured intensity and its uncalculated field/phonon/collection scale factor.', 'wavevector': 'Incident/scattered propagation vectors and magnitudes in measurement coordinates.', 'helicity': 'Circular Stokes component and propagation-relative helicity; hi = −S3, hs = +S3.', 'representation_error': 'Intensity residual between equivalent matrix or basis calculations.', 'cartesian_indices': 'Local Cartesian indices, phonon-partner labels or coherent-term labels.', 'imaginary_unit': 'Imaginary unit; distinct from incident and Cartesian index labels.', 'pi': 'Circle constant.', 'exponential': 'Exponential function; its e is distinct from a tensor coefficient e.', 'transpose': 'Transpose, inverse transpose and inverse; standalone T is the frame matrix.', 'conjugation': 'Complex conjugation and conjugate transpose.', 'norm': 'Complex modulus or Euclidean vector norm.', 'products': 'Dot product, cross product and sum.', 'real_imag': 'Real part, imaginary part and complex phase.', 'derivative': 'Derivative with respect to the indicated angle or normal coordinate.', 'determinant': 'Matrix determinant; a proper frame has det(T) = +1.', 'big_o': 'Omitted second- and higher-order normal-coordinate terms.', 'equilibrium_evaluation': 'Evaluate at the equilibrium coordinate; this bar is not a modulus.', 'inverse_trig': 'Quadrant-aware inverse tangent and angular equivalence modulo π.'}
+
+
+def calculation_symbol_legend(entries):
+    """Collect the symbols used in this calculation, preserving local meanings."""
+    rows, seen = [], set()
+    for entry in entries:
+        for symbol in entry.get("symbols", []):
+            key = tuple(symbol[field] for field in ("id", "latex", "meaning", "units"))
+            if key not in seen:
+                seen.add(key)
+                row = copy.deepcopy(symbol)
+                row["meaning"] = SHORT_SYMBOL_MEANINGS[row["id"]]
+                rows.append(row)
+    return rows
+
+
+def calculation_reference_ids(entries):
+    """List the sources used by this calculation once, in order of appearance."""
+    return list(dict.fromkeys(key for entry in entries for key in entry.get("reference_ids", [])))
+
+
+def calculation_legend_markdown(entries):
+    """Put one short symbol-and-unit table after the complete mathematics."""
+    lines = ["## Symbols and units", "| Symbol | Meaning | Unit / convention |", "| --- | --- | --- |"]
+    for symbol in calculation_symbol_legend(entries):
+        lines.append("| $" + symbol["latex"].replace("|", r"\vert") + "$ | " + symbol["meaning"] + " | " + symbol["units"] + " |")
+    lines += ["", "## References"]
+    for key in calculation_reference_ids(entries):
+        ref = DERIVATION_REFERENCES[key]
+        lines.append("- " + ("[" + ref["label"] + "](" + ref["url"] + ")" if ref["url"] else ref["label"]) + "; " + ref["location"] + ".")
+    return "\n".join(lines)
+
+
 def symbols_and_references_markdown():
     lines = ["# Version 4 - symbols, units and derivation references", "",
-        "Every calculated equation has its own definitions directly below it in the notebook and website. This file collects the same definitions for reference.", "",
+        "Choose Full mathematics for all equations with one short symbol list at the end. Explained derivation keeps the detailed definitions and sources below each equation. This file collects the complete definitions for reference.", "",
         "Angles are evaluated in radians; controls and angle CSV columns use degrees. Numerical Raman tensors use a declared relative coefficient scale, and plotted intensities use its square (a.u.). The physical susceptibility derivative has units set by the chosen phonon normal coordinate; no absolute detector calibration is inferred.", ""]
     for row in SYMBOL_CATALOG.values():
         lines += ["## $" + row["latex"] + "$", row["meaning"], "**Unit / convention:** " + row["units"], ""]
@@ -3471,7 +3507,7 @@ class CalculationTrace:
     def chain(self, lhs, factors, answer):
         self.tex(lhs + "=" + r"\,".join(self.latex(x) for x in factors) + "=" + self.latex(answer), (*factors, answer))
 
-    def markdown(self):
+    def markdown(self, explained=True):
         result = []
         for item in self.entries:
             result.append(
@@ -3479,8 +3515,10 @@ class CalculationTrace:
                 if item["kind"] == "section"
                 else "$$" + item["value"] + "$$" if item["kind"] == "equation" else item["value"]
             )
-            if item["kind"] == "equation":
+            if explained and item["kind"] == "equation":
                 result.append(equation_notes_markdown(item))
+        if not explained:
+            result.append(calculation_legend_markdown(self.entries))
         return "\n\n".join(result)
 
 
@@ -3882,10 +3920,15 @@ def detailed_calculation(run):
             + r",\quad\epsilon_{circular}="
             + raman_latex(sp.Float(row["circular_error"], 5))
         )
-    return dict(entries=trace.entries, markdown=trace.markdown(), finals=finals, references=DERIVATION_REFERENCES)
+    return dict(entries=trace.entries, markdown=trace.markdown(explained=False),
+                mathematics_markdown=trace.markdown(explained=False),
+                explained_markdown=trace.markdown(explained=True),
+                symbol_legend=calculation_symbol_legend(trace.entries),
+                reference_ids=calculation_reference_ids(trace.entries),
+                finals=finals, references=DERIVATION_REFERENCES)
 
 
-def latex_document(entries, title="Raman tensor calculation"):
+def latex_document(entries, title="Raman tensor calculation", explained=True):
     """Create a compilable article; long equations scale only when needed."""
     header = r"""\documentclass[10pt]{article}
 \usepackage[margin=20mm]{geometry}
@@ -3900,17 +3943,27 @@ def latex_document(entries, title="Raman tensor calculation"):
             lines.append(r"\subsection*{" + latex_text(item["value"]) + "}")
         elif item["kind"] == "equation":
             lines.append(r"\[\fitmath{" + item["value"] + r"}\]")
-            lines.append(r"\begingroup\small\noindent\textbf{Symbols and units}\par\smallskip")
-            for symbol in item.get("symbols", []):
-                lines.append(r"\noindent$" + symbol["latex"] + "$: " + latex_text(symbol["meaning"]) + r" \textit{Unit / convention:} " + latex_text(symbol["units"]) + r"\par\smallskip")
-            lines.append(r"\noindent\textit{Derivation / source:} " + latex_text(item.get("derivation_note", "")) + r"\par")
-            for key in item.get("reference_ids", []):
-                ref = DERIVATION_REFERENCES[key]
-                label = r"\href{" + ref["url"] + "}{" + latex_text(ref["label"]) + "}" if ref["url"] else latex_text(ref["label"])
-                lines.append(r"\noindent " + label + "; " + latex_text(ref["location"]) + r"\par")
-            lines.append(r"\endgroup")
+            if explained:
+                lines.append(r"\begingroup\small\noindent\textbf{Symbols and units}\par\smallskip")
+                for symbol in item.get("symbols", []):
+                    lines.append(r"\noindent$" + symbol["latex"] + "$: " + latex_text(symbol["meaning"]) + r" \textit{Unit / convention:} " + latex_text(symbol["units"]) + r"\par\smallskip")
+                lines.append(r"\noindent\textit{Derivation / source:} " + latex_text(item.get("derivation_note", "")) + r"\par")
+                for key in item.get("reference_ids", []):
+                    ref = DERIVATION_REFERENCES[key]
+                    label = r"\href{" + ref["url"] + "}{" + latex_text(ref["label"]) + "}" if ref["url"] else latex_text(ref["label"])
+                    lines.append(r"\noindent " + label + "; " + latex_text(ref["location"]) + r"\par")
+                lines.append(r"\endgroup")
         else:
             lines.append(latex_text(item["value"]) + r"\par")
+    if not explained:
+        lines.append(r"\section*{Symbols and units}")
+        for symbol in calculation_symbol_legend(entries):
+            lines.append(r"\noindent$" + symbol["latex"] + "$: " + latex_text(symbol["meaning"]) + r" \textit{Unit / convention:} " + latex_text(symbol["units"]) + r"\par\smallskip")
+        lines.append(r"\section*{References}")
+        for key in calculation_reference_ids(entries):
+            ref = DERIVATION_REFERENCES[key]
+            label = r"\href{" + ref["url"] + "}{" + latex_text(ref["label"]) + "}" if ref["url"] else latex_text(ref["label"])
+            lines.append(r"\noindent " + label + "; " + latex_text(ref["location"]) + r"\par")
     return "\n\n".join(lines) + r"\end{document}" + "\n"
 
 
@@ -3943,7 +3996,8 @@ def paper_intensity_latex(run, derivation):
     return dict(
         symbolic=latex_document(symbolic, "Symbolic intensity equations"),
         numerical=latex_document(numerical, "Intensity equations with numerical inputs"),
-        full=latex_document(derivation["entries"], "Complete mathematical derivation"),
+        full=latex_document(derivation["entries"], "1. Full mathematics", explained=False),
+        explained=latex_document(derivation["entries"], "2. Explained derivation", explained=True),
     )
 
 
@@ -5229,16 +5283,20 @@ def make_general_archive(run, figures, derivation, validation=None, comparisons=
             "complete_modes_audit.csv", csv_from_curves(run["angles"], run["curves"], angle_name)
         )
         archive.writestr("calculation_steps.md", derivation["markdown"])
+        archive.writestr("calculation_mathematics.md", derivation["mathematics_markdown"])
+        archive.writestr("calculation_explained.md", derivation["explained_markdown"])
+        js("symbol_legend.json", derivation["symbol_legend"])
         archive.writestr("intensity_symbolic.tex", tex["symbolic"])
         archive.writestr("intensity_numerical.tex", tex["numerical"])
         archive.writestr("calculation_full.tex", tex["full"])
+        archive.writestr("calculation_explained.tex", tex["explained"])
         archive.writestr("sci.mplstyle", SCI_STYLE_TEXT)
         archive.writestr(
             "README.txt",
             "ROTATION RAMAN TENSOR CALCULATION — VERSION 4\n\n"
             "intensity_raw.csv contains the actual plotted channels. Ag(xx), Ag(yy), Ag(zz) are separate Cartesian contributions, not independent phonon modes. They are not summed in this file or in the main plots.\n"
             "complete_modes_audit.csv retains the coherent complete-mode result for interference checks. Off-diagonal components of lower-symmetry Ag tensors are also retained.\n"
-            "intensity_symbolic.tex contains I(angle) before numerical coefficient substitution. intensity_numerical.tex is the distinct numerical version. calculation_full.tex and calculation_steps.md contain all calculated mathematical steps.\n"
+            "intensity_symbolic.tex contains I(angle) before numerical coefficient substitution. intensity_numerical.tex is the distinct numerical version. calculation_full.tex and calculation_mathematics.md contain every mathematical step, followed by one short symbol list. calculation_explained.tex and calculation_explained.md contain the same equations with detailed definitions and sources below each equation. calculation_steps.md is the full-mathematics compatibility copy.\n"
             "Figures use the supplied sci.mplstyle: requested Arial, 22-point base font, 2-point lines, 600-dpi export and transparent background. plot_style_status.json records the actual local font. Install Arial for exact font matching when a fallback is reported.\n"
             "VV/VH scan θ; σ input / analyzer-state protocols scan α. The QWP, elliptical detector and direct linear analyzer are different optical states and are not forced to have equal curves.\n"
             "Material symmetry, tensor coefficients, lattice metric, surface and optical states all affect intensity. Example coefficients and unity metrics are illustrative.\n",

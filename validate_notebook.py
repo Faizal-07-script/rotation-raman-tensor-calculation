@@ -71,7 +71,7 @@ assert png.startswith(b'\x89PNG\r\n\x1a\n')
 equations=[item for item in ns['state']['derivation']['entries'] if item['kind']=='equation']
 assert all(item.get('symbols') and item.get('reference_ids') and item.get('derivation_note') for item in equations)
 assert all(symbol['meaning'] and symbol['units'] for item in equations for symbol in item['symbols'])
-assert ns['state']['derivation']['markdown'].count('**Symbols and units**')==len(equations)
+assert ns['state']['derivation']['explained_markdown'].count('**Symbols and units**')==len(equations)
 with capture_output():ns['start_application']()
 assert ns['state']['run'] is startup, 'Redisplay must preserve the current calculation.'
 with capture_output():
@@ -110,3 +110,9 @@ book.metadata['rotation_raman_revision']['validation']=record
 nbformat.validate(book);nbformat.write(book,P)
 (Path(__file__).resolve().parent/'notebook_verification.json').write_text(json.dumps(record,indent=2))
 print(json.dumps(record,indent=2),flush=True)
+
+assert ns['derivation_tabs'].selected_index == 0
+assert ns['derivation_tabs'].get_title(0) == '1. Full mathematics'
+assert ns['derivation_tabs'].get_title(1) == '2. Explained derivation'
+assert ns['state']['derivation']['mathematics_markdown'].count('## Symbols and units') == 1
+assert '**Symbols and units**' not in ns['state']['derivation']['mathematics_markdown']

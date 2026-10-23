@@ -1,18 +1,18 @@
 # Version 4 — first run and numbered tools
 
-**Revision 2026-10-23-r3 — Silicon (500) startup**
+**Revision 2026-10-24-r1 — Silicon (500) startup**
 
 Run Cell 1 first. Its first output must read:
 
 ```text
-Version 4 | Revision 2026-10-23-r3 | Silicon (500) default
+Version 4 | Revision 2026-10-24-r1 | Silicon (500) default
 ```
 
-Open the newly downloaded notebook whose filename begins `Raman_Tensor_V4_Si500_`. If this revision line is missing, compare the file you opened with the current download. Restart its kernel and run all 22 cells. The success messages appear below each executed cell; the Silicon polar plot appears in Cell 22.
+Open the newly downloaded notebook named `261024 - Raman Tensor Rotation Ver 4.0.ipynb`. If this revision line is missing, compare the file you opened with the current download. Restart its kernel and run all 22 cells. The success messages appear below each executed cell; the Silicon polar plot appears in Cell 22.
 
 Use **Jupyter Notebook / JupyterLab or Google Colab** with a Python kernel and widget support. The `.ipynb` is the recommended entry point; running the `.py` with an ordinary terminal does not provide the notebook interface. Install the packages in `requirements.txt` in the same kernel if an import is missing.
 
-1. Open the current `Raman_Tensor_V4_Si500_…ipynb` notebook and choose **Restart kernel and Run All**. Run all **22 code cells in order**. Do not start from Cell 17 or Cell 22 in a fresh kernel.
+1. Open the current `261024 - Raman Tensor Rotation Ver 4.0.ipynb` notebook and choose **Restart kernel and Run All**. Run all **22 code cells in order**. Do not start from Cell 17 or Cell 22 in a fresh kernel.
 2. Each code cell prints **“Run completed successfully.”**, its cell number, what is ready and which cell to run next. The explanation above each code cell states its role, what to enter and what to expect. Cells 1–21 primarily define functions or controls; their message confirms execution, while the numerical/model checks are reported separately.
 3. Cell 22 checks **silicon (500), VV** and shows a short guide above the calculator; the plot is in the Polar plots tab. The **Silicon (500), VV reference frame** example is loaded automatically, and the **Polar plots** result tab is selected. No typing, `input()` prompt, external data file or coefficient editing is required for this first run.
 4. Inspect **Polar plots**, **Intensity values** and **Validation**. The first result has **one T2g channel**, combining the intensities of three unresolved orthogonal phonon partners, and **721 samples** from 0° through 360°. Cell 22 compares every sample with the reference equation below before opening the results. View the current plot in the Polar plots tab.
@@ -58,7 +58,12 @@ The first run shows VV. To compare VV and VH, choose the paired linear profile (
 
 ## Read the derivation
 
-Open **Mathematical derivation** in the notebook or **Mathematical steps** on the website. Each equation is followed immediately by a **Symbols and units** table and a **Derivation / source** note. The same notes are included in the full, symbolic and numerical LaTeX exports, `calculation_steps.md` and the result ZIP. `Symbols_And_References.md` collects the definitions and reference locations.
+Open **Mathematical derivation** in the notebook or **Mathematical steps** on the website.
+
+1. **Full mathematics**: all derivation equations, then one short list of the symbols and their units.
+2. **Explained derivation**: the same equations with detailed definitions, units and source notes below each one.
+
+Both views use the same calculation. The result ZIP includes `calculation_mathematics.md` and `calculation_full.tex`, plus `calculation_explained.md` and `calculation_explained.tex`. `calculation_steps.md` is a copy of Full mathematics. `Symbols_And_References.md` retains the complete reference glossary.
 
 Angles in equations are radians; inputs and angular CSV columns are degrees. Matrix superscript ᵀ means transpose, while the standalone T is the frame matrix. The projector P is distinct from physical polarization density. Unit Jones states are dimensionless; reduced response amplitudes use tensor-coefficient units and their squared magnitudes give the plotted relative intensity (a.u.). Physical SI tensor units depend on the declared normal-coordinate convention. No absolute field strength or detector calibration is supplied by the example.
 

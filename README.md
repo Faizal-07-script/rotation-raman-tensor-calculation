@@ -2,13 +2,18 @@
 
 [**Open the live website on GitHub Pages**](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/)
 
-[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/Raman_Tensor_V4_Si500_20261023R3_3134dd97.ipynb?sha=33ad0add497b)
-· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/Raman_Tensor_V4_Si500_20261023R3_3134dd97.zip?sha=d15fbe741365)
+[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%204.0.ipynb?sha=0558c1d98243)
+· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%204.0.zip?sha=75715beb882b)
 
 Calculate Raman intensity from a crystal tensor, measurement frame and Jones
 polarization states. The website includes a calculator, equations, a 22-cell
 Python notebook and example data. Version 4 uses Greek notation and shorter
-instructions.
+instructions. The current program is **261024 - Raman Tensor Rotation Ver 4.0**.
+
+Mathematical results have two views: **Full mathematics** keeps every equation
+and one short symbol list at the end; **Explained derivation** keeps the same
+equations with detailed definitions and sources after each one. Both are
+included as Markdown and LaTeX in the result archive.
 
 ## Structure
 

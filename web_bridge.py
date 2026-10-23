@@ -192,6 +192,7 @@ def web_result(run, derivation, figures):
         angles=np.rad2deg(run['angles']),scan_label=run['scan_label'],scan_basis=run['optical']['scan_basis'],
         figures=[web_figure_view(name,figure) for name,figure in figures],
         equations=derivation['entries'],equation_count=sum(x['kind']=='equation' for x in derivation['entries']),
+        symbol_legend=derivation['symbol_legend'],derivation_reference_ids=derivation['reference_ids'],
         derivation_references=DERIVATION_REFERENCES,
         latex=tex,csv=csv_from_curves(run['angles'],run['display_curves'],'theta_deg' if run['optical']['scan_basis']=='SECOND' else 'alpha_deg'),
         checks=matching_protocol_audit(run),protocols=protocol_state_comparison(),states=states,

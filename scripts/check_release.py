@@ -37,7 +37,7 @@ assert f'NOTEBOOK_REVISION = "{revision}"' in code[0]
 assert release['default_input'] == dict(material='Si',hkl=[5,0,0],optics='CUBIC_VV')
 for name, record in release['files'].items():
     payload = (DOWNLOADS / record['filename']).read_bytes()
-    assert record['filename'].startswith('Raman_Tensor_V4_Si500_')
+    assert record['filename'].rsplit('.',1)[0] == '261024 - Raman Tensor Rotation Ver 4.0'
     assert hashlib.sha256(payload).hexdigest() == record['sha256']
     assert len(payload) == record['size_bytes']
     if name != 'bundle':
@@ -112,7 +112,10 @@ assert all(s['meaning'] and s['units'] for entry in equations for s in entry['sy
 catalog=json.loads((DIST/'data/catalog.json').read_text())
 assert catalog['default_example']=='SI_500'
 assert catalog['examples']['SI_500']['config']==silicon
-assert reference['latex']['full'].count('Symbols and units')==len(equations)
+assert reference['latex']['full'].count('Symbols and units')==1
+assert reference['latex']['explained'].count('Symbols and units')==len(equations)
+assert reference['symbol_legend']
+assert '261024 - Raman Tensor Rotation Ver 4.0' in python_source
 assert 'Run completed successfully.' not in (DIST/'raman_engine.py').read_text()
 
 for name in ["index.html", "app.js", "styles.css", "engine-worker.js", "user-guide.js", "user-guide.css"]:

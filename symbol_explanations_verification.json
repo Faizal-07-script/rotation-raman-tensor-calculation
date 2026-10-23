@@ -61,5 +61,5 @@
   ],
   "overloaded_symbols": "Calligraphic amplitude/source A; unit Jones/physical E; projection/response/physical P; phase, transpose and equilibrium evaluation.",
   "units": "Local meanings and unit conventions checked for every calculated equation across all examples and profiles.",
-  "exports": "Markdown, JSON and all three LaTeX documents preserve the same definitions and reference ledger."
+  "exports": "Markdown, JSON and both full derivation views and the symbolic/numerical LaTeX documents preserve the same definitions and reference ledger."
 }
