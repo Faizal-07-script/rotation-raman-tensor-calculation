@@ -1,4 +1,4 @@
-# Saito-sensei feedback — Version 4 audit
+# Saito-sensei Feedback and Implementation Status — Version 4
 
 Audit date: 2026-10-23. Baseline notebook: the preceding release before the feedback changes (GitHub main b670372fe576531d6c5bd1e11ae73adab2386e8e).
 
