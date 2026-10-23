@@ -1,11 +1,11 @@
 # Version 4 — first run and numbered tools
 
-**Revision 2026-10-23-r2 — Silicon (500) startup**
+**Revision 2026-10-23-r3 — Silicon (500) startup**
 
 Run Cell 1 first. Its first output must read:
 
 ```text
-Version 4 | Revision 2026-10-23-r2 | Silicon (500) default
+Version 4 | Revision 2026-10-23-r3 | Silicon (500) default
 ```
 
 Open the newly downloaded notebook whose filename begins `Raman_Tensor_V4_Si500_`. If this revision line is missing, compare the file you opened with the current download. Restart its kernel and run all 22 cells. The success messages appear below each executed cell; the Silicon polar plot appears in Cell 22.
@@ -14,8 +14,8 @@ Use **Jupyter Notebook / JupyterLab or Google Colab** with a Python kernel and w
 
 1. Open the current `Raman_Tensor_V4_Si500_…ipynb` notebook and choose **Restart kernel and Run All**. Run all **22 code cells in order**. Do not start from Cell 17 or Cell 22 in a fresh kernel.
 2. Each code cell prints **“Run completed successfully.”**, its cell number, what is ready and which cell to run next. The explanation above each code cell states its role, what to enter and what to expect. Cells 1–21 primarily define functions or controls; their message confirms execution, while the numerical/model checks are reported separately.
-3. Cell 22 checks **silicon (500), VV** and displays its polar plot directly above the application. The **Silicon (500), VV reference frame** example is loaded automatically, and the **Polar plots** result tab is selected. No typing, `input()` prompt, external data file or coefficient editing is required for this first run.
-4. Inspect the silicon image, **Intensity values** and **Validation**. The first result has **one T2g channel**, combining the intensities of three unresolved orthogonal phonon partners, and **721 samples** from 0° through 360°. Cell 22 compares every sample with the reference equation below before displaying the image. The inline image records the initial test; later results appear in the application tabs.
+3. Cell 22 checks **silicon (500), VV** and shows a short guide above the calculator; the plot is in the Polar plots tab. The **Silicon (500), VV reference frame** example is loaded automatically, and the **Polar plots** result tab is selected. No typing, `input()` prompt, external data file or coefficient editing is required for this first run.
+4. Inspect **Polar plots**, **Intensity values** and **Validation**. The first result has **one T2g channel**, combining the intensities of three unresolved orthogonal phonon partners, and **721 samples** from 0° through 360°. Cell 22 compares every sample with the reference equation below before opening the results. View the current plot in the Polar plots tab.
 5. For a different run, follow numbered tools **1 → 2 → 3 → 4 → 5 → 6**, then **7** to export. A selected example changes the form only after **1.4 Load selected example**. Example loading replaces inputs; review its selected model and optics afterward. The notebook automatically calculates only the initial example; press **6** after later changes.
 6. **8** reruns model validation, **9** saves and compares calculated runs, and **10** is the separate silicon benchmark. These optional tools are not required to run the first example.
 
@@ -70,7 +70,7 @@ Reference principles are distinguished from intermediate program algebra: Piment
 - **Cell 18** defines handlers that check and update the widgets. Run it unchanged.
 - **Cell 19** defines calculate/export/compare/validate actions. Run it unchanged; button clicks in Cell 22 call these functions.
 - **Cells 20–21** define validation functions. Run them unchanged. Their completion message means the functions are ready; the tests themselves run in Cell 22 or when you press 8.
-- **Cell 22** loads silicon (500), calculates VV, checks the reference equation, displays a PNG polar plot outside the widgets, runs model validation and displays the interface. Enter your own data only in this interface. The demonstration values and formats are listed above.
+- **Cell 22** loads silicon (500), calculates VV, checks the reference equation, shows a short guide above the calculator, runs model validation and displays the interface. Enter your own data only in this interface. The demonstration values and formats are listed above.
 
 ## If the result looks unchanged
 
@@ -81,7 +81,7 @@ Check the revision printed by Cell 1 and use a fresh kernel. For the same materi
 - A red exception means the cell did not finish; fix the first exception before continuing. For a missing package, install the matching requirement in the active kernel, then restart and Run All.
 - A `NameError` in a later cell usually means earlier cells were skipped or the kernel restarted. Run All from Cell 1.
 - If only text such as `VBox(...)` appears, use a notebook frontend with ipywidgets enabled. An ordinary Python terminal does not render the interface.
-- Wait for Cell 22 to finish its calculation/validation. Text messages in Cells 1–21 are expected. The silicon PNG appears directly in Cell 22, including in a static notebook preview; the interactive controls require widget support.
+- Wait for Cell 22 to finish its calculation/validation. Text messages in Cells 1–21 are expected. The short guide appears above the calculator. Plots are in the Polar plots tab; the controls require widget support.
 - A disabled download button needs a successful fresh calculation. After 7.1, open the Downloads tab and click its generated file link.
 
 ## Reproducibility check by another person

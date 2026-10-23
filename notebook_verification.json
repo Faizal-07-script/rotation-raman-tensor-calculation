@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "version": "4",
-  "download_revision": "2026-10-23-r2",
+  "download_revision": "2026-10-23-r3",
   "checks": [
     "21 point groups: six-dimensional symmetric basis, 132 covariance checks and 66 irrep-character checks.",
     "Quarter-wave-plate source: Q, Q.T, incident \u03c3\u207a, analyzer reference and complex-tensor intensity match the uploaded notebook.",
@@ -50,7 +50,9 @@
     "maximum_residual": 0.0,
     "sampled_maximum": 1.0,
     "continuous_maximum": 1,
-    "inline_png_before_interface": true,
+    "inline_png_before_interface": false,
+    "short_guide_before_interface": true,
+    "polar_plot_in_result_tab": true,
     "selected_result_tab": "Polar plots",
     "redisplay_preserves_calculation": true
   },
@@ -691,5 +693,5 @@
     "notation_note": "Cells 6-11 intermittently call <\u03c3\u207b|R|\u03c3\u207a> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel."
   },
   "inactive_circular_rule_fields": "Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.",
-  "elapsed_seconds": 19.7
+  "elapsed_seconds": 102.89
 }

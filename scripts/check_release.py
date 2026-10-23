@@ -1,5 +1,4 @@
 """Check release identity, exact source correspondence and portable static assets."""
-import base64
 import hashlib
 import json
 import re
@@ -61,11 +60,17 @@ assert "version: '4'" in (DIST / "engine-worker.js").read_text()
 startup = book['metadata']['rotation_raman_revision']['validation']['startup_test']
 assert startup['material'] == 'Si' and startup['optics'] == 'CUBIC_VV'
 assert startup['hkl'] == [5, 0, 0] and startup['samples'] == 721
-assert startup['maximum_residual'] < 1e-10 and startup['inline_png_before_interface']
+assert startup['maximum_residual'] < 1e-10 and not startup['inline_png_before_interface']
+assert startup['short_guide_before_interface'] and startup['polar_plot_in_result_tab']
 last = [c for c in book['cells'] if c['cell_type'] == 'code'][-1]
 startup_images = [o for o in last['outputs'] if 'raman_startup_plot' in o.get('metadata', {})]
-assert len(startup_images) == 1 and 'image/png' in startup_images[0]['data']
-assert base64.b64decode(startup_images[0]['data']['image/png']) == (DOWNLOADS / 'Silicon_Startup_Polar_Plot.png').read_bytes()
+assert not startup_images
+guide = next(o for o in last['outputs'] if o.get('metadata', {}).get('raman_quick_start'))
+guide_text = guide['data']['text/markdown']
+guide_text = guide_text if isinstance(guide_text,str) else ''.join(guide_text)
+assert '**Goal:**' in guide_text
+assert len(guide_text.split()) < 100
+assert (DOWNLOADS / 'Silicon_Startup_Polar_Plot.png').read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
 
 tutorial = json.loads((DIST / "data/tutorial.json").read_text())
 assert sorted(c["cell"] for c in tutorial) == list(range(1, 23))

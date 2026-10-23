@@ -1,5 +1,5 @@
 """Execute all 22 cells and verify the visible silicon startup and inactive fields."""
-import base64
+import io
 import json
 import os
 import time
@@ -22,9 +22,19 @@ for cell in book.cells:
         revision=book.metadata['rotation_raman_revision']['download_revision']
         assert f'Version 4 | Revision {revision} | Silicon (500) default' in captured.stdout
     cell.execution_count=shell.execution_count-1;cell.outputs=[]
-    for name,value in [('stdout',captured.stdout),('stderr',captured.stderr)]:
+    stdout=captured.stdout
+    if cell.metadata['code_cell_number']==22:
+        # Validation reports belong to their result tab, not above the quick guide
+        # in a saved static preview captured without an ipykernel frontend.
+        stdout=stdout[stdout.rfind(expected_message):]
+    for name,value in [('stdout',stdout),('stderr',captured.stderr)]:
         if value:cell.outputs.append(nbformat.v4.new_output('stream',name=name,text=value))
-    for output in captured.outputs:cell.outputs.append(nbformat.v4.new_output('display_data',data=output.data,metadata=output.metadata))
+    for output in captured.outputs:
+        if cell.metadata['code_cell_number']==22:
+            view=output.data.get('application/vnd.jupyter.widget-view+json',{})
+            if not output.metadata.get('raman_quick_start') and view.get('model_id')!=shell.user_ns['app_view'].model_id:
+                continue
+        cell.outputs.append(nbformat.v4.new_output('display_data',data=output.data,metadata=output.metadata))
 ns=shell.user_ns
 assert ns['state']['validation']['status']=='passed', ns['state']['validation']
 startup=ns['state']['run']
@@ -43,14 +53,21 @@ ns['np'].testing.assert_allclose(curve,reference,rtol=0,atol=1e-10)
 ns['np'].testing.assert_allclose(curve[[0,90,180,540,720]],
                                [0,1,0,0,0],rtol=0,atol=1e-10)
 last=next(c for c in reversed(book.cells) if c.cell_type=='code')
-images=[o for o in last.outputs if 'raman_startup_plot' in o.get('metadata',{})]
-assert len(images)==1 and 'image/png' in images[0]['data'], [(list(o.get('data',{})),o.get('metadata',{})) for o in last.outputs if o.get('output_type')=='display_data']
-assert images[0]['metadata']['raman_startup_plot']==dict(material='Si',surface=[5,0,0],optics='CUBIC_VV',channel='T2g')
-png=base64.b64decode(images[0]['data']['image/png'])
-assert png.startswith(b'\x89PNG\r\n\x1a\n')
+assert not any('raman_startup_plot' in o.get('metadata',{}) for o in last.outputs)
+guide_outputs=[i for i,o in enumerate(last.outputs) if o.get('metadata',{}).get('raman_quick_start')]
+assert len(guide_outputs)==1
+guide=last.outputs[guide_outputs[0]]['data']['text/markdown']
+assert '**Goal:**' in guide and all(f'{i}. ' in guide for i in range(1,6))
+assert len(guide.split())<100
 app_outputs=[i for i,o in enumerate(last.outputs) if 'application/vnd.jupyter.widget-view+json' in o.get('data',{})
              and o['data']['application/vnd.jupyter.widget-view+json']['model_id']==ns['app_view'].model_id]
-assert app_outputs and last.outputs.index(images[0])<app_outputs[0]
+assert app_outputs and guide_outputs[0]<app_outputs[0]
+assert not any('image/png' in o.get('data',{}) for o in last.outputs[:app_outputs[0]])
+buffer=io.BytesIO()
+startup_figure=next(figure for name,figure in ns['state']['figures'] if name.startswith('polar_'))
+startup_figure.savefig(buffer,format='png',dpi=110,bbox_inches='tight',transparent=False,facecolor='white')
+png=buffer.getvalue()
+assert png.startswith(b'\x89PNG\r\n\x1a\n')
 equations=[item for item in ns['state']['derivation']['entries'] if item['kind']=='equation']
 assert all(item.get('symbols') and item.get('reference_ids') and item.get('derivation_note') for item in equations)
 assert all(symbol['meaning'] and symbol['units'] for item in equations for symbol in item['symbols'])
@@ -80,7 +97,8 @@ record=dict(status='passed',version='4',download_revision=revision,checks=ns['st
         reference_equation='sin(2θ)^2',absolute_tolerance=1e-10,
         maximum_residual=float(ns['np'].max(ns['np'].abs(curve-reference))),
         sampled_maximum=float(curve.max()),continuous_maximum=1,
-        inline_png_before_interface=True,selected_result_tab='Polar plots',
+        inline_png_before_interface=False,short_guide_before_interface=True,
+        polar_plot_in_result_tab=True,selected_result_tab='Polar plots',
         redisplay_preserves_calculation=True),
     success_output='Each of 22 cells prints Run completed successfully., a Ready explanation and a Next action.',
     annotated_derivation=dict(equations=len(equations),all_symbols_have_meanings_and_units=True,

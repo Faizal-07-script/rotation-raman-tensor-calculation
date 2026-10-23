@@ -2,8 +2,8 @@
 
 [**Open the live website on GitHub Pages**](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/)
 
-[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.ipynb?sha=4064d1f05ec2)
-· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.zip?sha=3f8974bf5419)
+[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/Raman_Tensor_V4_Si500_20261023R3_3134dd97.ipynb?sha=33ad0add497b)
+· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/Raman_Tensor_V4_Si500_20261023R3_3134dd97.zip?sha=d15fbe741365)
 
 Calculate Raman intensity from a crystal tensor, measurement frame and Jones
 polarization states. The website includes a calculator, equations, a 22-cell
@@ -38,8 +38,8 @@ imports and notebook-only cell completion messages are omitted in the browser en
 Start with [QUICKSTART.md](QUICKSTART.md), then restart the notebook kernel and
 run all 22 cells unchanged. Each cell prints its number and “Run completed
 successfully.” Cell 22 loads silicon (500), VV, checks all 721 angular samples
-against the reference equation and displays its polar plot directly above the
-controls. It opens the Polar plots result tab and runs the model checks.
+against the reference equation and shows a short goal and numbered guide above
+the calculator. The plot is in the Polar plots result tab. It opens the Polar plots result tab and runs the model checks.
 The guide lists input formats, units, expected values and what the last cells need.
 
 Tools 1–5 set the model, tensors, orientation, Jones states and display;

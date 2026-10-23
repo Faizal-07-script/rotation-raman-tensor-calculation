@@ -878,123 +878,105 @@
   },
   {
     "cell": 22,
-    "overview": "Load Silicon (500), VV, test all 721 angular values against sin\u00b2(2\u03b8), run model validation and display a polar PNG before the calculator. Every derivation equation includes symbol definitions and units.",
+    "overview": "Check the Silicon (500) VV example, then show a short goal and five-step guide above the calculator. View the plot in Polar plots.",
     "workflow": [
-      "Arrange the existing crystal, orientation, Jones-state, display and comparison controls.",
-      "Connect observers and button actions once; later redisplay does not reset edited inputs.",
-      "Load cubic_fig1_config(0, \"VV\"): Si (500), T2g, shared d=1, 721 points.",
-      "Compare the calculated curve with sin\u00b2(2\u03b8) to an absolute tolerance of 1e-10.",
-      "Display the silicon polar PNG before the widget interface and select the Polar plots result tab.",
-      "Run after Cells 1\u201321. The first run loads silicon (500), Oh/T2g, d=1, VV, with 721 samples over 0\u00b0\u2013360\u00b0. It compares the full curve with the silicon reference, displays a PNG polar plot directly, runs model validation and opens the Polar plots tab. No external file or manual input is required. After editing inputs, press tool 6 and inspect the current application results; the startup image remains a record of the initial test. Tool 7 exports, 8 validates, 9 compares and 10 runs the separate 18-case silicon benchmark."
+      "Arrange the numbered controls.",
+      "Connect handlers once and preserve edited inputs on redisplay.",
+      "Calculate and validate the Silicon (500), VV example.",
+      "Display the short guide, then the calculator with Polar plots selected."
     ],
     "blocks": [
       {
         "start_line": 1,
-        "end_line": 4,
-        "title": "Prepare notebook image display",
-        "explanation": "Import Image so the initial polar plot is emitted as a standard image/png output.",
-        "why": "A saved PNG remains visible in a static notebook preview without a widget renderer.",
-        "check": "This display import is excluded from the browser scientific engine."
+        "end_line": 14,
+        "title": "Short goal and five-step guide",
+        "explanation": "Introduce the calculation in one sentence and show which numbered controls to use.",
+        "why": "Keep the opening concise and put plots in the result tab.",
+        "check": "The guide contains fewer than 100 words and appears before the calculator title."
       },
       {
-        "start_line": 5,
-        "end_line": 16,
+        "start_line": 16,
+        "end_line": 27,
         "title": "Group material and tensor controls",
         "explanation": "Arrange the material, group, modes, complex coefficients and custom tensor controls created in Cell 17.",
         "why": "Inputs remain in one numbered panel.",
         "check": "Visibility and allowed values are managed by Cell 18."
       },
       {
-        "start_line": 17,
-        "end_line": 31,
+        "start_line": 28,
+        "end_line": 42,
         "title": "Group orientation and lattice controls",
         "explanation": "Arrange hkl, uvw, normal side, \u03c8 and the lattice metric with the zone-condition note.",
         "why": "Surface indices alone do not determine a measurement frame.",
         "check": "For startup, hkl=(5,0,0), uvw=(0,-5,0), normal side +1 and \u03c8=0\u00b0."
       },
       {
-        "start_line": 32,
-        "end_line": 49,
+        "start_line": 43,
+        "end_line": 60,
         "title": "Group Jones states, display and comparisons",
         "explanation": "Place the existing widgets in five numbered settings tabs and assign their labels.",
         "why": "Container construction arranges controls without recalculating.",
         "check": "VV startup uses parallel co-rotating linear states; direct and circular-rule inputs are inactive."
       },
       {
-        "start_line": 50,
-        "end_line": 60,
+        "start_line": 61,
+        "end_line": 71,
         "title": "Keep the optional optical-profile guide",
         "explanation": "Build the comparison guide and selected-profile explanation in an initially closed accordion.",
         "why": "Users can inspect the actual Jones states and source scope when needed.",
         "check": "The guide does not change coefficients or align curves."
       },
       {
-        "start_line": 61,
-        "end_line": 80,
+        "start_line": 72,
+        "end_line": 91,
         "title": "Assemble the numbered application",
         "explanation": "Place selectors, settings, calculate/export actions, status and result tabs below the title.",
         "why": "The interface remains available for calculations after the silicon test.",
-        "check": "The startup PNG is a fixed record; later results appear in the application."
+        "check": "The plot remains in Polar plots; no image is displayed above the calculator title."
       },
       {
-        "start_line": 81,
-        "end_line": 106,
+        "start_line": 92,
+        "end_line": 118,
         "title": "Avoid duplicate wiring and observe ordinary inputs",
         "explanation": "Return after redisplaying an already wired app. Otherwise attach invalidation to ordinary fields.",
         "why": "Rerunning Cell 22 should preserve edited inputs and avoid duplicate callbacks.",
         "check": "After editing earlier definitions, restart the kernel and Run All."
       },
       {
-        "start_line": 107,
-        "end_line": 126,
+        "start_line": 119,
+        "end_line": 138,
         "title": "Connect specialized observers",
         "explanation": "Material, group, model, optics, surface and mode selectors receive their own handlers. Index and direct-state fields get dedicated observers.",
         "why": "Some edits change the available controls as well as the calculation inputs.",
         "check": "Example loading uses the busy guard to update controls together."
       },
       {
-        "start_line": 127,
-        "end_line": 142,
+        "start_line": 139,
+        "end_line": 154,
         "title": "Connect explicit actions once",
         "explanation": "Map each button to its calculate, export, validate, compare or benchmark callback, then set the wired flag.",
         "why": "Button actions remain explicit after the automatic first run.",
         "check": "The wired flag prevents duplicate registration."
       },
       {
-        "start_line": 143,
-        "end_line": 156,
+        "start_line": 155,
+        "end_line": 168,
         "title": "Display sources and input scope",
         "explanation": "Populate the Sources tab with the existing reference links and a note about material-dependent inputs.",
         "why": "The declared geometry, coefficients and Jones states remain traceable.",
         "check": "Source notes are separate from numerical checks."
       },
       {
-        "start_line": 157,
-        "end_line": 167,
+        "start_line": 169,
+        "end_line": 182,
         "title": "Calculate and test the silicon startup case",
         "explanation": "Load the existing Si (500) VV preset through the normal form loader, calculate it, stop on failure and compare all 721 intensities with sin\u00b2(2\u03b8). Then execute the wider model/source validation suite.",
         "why": "This gives newcomers a reproducible first calculation and a check independent of the tensor contraction.",
         "check": "d=1, normalization off; the absolute tolerance is 1e-10. The sampled maximum is 1.0."
       },
       {
-        "start_line": 168,
-        "end_line": 182,
-        "title": "Show the silicon polar plot immediately",
-        "explanation": "Select Polar plots, label the startup result and serialize its calculated figure as a PNG. Display the PNG outside all Output widgets.",
-        "why": "The plot is visible directly below Cell 22 and in a static preview.",
-        "check": "The image metadata identifies Si, surface (500), CUBIC_VV and T2g. It is the same figure calculated by on_run()."
-      },
-      {
-        "start_line": 183,
-        "end_line": 185,
-        "title": "Open the populated controls",
-        "explanation": "Display the already populated application after the silicon PNG.",
-        "why": "The initial result is directly visible above the controls.",
-        "check": "The Polar plots result tab is selected, and Validation reports passed."
-      },
-      {
-        "start_line": 186,
-        "end_line": 188,
+        "start_line": 185,
+        "end_line": 187,
         "title": "Start and confirm completion",
         "explanation": "Initialize the application and print the numbered Cell 22 completion message after successful execution.",
         "why": "New users receive a visible completion message as well as the silicon plot.",
@@ -1003,7 +985,6 @@
     ],
     "pitfalls": [
       "Run Cells 1\u201321 before this cell; a fresh kernel and Run All rebuilds edited definitions.",
-      "The inline PNG records the initial silicon test. Inspect application results after later calculations.",
       "The T2g curve sums the intensities of three orthogonal phonon partners; d=1 is a relative coefficient scale.",
       "The initial notebook and website both use Silicon (500), VV; the other material examples remain selectable."
     ]

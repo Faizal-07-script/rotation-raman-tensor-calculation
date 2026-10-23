@@ -5,7 +5,7 @@ The .ipynb notebook is the recommended entry point.
 
 # %% Code cell 1: Setup
 PROGRAM_VERSION = "4"
-NOTEBOOK_REVISION = "2026-10-23-r2"
+NOTEBOOK_REVISION = "2026-10-23-r3"
 print(f"Version {PROGRAM_VERSION} | Revision {NOTEBOOK_REVISION} | Silicon (500) default", flush=True)
 print("This notebook has 22 code cells. Run them in order; each completed cell reports its own success.", flush=True)
 
@@ -7992,9 +7992,20 @@ print("Cell 21/22 — Run completed successfully.\nReady: General-model and sour
 
 
 # %% Code cell 22: Check Silicon (500) and open the application
-"""Check silicon, display its polar plot, then open the calculator."""
+"""Check silicon and open the calculator with a short guide."""
 
-from IPython.display import Image
+NOTEBOOK_QUICK_GUIDE = """### Quick start
+
+**Goal:** Calculate Raman intensity for a chosen material, surface and polarization.
+
+1. Choose the model and polarization in **1**.
+2. Select the material and tensor coefficients in **2**.
+3. Set the surface, optical settings and plot options in **3–5**.
+4. Click **6. Calculate**, then check **Polar plots** and **Mathematical derivation**.
+5. Use **7** to save the results.
+
+**First run:** Silicon (500), VV is loaded and checked automatically.
+"""
 
 crystal_inputs = widgets.VBox(
     [
@@ -8055,7 +8066,7 @@ optical_guide_panel.selected_index = None
 app_view = widgets.VBox(
     [
         widgets.HTML(
-            "<h2>ROTATION RAMAN TENSOR CALCULATION</h2><p><b>Version 4.</b> The first run uses silicon (500), VV. To use your own inputs, follow tools 1–5, press 6 to calculate, then use 7 to download. Tools 8–10 provide validation, comparisons and the silicon benchmark. Input formats and example values are listed above.</p>"
+            "<h2>ROTATION RAMAN TENSOR CALCULATION</h2><p>Version 4</p>"
         ),
         model_pick,
         optics_pick,
@@ -8074,6 +8085,7 @@ app_view = widgets.VBox(
 
 def start_application():
     if ui["wired"]:
+        display(Markdown(NOTEBOOK_QUICK_GUIDE), metadata={"raman_quick_start": True})
         display(app_view)
         return
     ordinary = [
@@ -8160,20 +8172,7 @@ def start_application():
     )
     on_validate()
     tabs.selected_index = tab_index["Polar plots"]
-    display(Markdown(
-        "### Silicon startup check — Si (500), VV\n\n"
-        "Passed: 721 angular samples agree with the silicon reference equation (d = 1). "
-        "This image records the startup result. For later calculations, use Polar plots below."
-    ))
-    for name, figure in state["figures"]:
-        if name.startswith("polar_"):
-            image_buffer = io.BytesIO()
-            figure.savefig(image_buffer, format="png", dpi=110, bbox_inches="tight",
-                           transparent=False, facecolor="white")
-            display(Image(data=image_buffer.getvalue()), metadata={
-                "raman_startup_plot": {"material": "Si", "surface": [5, 0, 0],
-                                       "optics": "CUBIC_VV", "channel": "T2g"}
-            })
+    display(Markdown(NOTEBOOK_QUICK_GUIDE), metadata={"raman_quick_start": True})
     display(app_view)
 
 

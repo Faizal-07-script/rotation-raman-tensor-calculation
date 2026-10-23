@@ -1,4 +1,4 @@
-Version 4 | Revision 2026-10-23-r2 | Silicon (500) default
+Version 4 | Revision 2026-10-23-r3 | Silicon (500) default
 
 The recommended notebook filename includes V4, Si500, the revision and its source fingerprint.
 Cell 1 prints this same revision before preparing the environment.
@@ -20,7 +20,8 @@ Newcomers: read QUICKSTART.md and use Restart kernel and Run All.
 Every code cell prints "Run completed successfully.", its number, what is ready
 and which cell to run next. Each cell also explains its role, inputs and outputs.
 Cell 22 loads silicon (500), T2g, d=1, VV, checks its 721-point curve against
-the reference equation and displays its polar PNG directly above the controls.
+the reference equation and shows a short goal and five-step guide above the calculator.
+Its plot is in the Polar plots tab.
 No external input or manual code edit is needed. The Polar plots tab opens first.
 Tools are numbered 1-7 for the main workflow, with optional validation (8),
 comparisons (9), and the silicon benchmark (10). silicon_startup_input_v4.json

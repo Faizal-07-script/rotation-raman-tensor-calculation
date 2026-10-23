@@ -15,7 +15,7 @@
         "title": "Identify the downloaded revision",
         "explanation": "Print Version 4 and the exact download revision before preparing packages. This visible line distinguishes the current file from an older notebook with the same title.",
         "why": "Verify the file being executed directly in Cell 1.",
-        "check": "The first output reads Version 4 | Revision 2026-10-23-r2 | Silicon (500) default."
+        "check": "The first output reads Version 4 | Revision 2026-10-23-r3 | Silicon (500) default."
       },
       {
         "start_line": 6,
