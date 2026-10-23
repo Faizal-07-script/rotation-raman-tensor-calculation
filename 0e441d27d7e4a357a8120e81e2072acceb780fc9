@@ -1,0 +1,29 @@
+{
+  "status": "passed",
+  "version": "3",
+  "checks": [
+    "Published example input JSON runs unchanged and reproduces the documented reference output.",
+    "Example SLIDE: 3 channels; JSON result, figures and calculated equations.",
+    "Example QWP_3D: 6 channels; JSON result, figures and calculated equations.",
+    "Example QWP_2D: 1 channels; JSON result, figures and calculated equations.",
+    "Example LINEAR_BP: 14 channels; JSON result, figures and calculated equations.",
+    "Example CIRCULAR_MOS2: 2 channels; JSON result, figures and calculated equations.",
+    "Example SI_530: 1 channels; JSON result, figures and calculated equations.",
+    "Optical profile CUBIC_VV: finite intensities and consistent raw data.",
+    "Optical profile CUBIC_VH: finite intensities and consistent raw data.",
+    "Optical profile LINEAR_PAIR: finite intensities and consistent raw data.",
+    "Optical profile CIRCULAR_LINEAR: finite intensities and consistent raw data.",
+    "Optical profile CUBIC_SIGMA: finite intensities and consistent raw data.",
+    "Optical profile QWP: finite intensities and consistent raw data.",
+    "Optical profile CIRCULAR_SAME: finite intensities and consistent raw data.",
+    "Optical profile CIRCULAR_OPPOSITE: finite intensities and consistent raw data.",
+    "Optical profile DIRECT_JONES: finite intensities and consistent raw data.",
+    "Inactive conditional fields cannot block the paired VV/VH profile.",
+    "A reflected manual frame is rejected.",
+    "Scientific PNG, PDF and SVG figure downloads have valid file signatures.",
+    "Full result ZIP: 38 valid entries, including figures, data, mathematics and comparison inputs.",
+    "Silicon benchmark: 18 calculated cases pass their independent identities and OriginLab export."
+  ],
+  "elapsed_seconds": 29.04,
+  "engine_sha256": "99bfc17856870e09da9aec329c7ba19ba87b0e6d9fa43148ebb5b34590c55c42"
+}

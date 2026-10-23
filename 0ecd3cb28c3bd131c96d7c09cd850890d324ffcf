@@ -1,0 +1,1171 @@
+[
+  {
+    "cell": 1,
+    "overview": "Prepare the notebook environment before any geometry, tensor or polarization is defined. This cell checks whether the four scientific/UI packages are available, installs only missing packages, enables the optional Colab widget manager and requests inline figure display when running in IPython.",
+    "workflow": [
+      "Import package-discovery and subprocess utilities.",
+      "Find and install missing dependencies using the current Python interpreter.",
+      "Enable widgets in Colab when that platform is present.",
+      "Select inline Matplotlib display when the notebook supports IPython magic."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 5,
+        "title": "Import environment tools",
+        "explanation": "importlib.util.find_spec will locate installed packages without importing their full contents. subprocess runs a package-installation command when necessary. sys.executable identifies the Python interpreter that is running this notebook.",
+        "why": "Installing into the active interpreter avoids the common mismatch in which terminal pip installs a package for a different Python environment.",
+        "check": "After execution, sys.executable should refer to the interpreter used by the selected notebook kernel."
+      },
+      {
+        "start_line": 6,
+        "end_line": 9,
+        "title": "Find and install dependencies",
+        "explanation": "required lists sympy for symbolic algebra, numpy for numerical arrays, matplotlib for figures and ipywidgets for the notebook interface. The list comprehension retains packages whose import specification cannot be found. If that list is nonempty, check_call invokes the active interpreter with -m pip install followed by only those package names.",
+        "why": "The scientific calculation depends on these packages, but a working environment should not reinstall all of them whenever the notebook is opened.",
+        "check": "An existing installation produces an empty missing list. A failed installation raises an exception rather than continuing into an unusable interface."
+      },
+      {
+        "start_line": 10,
+        "end_line": 15,
+        "title": "Enable the optional Colab widget manager",
+        "explanation": "The try block imports google.colab.output and enables its custom widget manager. In an ordinary Jupyter environment, importing google.colab raises ImportError; the except branch deliberately continues because this integration is optional.",
+        "why": "The same notebook can display its controls in Colab and ordinary Jupyter without treating the absence of a Colab-only module as a physics or calculation error.",
+        "check": "In Colab, the final application should display interactive selectors and buttons. In Jupyter, the absence of google.colab should not stop this cell."
+      },
+      {
+        "start_line": 16,
+        "end_line": 19,
+        "title": "Request inline figures",
+        "explanation": "get_ipython().run_line_magic requests the inline Matplotlib backend. NameError or NotImplementedError is ignored when this command is unavailable, allowing the scientific definitions to be imported in another supported context.",
+        "why": "This changes how figures are displayed in a notebook, not the tensor contraction or calculated intensity.",
+        "check": "A later figure should appear inside a supported notebook. A browser-hosted calculator supplies its own figure display instead of requiring this IPython display setting."
+      },
+      {
+        "start_line": 21,
+        "end_line": 21,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–1 in order and confirm the Cell 01/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "An internet connection may be needed if required Python packages are missing.",
+      "This setup cell does not determine any material coefficient, crystal orientation or polarization state.",
+      "Run subsequent code cells in order because they use definitions created by earlier cells."
+    ]
+  },
+  {
+    "cell": 2,
+    "overview": "Create shared symbols, input-validation helpers, safe serialization and the embedded scientific figure style. These utilities keep the symbolic calculation separate from numerical substitution and make the actual font and export settings inspectable.",
+    "workflow": [
+      "Import algebra, numerical, plotting, notebook-display and export utilities.",
+      "Declare the real scan angle and general complex tensor coefficients.",
+      "Define conversions that reject invalid inputs without evaluating arbitrary text.",
+      "Load the supplied scientific style and record the font actually available."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 21,
+        "title": "Import the common infrastructure",
+        "explanation": "SymPy stores exact matrices and expressions; NumPy evaluates numerical arrays; pyplot creates figures. base64, csv, io, json and zipfile support downloadable data. copy protects saved configurations from later edits, html escapes displayed labels and traceback records diagnostic errors. contextmanager supports input transactions and lru_cache avoids recomputing fixed symbolic source algebra. The IPython display objects render notebook text and mathematics.",
+        "why": "The calculation, reports and downloads must share numerical conventions rather than redefine slightly different helper functions in different workflows.",
+        "check": "Importing these modules should succeed after Cell 1. Notebook display imports are a presentation dependency; a browser adapter may replace only that presentation layer."
+      },
+      {
+        "start_line": 22,
+        "end_line": 30,
+        "title": "Declare symbols and provisional display defaults",
+        "explanation": "sp.init_printing prepares symbolic display. The initial rcParams values are provisional and are superseded by apply_scientific_style at the end of this cell. alpha is explicitly real because it is an angle. The six coefficients a through f are explicitly complex so conjugation and relative phases remain available in every tensor calculation.",
+        "why": "Declaring all tensor coefficients real would erase phase-sensitive interference. The analyzer scan alpha must also remain separate from the frame angle psi introduced by the orientation inputs.",
+        "check": "sp.conjugate(alpha) simplifies to alpha, while sp.conjugate(a) remains a distinct conjugate symbol. The final style font size is 22, not the provisional value 10."
+      },
+      {
+        "start_line": 31,
+        "end_line": 41,
+        "title": "real_number: require a finite real scalar",
+        "explanation": "The function numerically evaluates its input with sp.N, attempts conversion to a complex scalar and rejects unresolved expressions. It then rejects NaN, infinity or an imaginary part larger than the stated numerical tolerance. The returned value is the real part as a Python floating-point number.",
+        "why": "Lattice lengths, angles, magnitudes and integer-rule controls cannot be unresolved symbolic expressions or complex-valued numbers.",
+        "check": "A finite value such as 1.25 is accepted. An unresolved symbol, infinity or a value such as 1+0.1j raises a named input error."
+      },
+      {
+        "start_line": 42,
+        "end_line": 47,
+        "title": "exact: retain an entered decimal as a rational",
+        "explanation": "First call real_number to validate the scalar. Then construct sp.Rational from the decimal string of the numerical value. A typical entered decimal 0.8 therefore becomes the exact rational 4/5 for later symbolic operations.",
+        "why": "Exact rational coefficients make cancellations and printed derivations easier to inspect and reduce unnecessary floating-point residues in otherwise exact example cases.",
+        "check": "exact(0.8) should equal sp.Rational(4,5). This preserves the validated numerical decimal; it does not recover an arbitrary symbolic expression that was already rounded before entry."
+      },
+      {
+        "start_line": 48,
+        "end_line": 52,
+        "title": "deg: convert degrees to radians",
+        "explanation": "SymPy trigonometric functions use radians. Multiplication by pi/180 converts a user-facing degree value while retaining exact forms for special angles such as 45 degrees.",
+        "why": "Mixing degree-valued UI controls with radian-valued sine and cosine would silently produce incorrect orientations and polarization vectors.",
+        "check": "deg(90) equals pi/2 and sin(deg(30)) equals 1/2."
+      },
+      {
+        "start_line": 53,
+        "end_line": 57,
+        "title": "numeric: evaluate a symbolic matrix",
+        "explanation": "Convert the input to a SymPy matrix, evaluate its resolved entries and construct a NumPy array with complex dtype. The complex dtype is retained even when some entries happen to be real.",
+        "why": "Numerical amplitudes and Jones states can contain complex entries. Converting them to a real array would discard physical phases.",
+        "check": "numeric(Matrix([1,I])) must retain the second entry as 1j. All free symbols must be substituted before this conversion is used for a final result."
+      },
+      {
+        "start_line": 58,
+        "end_line": 62,
+        "title": "zero: test an exact symbolic identity",
+        "explanation": "Every entry is expanded and simplified, and all entries must equal symbolic zero. Scalar identities can be supplied as a one-entry matrix, while matrix identities are tested entry by entry.",
+        "why": "Algebraic regressions should test a mathematical identity directly instead of accepting two sampled curves that only look similar.",
+        "check": "zero(T.T*T-eye(3)) is an appropriate exact check for an exact frame. A numerical approximate frame is instead checked with tolerance by validate_frame."
+      },
+      {
+        "start_line": 63,
+        "end_line": 69,
+        "title": "tidy: perform local algebraic simplification",
+        "explanation": "For a matrix, apply the same function to each entry. For a scalar, expand multiplication and factor common terms. The helper intentionally avoids a broad global trigonometric search.",
+        "why": "The reports need readable formulas, but repeated expensive global simplification can make general complex-tensor calculations unnecessarily slow.",
+        "check": "The tidied expression must remain algebraically equal to its input; this operation never fits coefficients or shifts a polar curve."
+      },
+      {
+        "start_line": 70,
+        "end_line": 78,
+        "title": "complex_parameter: construct magnitude and phase",
+        "explanation": "Validate the coefficient magnitude and phase as real finite numbers, reject a negative magnitude and form rho*exp(I*phi*pi/180). Both entered numbers pass through exact before building the symbolic coefficient.",
+        "why": "The magnitude/phase UI corresponds directly to the physical parameterization q=|q|exp(i arg(q)); a relative phase affects complete-mode interference.",
+        "check": "A magnitude of 1 and phase of 90 degrees give I. A magnitude of zero gives a zero coefficient independently of phase."
+      },
+      {
+        "start_line": 79,
+        "end_line": 89,
+        "title": "parse_complex: parse custom tensor entries safely",
+        "explanation": "Interpret a numerical string with Python complex(), accepting j notation and replacing a literal I with j. Reject non-finite entries, then rebuild the real and imaginary decimal parts as SymPy rational numbers.",
+        "why": "Custom tensor text must be numerical data, not executable Python. The function does not call eval or infer a symmetry constraint for the entered tensor.",
+        "check": "An entry such as '1+0.2j' is accepted. A Python command or an unresolved expression is rejected. Fractions should be entered as numerical decimals in this parser."
+      },
+      {
+        "start_line": 90,
+        "end_line": 108,
+        "title": "serializable: make result data JSON-compatible",
+        "explanation": "The function recursively traverses dictionaries, sequences and arrays. Matrices become rows of string entries, SymPy expressions become strings and NumPy scalars become ordinary Python values. A numerical complex scalar becomes an object with explicitly named real and imaginary parts.",
+        "why": "Standard JSON cannot directly store SymPy matrices, arbitrary NumPy objects or complex numbers. Exporting them explicitly prevents silent loss of phase or matrix structure.",
+        "check": "A complex coefficient must retain both real and imaginary values in its JSON representation. A symbolic expression is an algebraic record, not an executable instruction on re-import."
+      },
+      {
+        "start_line": 109,
+        "end_line": 114,
+        "title": "check: keep validation active in optimized Python",
+        "explanation": "If a condition is false, explicitly raise AssertionError with the supplied explanation. Unlike a bare assert statement, this function is not removed by the Python -O optimization switch.",
+        "why": "Scientific consistency checks should not disappear because the interpreter was launched in an optimized mode.",
+        "check": "check(False,'test message') raises AssertionError with that message."
+      },
+      {
+        "start_line": 115,
+        "end_line": 160,
+        "title": "Embed the supplied scientific style",
+        "explanation": "The style text defines a 6.5-by-5-inch default figure, requested Arial font, a 22-point base font, regular mathematical text, two-point axes and lines, the supplied color cycle and inward ticks. It also defines legend formatting, transparent output, tight bounding boxes, PDF as the default format and 600-dpi saved rasterization.",
+        "why": "The notebook must carry the formatting instructions with it so exporting a figure does not depend on a stylesheet that exists only on one computer. Formatting parameters change presentation, not intensity values.",
+        "check": "Every result ZIP includes the same sci.mplstyle. PDF/SVG curve geometry remains vector-based; the dpi setting chiefly controls PNG and any rasterized content."
+      },
+      {
+        "start_line": 161,
+        "end_line": 172,
+        "title": "Write and load the embedded style",
+        "explanation": "apply_scientific_style obtains a temporary folder, creates it if needed, writes the exact embedded style text as UTF-8 and loads that path with plt.style.use. The function is defined here; it is actually executed by the assignment at the end of the cell.",
+        "why": "Using the documented Matplotlib style-sheet mechanism makes the visible configuration reproducible without hard-coding every style parameter separately in every plotting routine.",
+        "check": "The temporary sci.mplstyle should exist and the loaded font.size should be 22. The working directory does not need to contain a separate stylesheet."
+      },
+      {
+        "start_line": 173,
+        "end_line": 188,
+        "title": "Choose an installed font and distinguish display from export",
+        "explanation": "Try Arial first, then Liberation Sans and DejaVu Sans, with silent font substitution disabled during each lookup. Record the first available font or raise an error if none is found. Set notebook raster display to 110 dpi independently of the 600-dpi export setting; request embedded TrueType PDF/PS fonts and editable SVG text.",
+        "why": "A requested font is not necessarily installed. The program should report a real fallback rather than claim an exact Arial match, and screen previews need not be as large as publication PNGs.",
+        "check": "PLOT_STYLE_STATUS.actual_font and font_fallback must describe the local environment. Installing Arial allows it to be chosen on the next clean initialization."
+      },
+      {
+        "start_line": 189,
+        "end_line": 201,
+        "title": "Return and retain style provenance",
+        "explanation": "Return requested and actual fonts, fallback status, resolved font path, stylesheet path, export resolution and the documentation URL. PLOT_STYLE_STATUS=apply_scientific_style() executes the function once during cell execution and makes this provenance available to later reports and exports.",
+        "why": "A shared scientific figure must be auditable: its stated font, dimensions and export settings should describe the settings actually used.",
+        "check": "Later result exports should carry plot_style_status.json with this information. None of these paths is a material or tensor input."
+      },
+      {
+        "start_line": 203,
+        "end_line": 203,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–2 in order and confirm the Cell 02/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "The initial rcParams font size 10 is overwritten by the supplied style before plotting.",
+      "exact() preserves entered decimal numbers as rationals; custom tensor parsing accepts numerical strings rather than arbitrary SymPy formulas.",
+      "Arial fallback changes typography, not the calculated polar pattern.",
+      "The complex coefficients belong to a phonon tensor. Their phases should not be confused with the optical Jones phase beta."
+    ]
+  },
+  {
+    "cell": 3,
+    "overview": "Construct a proper three-dimensional measurement frame from the lattice metric, surface indices and in-plane reference. This is where the crystal-orientation rotation is defined. The column convention is v_crystal=T*v_lab, so a Cartesian Raman tensor transforms as R_lab=T.T*R_crystal*T.",
+    "workflow": [
+      "Build the direct-lattice Cartesian matrix L.",
+      "Calculate the reciprocal surface normal L^(-T)*(h,k,l).",
+      "Build a normalized in-plane X reference and Y=Z cross X.",
+      "Apply the independent frame angle psi and verify orthonormality and determinant +1."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 12,
+        "title": "trig_deg: exact special angles and numerical general angles",
+        "explanation": "Convert the degree input to radians with deg(). Compute sine and cosine symbolically. If unresolved trigonometric functions remain, evaluate them to 15 digits; otherwise retain exact radicals such as sqrt(2)/2.",
+        "why": "Standard reference planes benefit from exact symbolic matrices, while a general measured miscut angle should still be numerically usable.",
+        "check": "45 degrees retains exact radicals. An arbitrary finite angle yields finite sine/cosine values that satisfy the expected normalization to numerical tolerance."
+      },
+      {
+        "start_line": 13,
+        "end_line": 27,
+        "title": "lattice_matrix: validate six cell parameters",
+        "explanation": "Read the three lattice lengths and the three interaxial angles. Require six inputs, positive finite lengths and angles strictly between 0 and 180 degrees. Evaluate the angle cosines and the sine of gamma.",
+        "why": "The surface normal depends on the lattice metric. Invalid lengths or collapsed angles cannot define a physically usable reciprocal cell.",
+        "check": "A cubic unit cell gives lengths (1,1,1) and angles (90,90,90). An angle of zero or a negative length raises a useful error."
+      },
+      {
+        "start_line": 28,
+        "end_line": 44,
+        "title": "lattice_matrix: derive the Cartesian lattice columns",
+        "explanation": "Set the first direct vector along Cartesian x and the second in the xy plane. The scaled third-vector y component is (cos(alpha)-cos(beta)*cos(gamma))/sin(gamma); its z component follows from unit norm. Reject a nonpositive volume factor, then assemble L with the three direct vectors as columns.",
+        "why": "Miller indices and direction indices refer to a crystallographic lattice, whereas the tensor acts in orthonormal Cartesian coordinates. L bridges those coordinate descriptions, including skew cells.",
+        "check": "For orthorhombic inputs, L is diag(a0,b0,c0). For a valid hexagonal setting, the second lattice vector contains the expected cos(120 degrees) and sin(120 degrees)."
+      },
+      {
+        "start_line": 45,
+        "end_line": 56,
+        "title": "real_vector: validate a nonzero three-vector",
+        "explanation": "Convert the supplied values to a 3-by-1 SymPy matrix, check the shape and validate every entry as a finite real scalar. Reject a vector whose numerical norm is effectively zero.",
+        "why": "A zero surface normal or in-plane direction cannot be normalized. Rejecting it here prevents a later division by zero from being mistaken for a Raman selection-rule result.",
+        "check": "[0,1,-1] is valid. [0,0,0] and a vector with the wrong number of entries are rejected."
+      },
+      {
+        "start_line": 57,
+        "end_line": 61,
+        "title": "unit: normalize in Cartesian space",
+        "explanation": "Divide a real Cartesian column vector by sqrt(v.T*v), simplifying the result. The transpose is appropriate here because the geometry vectors have already been required to be real.",
+        "why": "Direction cosines in an orientation matrix require normalized axes. Applying a Euclidean norm directly to raw skew-cell indices would use the wrong metric.",
+        "check": "The returned vector has squared norm one. Raw indices first become a Cartesian direction through L or L^(-T)."
+      },
+      {
+        "start_line": 62,
+        "end_line": 76,
+        "title": "validate_frame: reject stretching and reflection",
+        "explanation": "Require a real 3-by-3 matrix. Evaluate it numerically, test T.T*T against the identity and test det(T) against +1 using absolute tolerance. Return the original matrix so exact symbolic forms remain available for reporting.",
+        "why": "An orthogonal matrix with determinant -1 reflects handedness; it is not a proper crystal rotation. A nonorthogonal matrix also changes the geometry rather than rotating it.",
+        "check": "The identity and a proper rotated basis pass. A frame obtained by reversing only one axis has determinant -1 and is rejected."
+      },
+      {
+        "start_line": 77,
+        "end_line": 98,
+        "title": "build_orientation: choose an explicit orientation route",
+        "explanation": "Build L first. Reject a request to allow reflection. A manual-matrix route validates T_manual and returns that frame without applying hkl, uvw or psi again. Otherwise require the hkl route.",
+        "why": "A manually supplied complete frame must not be rotated a second time by inactive orientation fields. This prevents hidden geometry changes when switching input modes.",
+        "check": "The returned notes identify a manual frame. On that route, changing hkl has no effect because the manual frame is the declared orientation."
+      },
+      {
+        "start_line": 99,
+        "end_line": 106,
+        "title": "Calculate the signed reciprocal normal",
+        "explanation": "Validate normal_sign as +1 or -1 and the nonzero Miller-index vector. Compute g=L.inv().T*indices, normalize it and apply the requested sign to obtain Z.",
+        "why": "A plane normal is a reciprocal-lattice direction: for an orthorhombic cell, g is proportional to (h/a0,k/b0,l/c0). The sign selects the side of the plane while leaving the plane indices unchanged.",
+        "check": "Using different a0,b0,c0 changes a tilted (211) normal. A principal (100) normal remains along the corresponding Cartesian axis."
+      },
+      {
+        "start_line": 107,
+        "end_line": 116,
+        "title": "Choose an automatic in-plane reference when needed",
+        "explanation": "If uvw is absent, select the Cartesian axis least parallel to Z, then subtract its projection along Z. Store that transverse vector and a note naming the chosen reference.",
+        "why": "This gives a stable coordinate reference without claiming that the automatic X direction is a measured crystallographic in-plane direction.",
+        "check": "The projected tangent is perpendicular to Z and nonzero. The notes should state that automatic X is a coordinate convention."
+      },
+      {
+        "start_line": 117,
+        "end_line": 126,
+        "title": "Use an explicit crystallographic in-plane direction",
+        "explanation": "For a supplied uvw, validate it and form t=L*uvw. Compute the normalized residual of g.T*t. Because g=L^(-T)*hkl, this dot product is hu+kv+lw; reject directions that do not lie in the chosen plane.",
+        "why": "A reference direction outside the surface cannot be used as the transverse X axis without changing its physical meaning.",
+        "check": "For (211), [0,1,-1] gives 2*0+1*1+1*(-1)=0 and passes even when the lattice lengths are unequal."
+      },
+      {
+        "start_line": 127,
+        "end_line": 137,
+        "title": "Normalize the tangent, apply psi and assemble T",
+        "explanation": "Normalize t to X0, obtain Y0=Z cross X0 and validate psi. Form X=cos(psi)X0+sin(psi)Y0 and Y=-sin(psi)X0+cos(psi)Y0. Stack X,Y,Z as columns, validate the proper frame and return the intermediate vectors with T.",
+        "why": "The cross product fixes handedness and psi sets the in-plane frame orientation. Saving L,g,t,X0,Y0 and T lets later mathematical reports show each construction step.",
+        "check": "T.T*T is the identity and det(T)=+1. Positive psi rotates the measurement axes X toward Y; with fixed laboratory optics, an active sample rotation has the opposite sign."
+      },
+      {
+        "start_line": 139,
+        "end_line": 139,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–3 in order and confirm the Cell 03/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "Miller indices are not generally Cartesian normal components for a noncubic cell.",
+      "psi is the frame angle; alpha and theta are optical scan variables.",
+      "The negative normal in the slide reference preserves its displayed X and Y signs in a proper frame; it does not identify the outward face of a real sample.",
+      "A manual frame bypasses hkl/uvw reconstruction, so reports must identify which input route was active."
+    ]
+  },
+  {
+    "cell": 4,
+    "overview": "Define the symmetry-allowed full Cartesian Raman tensor library and material presets. This cell separates tensor form, phonon-partner degeneracy, numerical coefficient values and historical regression policies. It defines 21 point-group templates; atomic structure and experiment still determine which phonon branches and coefficients actually occur.",
+    "workflow": [
+      "Build symmetric 3-by-3 tensor templates.",
+      "Register point groups with explicit Cartesian axis settings.",
+      "Attach material mode labels and illustrative metrics.",
+      "Resolve selected families, substitute coefficients and declare how complete phonon partners combine."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 7,
+        "title": "symmetric: assemble six independent Cartesian entries",
+        "explanation": "Place xx,yy,zz on the diagonal and copy xy,xz,yz into the corresponding symmetric off-diagonal pairs. The result satisfies R.T=R while its coefficient symbols can still be complex.",
+        "why": "The library implements the stated first-order symmetric electric-dipole tensor model. Symmetry of matrix indices does not mean the matrix is Hermitian or its coefficients are real.",
+        "check": "symmetric(a,b,c,xy=d) has Rxy=Ryx=d. R.H need not equal R when d or a is complex."
+      },
+      {
+        "start_line": 8,
+        "end_line": 16,
+        "title": "family: preserve complete phonon partners",
+        "explanation": "Store one or more partner tensors as SymPy matrices, a descriptive note and partner channel labels. If labels are not supplied, generate one-based labels automatically.",
+        "why": "A degenerate irrep can have multiple orthogonal phonon partners. Those complete partner tensors need to remain distinct until their powers are combined.",
+        "check": "An Ag family contains one complete tensor; the cubic T family contains three complete partners."
+      },
+      {
+        "start_line": 17,
+        "end_line": 28,
+        "title": "Create reusable tensor forms",
+        "explanation": "DIAG is diag(a,b,c). MONO_A includes xz=d and MONO_B includes xy=e,yz=f for the unique-y monoclinic setting. AXIAL is diag(a,a,b). OUTPLANE and TRIGONAL define paired tensors; CUBIC_E uses two equally normalized diagonal partners and CUBIC_T uses yz,xz,xy partners. Initialize an empty point-group registry.",
+        "why": "Reusing an explicit template keeps equivalent point-group tensor forms consistent while retaining the axis convention and coefficient-sharing within each degenerate family.",
+        "check": "Both cubic E partners have equal Frobenius norm. Their overall normalization is absorbed in the coefficient; three diagonal Ag entries are not three degenerate phonons."
+      },
+      {
+        "start_line": 29,
+        "end_line": 33,
+        "title": "add_group: register a complete convention",
+        "explanation": "Write a record containing the crystallographic symbol, crystal system, axis explanation and tensor families into POINT_GROUPS under the chosen name.",
+        "why": "A tensor table without an axis setting is ambiguous: exchanging axes can exchange the labels assigned to off-diagonal irreps.",
+        "check": "Each registry entry must include its axes description as well as its matrices."
+      },
+      {
+        "start_line": 34,
+        "end_line": 43,
+        "title": "Register triclinic C1 and Ci",
+        "explanation": "Both groups permit the six independent entries of a symmetric Cartesian tensor. The mode label is A for C1 and Ag for Ci. These are general full symmetric matrices, not assumed diagonal matrices.",
+        "why": "Low symmetry does not generally force a tensor principal axis to coincide with a crystallographic axis. Restricting triclinic Ag to xx,yy,zz would discard allowed terms.",
+        "check": "The Ci Ag tensor contains xy=d, xz=e and yz=f in addition to a,b,c."
+      },
+      {
+        "start_line": 44,
+        "end_line": 55,
+        "title": "Register the monoclinic and mirror settings",
+        "explanation": "Loop through C2, Cs and C2h while assigning the same stated unique-y or xz-mirror setting. Their even/A-like family uses MONO_A; their odd/B-like family uses MONO_B. The labels change with the group.",
+        "why": "The loop shares matrix patterns without pretending that the irreducible-representation labels or group symbols are identical.",
+        "check": "C2h Ag contains xz=d. Therefore a general Ag display for this group must retain an additional xz component."
+      },
+      {
+        "start_line": 56,
+        "end_line": 72,
+        "title": "Register orthorhombic D2, C2v and D2h",
+        "explanation": "Assign the diagonal family and three symmetric off-diagonal families xy, xz and yz. For D2h the labels are Ag, B1g, B2g and B3g respectively, with Cartesian x,y,z aligned to a,b,c.",
+        "why": "This is the tensor-form foundation for the orthorhombic CaNb2O6 model. Its diagonal Ag entries are independent complex coefficients of one phonon tensor.",
+        "check": "In this setting B1g selects xy, B2g selects xz and B3g selects yz. Those labels must be reinterpreted if the crystal axes are permuted."
+      },
+      {
+        "start_line": 73,
+        "end_line": 90,
+        "title": "Register trigonal D3, C3v and D3d",
+        "explanation": "Use AXIAL for the one-dimensional A-like family and two TRIGONAL partners for E. Both E partners share c and d with signs tied to the documented basal-axis setting.",
+        "why": "A degenerate E doublet is a coupled representation, not two unrelated tensors whose coefficients can be chosen independently within one branch.",
+        "check": "D3d provides A1g and Eg. Rotating a complete doublet basis must not change its unresolved summed power."
+      },
+      {
+        "start_line": 91,
+        "end_line": 108,
+        "title": "Register tetragonal D4, C4v, D2d and D4h",
+        "explanation": "Populate A-like axial, B1-like diagonal difference, B2-like xy and E-like xz/yz partner tensors. The principal axis is z and x,y lie in the basal plane.",
+        "why": "The same symmetry categories need a consistent coefficient basis across materials, while the irrep names preserve the proper group labels.",
+        "check": "The E family contains two out-of-plane partners. Their extinction on a particular plane must come from projection and Jones contraction, not from deleting their 3D tensors."
+      },
+      {
+        "start_line": 109,
+        "end_line": 125,
+        "title": "Register hexagonal groups and the monolayer setting",
+        "explanation": "D6, C6v and D6h use A, E1 and E2 categories; D3h uses A1-prime, E-double-prime and E-prime labels. The axial tensor, xz/yz pair and basal diagonal/xy pair are registered in Cartesian axes with z along c.",
+        "why": "The crystallographic unit cell can be skew in the basal plane, but tensor components remain Cartesian. Monolayer and bulk labels also cannot be interchanged without checking symmetry.",
+        "check": "Monolayer MoS2 uses D3h A1-prime and E-prime. A D6h E1g family is not the same irrep as E2g."
+      },
+      {
+        "start_line": 126,
+        "end_line": 146,
+        "title": "Register cubic Td and Oh",
+        "explanation": "Use an isotropic a*I tensor for the A-like template, the two CUBIC_E partners for E and the three CUBIC_T partners for T2. Keep the conventional [100],[010],[001] Cartesian axes.",
+        "why": "Silicon first-order scattering uses the Oh T2g triplet. A point-group template is broader than a material mode list: not every listed template must occur as a phonon in every material.",
+        "check": "The Si material below selects T2g only. Its three partner powers are retained even though an individual partner can be dark in a selected geometry."
+      },
+      {
+        "start_line": 147,
+        "end_line": 174,
+        "title": "Record primary source roles",
+        "explanation": "SOURCES stores titles, links and the specific role of each reference: tensor tables, cubic geometry, transition-metal-dichalcogenide assignments and the parent TiS2 model. A link is documentation metadata and is not used to calculate coefficients.",
+        "why": "A reproducible library should distinguish a symmetry source from a material-specific spectrum or line-shape study.",
+        "check": "Source roles should match what the program actually implements. A spectral shoulder or Fano profile is not automatically a new first-order tensor mode."
+      },
+      {
+        "start_line": 175,
+        "end_line": 185,
+        "title": "CaNb2O6 preset",
+        "explanation": "Register Pbcn/D2h with Ag and the three Bg tensor types. Use a unity metric and (211) as an explicitly illustrative slide-reference starting point. The note instructs the user to enter actual lattice lengths for a physical tilted-surface normal.",
+        "why": "The preset reproduces a coordinate reference without pretending that CaNb2O6 is cubic or that the unity lattice lengths are measured crystal parameters.",
+        "check": "For a physical tilted CaNb2O6 surface, replace the length ratios. The general application separates Ag component plots and keeps the complete coherent result in an audit."
+      },
+      {
+        "start_line": 186,
+        "end_line": 195,
+        "title": "Silicon preset",
+        "explanation": "Register the diamond structure Fd-3m/Oh, selecting the T2g triplet on a principal starting surface. Its three partners are unresolved orthogonal phonons in the implemented benchmark.",
+        "why": "Silicon provides a published orientation benchmark with a complete degenerate partner set, distinct from the Cartesian decomposition of one Ag tensor.",
+        "check": "A unity cubic metric preserves the correct surface-normal direction because a common lattice-length scale cancels on normalization."
+      },
+      {
+        "start_line": 196,
+        "end_line": 205,
+        "title": "Excess-Ti TiS2 parent preset",
+        "explanation": "Register D3d A1g and Eg as a parent 1T structure model. The note explicitly distinguishes this symmetry model from excess-Ti disorder, shoulder features, two-phonon processes and Breit-Wigner-Fano line shapes.",
+        "why": "A first-order Gamma-point tensor should not claim to calculate every feature of a nonstoichiometric material spectrum.",
+        "check": "Use a lower symmetry or a more detailed response model when the sample phase requires it; the listed c/a ratio is illustrative."
+      },
+      {
+        "start_line": 206,
+        "end_line": 215,
+        "title": "Bulk 2H-NbSe2 preset",
+        "explanation": "Register bulk D6h with A1g, E1g and two E2g branches. The two E2g entries refer to different phonon branches and therefore have independent coefficient dictionaries.",
+        "why": "Sharing an irrep does not force two different phonons to share numerical tensor coefficients, and a monolayer or charge-density-wave phase can require another symmetry model.",
+        "check": "Changing the coefficients of E2g_low must not silently change E2g_high."
+      },
+      {
+        "start_line": 216,
+        "end_line": 225,
+        "title": "1T-VSe2 parent preset",
+        "explanation": "Register D3d A1g and Eg for the parent phase. Its note limits the preset to first-order Gamma-point modes and distinguishes a reported high-frequency feature from an automatic Eg assignment.",
+        "why": "A material name alone cannot convert a possible two-phonon feature into a symmetry-allowed single-phonon tensor.",
+        "check": "The selected phase, metric and branch assignment must be established before interpreting a calculated curve as a measured mode."
+      },
+      {
+        "start_line": 226,
+        "end_line": 240,
+        "title": "General material and default coefficient values",
+        "explanation": "GENERAL leaves branch counts and frequencies unspecified and enables point-group templates or a custom tensor. DEFAULT_VALUES supplies illustrative a=1,b=4/5,c=3/5 and unit off-diagonal coefficients.",
+        "why": "The defaults make the controls usable immediately, but symmetry does not predict these amplitude ratios or phases.",
+        "check": "The displayed input note must retain the illustrative status of the coefficients. A different phonon mode can require a different coefficient set."
+      },
+      {
+        "start_line": 241,
+        "end_line": 273,
+        "title": "definitions_for: resolve valid material-mode definitions",
+        "explanation": "Validate the material name and require GENERAL for a custom tensor. Return a placeholder Custom family for the custom route. Otherwise validate the group, choose the material-specific mode map or all general templates, enforce preset/group consistency and copy the corresponding irrep data into a mode-name dictionary.",
+        "why": "A selected mode must belong to the selected material model. A mode label such as Ag(1) can map to the same Ag tensor form as Ag(2) while retaining its own branch identity.",
+        "check": "Selecting Si with an unrelated point group is rejected. Selecting GENERAL with Ci exposes the full Ci Ag template."
+      },
+      {
+        "start_line": 274,
+        "end_line": 278,
+        "title": "parameters_for: discover required coefficients",
+        "explanation": "Collect the union of free symbols across every partner tensor and sort by symbol name. An empty custom placeholder yields no symbolic coefficient controls until its numerical matrix is supplied.",
+        "why": "The coefficient editor should be generated from the actual tensor forms rather than from a fixed list that hides or invents parameters.",
+        "check": "D2h Ag requires a,b,c; a three-partner cubic T2g family shares one symbol d."
+      },
+      {
+        "start_line": 279,
+        "end_line": 309,
+        "title": "experiment_families: validate selected tensors and substitutions",
+        "explanation": "Resolve definitions, require at least one selected mode and deep-copy each selected family. On the custom route, validate a numerical 3-by-3 tensor and insert it as the family tensor. Substitute mode-specific values into every complete partner, reject remaining free symbols and reject non-finite numerical entries.",
+        "why": "This creates an immutable per-calculation family record while preventing incomplete input or one edited branch from corrupting a shared library template.",
+        "check": "The numerical partners must have no free symbols. Custom entries are accepted as supplied and are not automatically certified as a symmetry-allowed reciprocal crystal tensor."
+      },
+      {
+        "start_line": 310,
+        "end_line": 338,
+        "title": "experiment_families: declare the combination rule",
+        "explanation": "The historical COMPONENT_REFERENCE/D2h/Ag route retains its previous three-component prescription as a regression path. Every other route uses the full partner tensors: SINGLE_TENSOR for one phonon tensor or DEGENERATE_PARTNER_SUM for multiple orthogonal unresolved partners. Store the rule, calculation tensors and explanation explicitly.",
+        "why": "Interference within one complete tensor and incoherent addition across orthogonal phonon final states are different physical operations. The general interface later creates separate Ag display channels without using the historical component-power sum as its main Ag plot.",
+        "check": "A general Ag run has SINGLE_TENSOR in its complete-mode audit. Main Ag component plots are constructed in Cell 10; they do not represent three separate phonon branches."
+      },
+      {
+        "start_line": 339,
+        "end_line": 356,
+        "title": "Preserve explicit reference geometry and surface presets",
+        "explanation": "COMPONENT_REFERENCE_GEOMETRY fixes the unity-metric (211) surface, [0,1,-1] tangent, zero frame angle and negative normal. SURFACES maps common planes to in-plane directions satisfying the zone condition.",
+        "why": "A reference orientation must be a visible input rather than a fitted rotation inserted to match a desired polar pattern.",
+        "check": "For the reference, X and Y match the slide signs and the reconstructed frame has determinant +1. Each listed uvw satisfies its corresponding hkl plane condition."
+      },
+      {
+        "start_line": 357,
+        "end_line": 369,
+        "title": "Name rules and preserve optical-source provenance",
+        "explanation": "RULE_LABELS gives readable names for internal policies. AUDIT_VERSION identifies version 3. QWP_SOURCE stores the source notebook hash, adopted main optical chain, explicit 3D extension policy and the fact that the alternative source appendix is not silently selected.",
+        "why": "A source model and a crystal extension should be traceable without implying that the source already contained a crystallographic rotation library.",
+        "check": "The optical source SHA identifies the exact imported reference. The 3D extension supplies a symmetry-allowed projected crystal tensor to the same QWP sequence."
+      },
+      {
+        "start_line": 370,
+        "end_line": 374,
+        "title": "Record the dielectric-propagation limitation",
+        "explanation": "Add a reference on anisotropic internal propagation and its role in a modified Raman formalism. This is a scope citation; the present ideal external Jones calculation does not add a dielectric-propagation solver.",
+        "why": "A correct tensor/Jones contraction is not automatically a complete model for birefringent propagation through a real thick sample.",
+        "check": "Do not interpret this citation as evidence that Fresnel transmission, depth-dependent interference or finite numerical aperture has been numerically included."
+      },
+      {
+        "start_line": 376,
+        "end_line": 376,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–4 in order and confirm the Cell 04/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "Symmetric R means R.T=R; it does not generally mean R.H=R.",
+      "Different phonon branches sharing an irrep require separate coefficient values.",
+      "The historical COMPONENT_REFERENCE rule remains for regression checks. The general interface plots Ag components individually and preserves a separate coherent full-mode audit.",
+      "Noncubic metric ratios and most coefficient values are illustrative until replaced with sample-specific inputs.",
+      "QWP source provenance now identifies the supplied QWP source reference notebook by its byte SHA-256; it is distinct from the crystal tensor library."
+    ]
+  },
+  {
+    "cell": 5,
+    "overview": "Define the actual incident, analyzer and sample-detection Jones states for each optical protocol. The optical method is a physical-input choice independent of the material. The effective detector is e_s=B.H*e_an, so a return optic can change the measurement even when two configurations share circular endpoints. The optical-profile guide explains physical differences without changing the intensity engine.",
+    "workflow": [
+      "Define orthonormal linear and circular bases.",
+      "Construct ideal rotation and waveplate matrices.",
+      "Build the selected input, return optic and analyzer.",
+      "Return the effective sample detector and the correct scan-harmonic basis."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 12,
+        "title": "Define laboratory bases and the transverse selector",
+        "explanation": "x_hat and y_hat are the laboratory transverse unit vectors. sig_p=(1,I)/sqrt(2) and sig_m=(1,-I)/sqrt(2) form a fixed-laboratory circular basis. P selects laboratory X and Y from a 3D vector.",
+        "why": "The full crystal tensor is rotated before P is applied. Crystal-z entries can contribute to transverse laboratory fields on a tilted surface, so P is not permission to discard the crystal-z tensor row at the start.",
+        "check": "sig_p.H*sig_m is zero and each circular vector has norm one. P has shape 2-by-3."
+      },
+      {
+        "start_line": 13,
+        "end_line": 17,
+        "title": "rot: two-dimensional active rotation",
+        "explanation": "Return the real orthogonal matrix [[cos(t),-sin(t)],[sin(t),cos(t)]]. Positive t rotates the x direction toward y in the fixed laboratory plane.",
+        "why": "An optical element whose axes are rotated needs a coordinate transformation into and out of its principal-axis basis.",
+        "check": "rot(t).T*rot(t) is the identity and rot(pi/2)*x_hat equals y_hat."
+      },
+      {
+        "start_line": 18,
+        "end_line": 27,
+        "title": "waveplate and the adopted QWP matrices",
+        "explanation": "waveplate constructs Rot(theta)*diag(1,exp(I*Gamma))*Rot(theta).T. The selected plate has axis -45 degrees and retardance pi/2. The adopted reverse-path matrix is the transpose of that plate, following the imported source convention.",
+        "why": "A quarter-wave retardance changes relative phase rather than merely rotating a linear vector. The reverse-path convention must be declared with the chosen fixed coordinate bases.",
+        "check": "The chosen Q is unitary and symmetric and Q*x_hat is sigma+ up to a global phase. Q.T is not being asserted as a universal return matrix for every optical arrangement."
+      },
+      {
+        "start_line": 28,
+        "end_line": 32,
+        "title": "jones: normalized general polarization state",
+        "explanation": "Construct e(theta,beta)=(cos(theta),exp(I*beta)*sin(theta)). theta controls the component amplitudes and beta their relative phase. Both angles are in radians at this function boundary.",
+        "why": "One expression covers linear, circular and elliptical pure states without redefining the scattering law for each material.",
+        "check": "beta=0 yields a linear state. theta=pi/4,beta=pi/2 yields sigma+. A general beta or unequal amplitudes generally gives an ellipse."
+      },
+      {
+        "start_line": 33,
+        "end_line": 48,
+        "title": "Name the optical protocols",
+        "explanation": "OPTICS_LABELS maps internal protocol identifiers to readable labels for QWP, direct Jones, circular, linear and cubic-reference configurations. These names do not themselves select coefficients or align plots.",
+        "why": "Readable labels must remain tied to explicit Jones definitions below. A common label such as sigma+alpha does not guarantee identical detector states in different conventions.",
+        "check": "The cubic-reference labels identify Section 2.2. Use the explicit matrices below as the mathematical definition and the linked reference section for the surrounding tensor and intensity equations."
+      },
+      {
+        "start_line": 49,
+        "end_line": 59,
+        "title": "optical_chain: initialize an explicit protocol",
+        "explanation": "The function accepts a protocol identifier and optional direct-state or paper-control dictionaries. The default FIRST basis means a fixed incident state with a first-harmonic analyzer amplitude; analyzers is initially absent unless a paired linear scan needs both detectors.",
+        "why": "A single optical-state record lets the same tensor contraction serve every material and report actual active parameters instead of reading disabled controls.",
+        "check": "Unknown protocol names raise an error. The returned scan_basis must describe whether the amplitude uses FIRST, SECOND or CONSTANT harmonics."
+      },
+      {
+        "start_line": 60,
+        "end_line": 68,
+        "title": "QWP chain: sample input and analyzer after return optics",
+        "explanation": "Set E_i=Q*x_hat, B=Q.T and e_an=(-sin(alpha),cos(alpha)). The alpha=0 analyzer direction is +Y after the return plate; alpha=90 degrees is -X. Store this origin convention explicitly.",
+        "why": "The measured amplitude is e_an.H*B*R_perp*E_i. Removing B while keeping the same analyzer vector would describe another experiment.",
+        "check": "The effective sample detector is Q.conjugate()*e_an because B.H=(Q.T).H. Its projectors at intermediate angles differ from the elliptical-reference scan."
+      },
+      {
+        "start_line": 69,
+        "end_line": 73,
+        "title": "Elliptical reference scan",
+        "explanation": "Set E_i=sigma+, B=I and e_s=e_an=(cos(pi/4+alpha),I*sin(pi/4+alpha)). This directly specifies the detector state at the sample, with fixed relative phase pi/2.",
+        "why": "This reproduces the declared reference Jones states, including their continuous intermediate elliptical states. It is not inferred from a rotating linear analyzer after the adopted QWP.",
+        "check": "At alpha=0 the detector is sigma+; at alpha=pi/2 it is sigma- up to a global sign. At intermediate alpha its projector differs from the QWP branch."
+      },
+      {
+        "start_line": 74,
+        "end_line": 83,
+        "title": "Custom direct Jones states",
+        "explanation": "Require four angles: theta_i,beta_i,theta_s0,beta_s. Convert and validate them, then build the fixed input e(theta_i,beta_i), identity return matrix and scanned detector e(theta_s0+alpha,beta_s).",
+        "why": "Explicit custom states permit controlled equivalence tests: the reference scan is recovered with (45,90,45,90) degrees, while a direct linear detector uses beta_s=0.",
+        "check": "The custom branch represents this four-parameter direct-state family. It does not automatically reproduce an arbitrary return optic whose effective detector has a different alpha dependence."
+      },
+      {
+        "start_line": 84,
+        "end_line": 104,
+        "title": "Circular input with direct-linear or fixed-circular detection",
+        "explanation": "Validate s_in as +1 or -1 and choose the corresponding circular input. With CIRCULAR_LINEAR, scan a direct linear detector at alpha plus its declared zero offset. With CIRCULAR_SAME or CIRCULAR_OPPOSITE, choose a fixed circular detector and mark the amplitude CONSTANT. Record that the quantitative curve is the ell=0 plane-wave calculation.",
+        "why": "A fixed circular channel is one projection, not a rotating-analyzer experiment. An OAM selection-rule input must not silently modify these plane-wave intensities.",
+        "check": "Fixed circular intensity is independent of alpha. Changing analyzer_zero_deg rotates the direct-linear scan origin but does not change the underlying tensor."
+      },
+      {
+        "start_line": 105,
+        "end_line": 124,
+        "title": "Co-rotating linear VV/VH states",
+        "explanation": "Set angle=alpha+theta0. The incident state is (cos(angle),sin(angle)); the parallel detector is identical and the crossed detector is (-sin(angle),cos(angle)). Select the required detector, retain both for LINEAR_PAIR and mark the amplitude SECOND.",
+        "why": "Both input and detector rotate, so the amplitude contains constant and second angular harmonics and the intensity can contain fourth harmonics. VV and VH together must share one coefficient set.",
+        "check": "The two detector vectors are orthogonal. A standalone VV curve must match the VV member of LINEAR_PAIR for identical input values and angle zero."
+      },
+      {
+        "start_line": 125,
+        "end_line": 137,
+        "title": "Return the effective detector and active parameters",
+        "explanation": "Reject an unsupported kind. Return kind, label, active parameters, E_i, B, e_an and e_s=B.H*e_an together with the scan basis and optional paired analyzers.",
+        "why": "The identity e_an.H*B=e_s.H makes the return-optic chain and the direct sample-state contraction equivalent. The Hermitian transpose is essential for a complex detector state.",
+        "check": "For any resolved tensor, e_an.H*B*R_perp*E_i and effective_analyzer.H*R_perp*E_i must agree. Replacing .H with .T generally fails for circular or elliptical detection."
+      },
+      {
+        "start_line": 140,
+        "end_line": 140,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 142,
+        "end_line": 145,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 147,
+        "end_line": 154,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 157,
+        "end_line": 250,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 253,
+        "end_line": 268,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 271,
+        "end_line": 290,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 293,
+        "end_line": 308,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 311,
+        "end_line": 326,
+        "title": "Optical-profile guide and source correspondence",
+        "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
+        "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
+        "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
+      },
+      {
+        "start_line": 329,
+        "end_line": 368,
+        "title": "Validate the optical guide against the engine",
+        "explanation": "A general complex, nonsymmetric 2x2 tensor tests the three independent p/q identities, preset/custom-state equality, fixed circular channels and the illustrative counterexample. The same check proves the VV/VH amplitudes and all three detector Stokes trajectories.",
+        "why": "An explanatory formula must be checked against the same optical_chain used by calculated material curves. A demonstration with a special tensor alone cannot prove the general identity.",
+        "check": "Every symbolic residual must vanish; matching state vectors must agree; the chosen example must differ at 30 degrees."
+      },
+      {
+        "start_line": 370,
+        "end_line": 370,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–5 in order and confirm the Cell 05/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "The fixed laboratory circular labels are not automatically propagation-relative helicity labels for opposite beam directions.",
+      "The QWP and elliptical-reference branches agree at circular endpoints but generally differ between them.",
+      "A direct linear analyzer without a return QWP is a third optical configuration.",
+      "The TWO-dimensional Jones state describes transverse optical degrees of freedom; the crystal Raman tensor remains three-dimensional before projection."
+    ]
+  },
+  {
+    "cell": 6,
+    "overview": "Implement the shared matrix-to-amplitude-to-intensity engine. Full 3D crystal tensors rotate first, transverse optical states contract with the rotated tensor, and complex amplitudes are squared only after that contraction. Continuous extrema come from exact harmonic forms rather than a fitted polar pattern or a coarse angular grid.",
+    "workflow": [
+      "Rotate R_c into the measurement frame and project the external transverse field.",
+      "Calculate the detected complex amplitude through the declared return optics.",
+      "Extract the mathematically allowed amplitude harmonics.",
+      "Substitute numerical coefficients, evaluate powers and determine analytic-harmonic extrema."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 15,
+        "title": "transverse_amplitude_record: propagate the field",
+        "explanation": "Validate a 2-by-2 transverse tensor. Form E_sc=R_perp*E_i and E_out=B*E_sc, retaining symbolic complex entries. Read the declared amplitude scan basis from the optical record.",
+        "why": "Matrix order follows the physical chain. This helper performs shared linear algebra; it does not choose a material, a rotation or a rule for combining different phonon final states.",
+        "check": "E_sc and E_out remain two-component complex vectors. Intensity has not yet been formed or substituted for a tensor entry."
+      },
+      {
+        "start_line": 16,
+        "end_line": 26,
+        "title": "Keep fixed-channel amplitudes constant",
+        "explanation": "For SECOND or CONSTANT profiles, explicitly contract e_an.H*E_out. If the profile is CONSTANT, return that scalar as K0 with the intermediate fields and no angular harmonics.",
+        "why": "A fixed circular detector should not acquire an artificial alpha dependence from the plotting grid.",
+        "check": "Its intensity curve is a circle of radius |K0|^2 on an intensity polar plot, or zero when K0 vanishes."
+      },
+      {
+        "start_line": 27,
+        "end_line": 43,
+        "title": "Derive co-rotating linear amplitude coefficients",
+        "explanation": "The allowed amplitude form is K0+Kc*cos(2*alpha)+Ks*sin(2*alpha). Evaluate the matrix amplitude at 0 and pi/2 to obtain K0 and Kc; evaluate at pi/4 to obtain Ks. Store these coefficients and the reconstructed exact harmonic amplitude.",
+        "why": "These evaluations extract coefficients of a known algebraic basis, rather than fitting a target curve. Squaring this amplitude later automatically retains second and fourth intensity harmonics.",
+        "check": "The reconstructed amplitude should agree with the direct Jones matrix chain at independently chosen angles, including complex tensor coefficients."
+      },
+      {
+        "start_line": 44,
+        "end_line": 56,
+        "title": "Derive fixed-input analyzer coefficients",
+        "explanation": "For FIRST profiles, project the outgoing field on the analyzer at 0 and pi/2 to obtain C and D. Store A(alpha)=C*cos(alpha)+D*sin(alpha), its coefficients and the intermediate fields.",
+        "why": "The declared detector family is linear in cos(alpha),sin(alpha). Keeping its complex coefficients intact preserves interference between the two analyzer contributions.",
+        "check": "A direct evaluation at an intermediate angle must equal the C,D reconstruction. C and D are generally complex even if some geometry entries are real."
+      },
+      {
+        "start_line": 57,
+        "end_line": 82,
+        "title": "amplitude_record: rotate the full crystal tensor first",
+        "explanation": "Require a 3-by-3 R_c, form R_lab=T.T*R_c*T, then R_perp=P*R_lab*P.T. Embed the incident Jones state into three dimensions using P.T and record the complete induced polarization R_lab*E_i,lab. Call the transverse helper and retain R_c,R_lab and the 3D fields with its amplitude record.",
+        "why": "Crystal-z coefficients can enter transverse laboratory scattering on tilted planes. The induced polarization may have a Z component, but the collected ideal external plane wave is transverse.",
+        "check": "A direct crystal-coordinate contraction using T*P.T*E_i and T*P.T*e_s must reproduce the projected amplitude. Tensor coefficients stay linear until the final power."
+      },
+      {
+        "start_line": 83,
+        "end_line": 101,
+        "title": "numeric_terms: substitute only the amplitude coefficients",
+        "explanation": "Choose C,D, K0,Kc,Ks or K0 according to each term record. Substitute the selected mode values once, reject unresolved symbols, convert the resolved coefficients to complex NumPy values and reject non-finite results or an empty term set.",
+        "why": "The angular grid can then be evaluated efficiently by matrix multiplication without repeatedly substituting every tensor entry at every angle.",
+        "check": "FIRST returns one two-coefficient row per term, SECOND returns three and CONSTANT returns one. No tensor coefficient symbol should remain."
+      },
+      {
+        "start_line": 102,
+        "end_line": 117,
+        "title": "Derive all VV/VH intensity harmonics",
+        "explanation": "For A=K0+Kc*cos(2theta)+Ks*sin(2theta), calculate I0, Ic, Is, I4c and I4s using powers and conjugate cross products. Sum these terms across the declared orthogonal partners. Reject overflow and identify a numerically constant result using a relative harmonic threshold.",
+        "why": "Complex coefficient phases contribute through real parts of products such as K0*Kc.conjugate(). Keeping the fourth harmonics is necessary for general co-rotating linear scans.",
+        "check": "The coefficients reconstruct the same nonnegative intensity as direct |A|^2. A constant channel has no unique maximum-angle label."
+      },
+      {
+        "start_line": 118,
+        "end_line": 137,
+        "title": "Solve the continuous stationary-angle equation",
+        "explanation": "Set z=exp(2i*theta), u1=(Ic-i*Is)/2 and u2=(I4c-i*I4s)/2. The derivative becomes a quartic with coefficients [2u2,u1,0,-u1*, -2u2*]. Remove leading zeros, find roots and retain unit-circle roots. Convert their phases to candidate angles modulo pi and evaluate the harmonic intensity at those angles.",
+        "why": "A 0.5-degree display grid is not an accurate method for locating every maximum or minimum. The stationary polynomial uses the calculated intensity law itself.",
+        "check": "Candidate roots must lie on the unit circle within the stated tolerance. Failure to resolve stationary angles raises an error rather than returning a guessed plot maximum."
+      },
+      {
+        "start_line": 138,
+        "end_line": 154,
+        "title": "Report extrema with roundoff-aware positivity",
+        "explanation": "Choose the largest and smallest candidate intensities, estimate a floating-point positivity tolerance and reject a negative minimum beyond that tolerance. Clamp only a roundoff-sized negative minimum to zero, then return all harmonic coefficients, extrema and corresponding angles in degrees.",
+        "why": "Physical intensity is nonnegative, but finite numerical cancellation can produce a tiny negative reported extremum at an exact extinction. The check distinguishes that numerical artifact from a substantial algebraic error.",
+        "check": "A meaningful negative minimum must fail. Extrema should agree with a sufficiently dense independent angular evaluation without depending on the chosen display sampling."
+      },
+      {
+        "start_line": 155,
+        "end_line": 168,
+        "title": "summary_for_amplitudes: dispatch by the declared basis size",
+        "explanation": "Three amplitude coefficients invoke the 0/2/4-harmonic summary. One coefficient gives a constant sum of partner powers. Two coefficients invoke the FIRST-basis summary.",
+        "why": "The same numerical result structure supports a fixed circular channel, an analyzer scan and VV/VH without forcing them into one incorrect angular formula.",
+        "check": "A constant summary has Imin=Imax and no preferred angle; a FIRST summary has no fourth-harmonic coefficients."
+      },
+      {
+        "start_line": 169,
+        "end_line": 179,
+        "title": "intensity_expression: build the displayed harmonic law",
+        "explanation": "Construct I0+Ic*cos(2var)+Is*sin(2var), adding I4c*cos(4var)+I4s*sin(4var) when those coefficients exist. Missing fourth harmonics default to zero. The variable can be alpha or the displayed theta symbol.",
+        "why": "Mathematical reports and exports must show every harmonic actually calculated, using the scan label associated with the optical configuration.",
+        "check": "Substituting numerical summary values and angles must reproduce the corresponding intensity array to numerical precision."
+      },
+      {
+        "start_line": 180,
+        "end_line": 196,
+        "title": "summary_from_pairs: expand first-harmonic amplitudes",
+        "explanation": "For each C,D row, form |C|^2, |D|^2 and Re(C*D.conjugate()). Sum partner contributions and set I0=(|C|^2+|D|^2)/2, Ic=(|C|^2-|D|^2)/2 and Is=Re(CD*). Compute Delta=hypot(Ic,Is), then reject overflow or non-finite coefficients.",
+        "why": "The cross term follows from the complex squared modulus. Adding |C*cos(alpha)|^2 and |D*sin(alpha)|^2 alone would omit interference within the detected amplitude.",
+        "check": "A controlled relative phase can change Is while preserving |C| and |D|. This must change the polar pattern in the way predicted by the complex contraction."
+      },
+      {
+        "start_line": 197,
+        "end_line": 215,
+        "title": "summary_from_pairs: analytic extrema and constant channels",
+        "explanation": "Use Imin=I0-Delta and Imax=I0+Delta, with a roundoff-aware nonnegativity test. A negligible Delta marks a constant channel. Otherwise obtain alpha_max=atan2(Is,Ic)/2 modulo 180 degrees and alpha_min=alpha_max+90 degrees modulo 180.",
+        "why": "These are continuous-angle extrema of the exact two-harmonic intensity form, not maxima of a sampled data array.",
+        "check": "For I=1+sin(2alpha), the maximum is at 45 degrees. A constant intensity must not be assigned a fabricated unique peak angle."
+      },
+      {
+        "start_line": 216,
+        "end_line": 238,
+        "title": "evaluate_terms: calculate sampled intensities",
+        "explanation": "Obtain numerical amplitude coefficient rows. Build the appropriate angular basis array, multiply rows by that basis, square the complex modulus of each resulting amplitude and sum the declared term powers. Reject overflow or non-finite values and return amplitude coefficients, individual powers, total and harmonic summary.",
+        "why": "Coherent tensor-entry interference has already occurred inside each amplitude record. This sum is over the selected complete phonon terms; the later general Ag display calls this same engine for each component separately.",
+        "check": "For one complete tensor, total is simply its one |A|^2 array. For an unresolved degenerate family, total contains the sum of complete-partner powers."
+      },
+      {
+        "start_line": 239,
+        "end_line": 246,
+        "title": "Convenience wrappers for independent checks",
+        "explanation": "numeric_curve returns the total intensity from evaluate_terms for an explicitly supplied angular array. numeric_summary returns continuous harmonic extrema directly from the substituted amplitude coefficients.",
+        "why": "Tests and small scripted examples can reuse exactly the production definitions without depending on GUI widgets or a plotted figure.",
+        "check": "Changing only the display grid should change the sampling density, not the analytic maximum angle returned by numeric_summary."
+      },
+      {
+        "start_line": 248,
+        "end_line": 248,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–6 in order and confirm the Cell 06/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "A 2-by-2 transverse optical matrix is produced after rotating the full 3-by-3 tensor.",
+      "The coefficients C,D and K0,Kc,Ks are scattering amplitudes, not tensor intensities.",
+      "Orthogonal phonon partner powers may be summed; tensor entries of one phonon must first contribute coherently to its amplitude.",
+      "A polar plot uses intensity as radius. It is not a plot of the polarization ellipse traced by the electric field."
+    ]
+  },
+  {
+    "cell": 7,
+    "overview": "Preserve the imported effective 2D QWP source model as a clearly identified reference. Its own real amplitude symbols and phase parameters remain distinct from the general crystal library. The matrix-chain output is compared with an independent closed-form source intensity, rather than substituting that closed form for the production calculation.",
+    "workflow": [
+      "Declare the source-specific real parameters and complex 2D tensor.",
+      "Run the original QWP chain and resolve circular scattering amplitudes.",
+      "Rebuild the analyzer reference axis and phase factors.",
+      "Retain independently derived intensity terms for validation, then validate source input values."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 26,
+        "title": "Define the effective source tensor and workflow identifiers",
+        "explanation": "Declare separate real a,A,delta,phi symbols. Build R=[[a,A*exp(i*delta)],[-A*exp(i*delta),a*exp(i*phi)]], name the source mode and map internal workflow/model identifiers to readable labels. The off-diagonal signs are those of this imported effective model.",
+        "why": "Reusing the general complex a symbol would change the source algebra assumptions. The source antisymmetric off-diagonal pair also must not be silently imposed on a nonmagnetic symmetric D2h material tensor.",
+        "check": "At phi=0 the diagonal entries coincide. At A=0 the model becomes diagonal. This source model has no crystal-surface parameter."
+      },
+      {
+        "start_line": 27,
+        "end_line": 37,
+        "title": "qwp_source_algebra: cache the fixed symbolic calculation",
+        "explanation": "lru_cache(maxsize=1) stores this parameter-independent symbolic result after its first evaluation. Build the QWP optical chain, call the same transverse amplitude engine and calculate R++=<sigma+|R|sigma+> and R-+=<sigma-|R|sigma+>.",
+        "why": "The symbolic source structure is fixed; repeatedly rebuilding it for every numerical slider value would waste time. Numerical coefficient values are substituted after retrieving this symbolic record.",
+        "check": "The source record amplitude comes from the actual matrix chain. Cached expressions remain symbolic in the four real source parameters."
+      },
+      {
+        "start_line": 38,
+        "end_line": 53,
+        "title": "Reconstruct the source analyzer reference and relative phase",
+        "explanation": "Pass both circular basis states through the return QWP. Remove a global phase from the dominant sigma+ output component to construct a real reference axis, rotate that axis by +90 degrees, project the sigma- output onto the perpendicular axis and build the scanned analyzer. Check it against the optical_chain analyzer.",
+        "why": "The angle zero and phase ratio determine the interference sign. An analyzer measured from laboratory X is not automatically the same convention as an analyzer measured from the returned sigma+ axis.",
+        "check": "The source reference is +Y, its perpendicular direction is -X and the reconstructed analyzer equals (-sin(alpha),cos(alpha))."
+      },
+      {
+        "start_line": 54,
+        "end_line": 57,
+        "title": "Compute circular-channel powers and their interference",
+        "explanation": "Calculate |R++|^2, |R-+|^2 and Im(R++*R-+.conjugate()) directly from the symbolic circular amplitudes using the real source parameter assumptions.",
+        "why": "In this adopted return-optic chain, the relative QWP phase turns the analyzer interference coefficient into the imaginary part of the circular-amplitude product.",
+        "check": "These independently computed terms must agree with the source formulas built in the next block."
+      },
+      {
+        "start_line": 58,
+        "end_line": 73,
+        "title": "Build an independent closed-form source reference",
+        "explanation": "Construct reference_pp=a^2*cos(phi/2)^2+A^2+2aA*cos(phi/2)*sin(phi/2-delta), reference_mp=a^2*sin(phi/2)^2 and the corresponding cross coefficient. Form the source intensity as reference_pp*cos(alpha)^2+reference_mp*sin(alpha)^2+2*reference_cross*sin(alpha)*cos(alpha).",
+        "why": "A separately stated analytic law provides a useful regression target. It is retained for checks and reporting while the production amplitude still comes from matrix multiplication.",
+        "check": "With phi=0, R-+ vanishes. With A=0 the result reduces to a^2*cos(alpha-phi/2)^2 in the adopted convention."
+      },
+      {
+        "start_line": 74,
+        "end_line": 89,
+        "title": "Return all source intermediates",
+        "explanation": "Return the production record, circular amplitudes, returned circular vectors, phase factors, analyzer axes, directly calculated powers and independent source intensity pieces in one dictionary.",
+        "why": "A calculation can be inspected stage by stage rather than judged only by its final polar curve.",
+        "check": "Reports should identify whether a value is a production matrix result or an independent source reference; neither may be mixed with the slide-specific component prescription."
+      },
+      {
+        "start_line": 90,
+        "end_line": 101,
+        "title": "qwp_source_values: validate and substitute source parameters",
+        "explanation": "Require a,A,delta_deg,phi_deg, validate each as a finite real number and convert the input decimals to rationals. Map the two amplitudes to their source symbols and convert phase degrees to radians.",
+        "why": "The imported source makes the amplitudes real and locates complex character in explicit phases. Its substitution dictionary must use those same symbols and units.",
+        "check": "An incomplete parameter dictionary raises an error. A 90-degree delta substitutes pi/2, not the number 90 inside exp(i*delta)."
+      },
+      {
+        "start_line": 103,
+        "end_line": 103,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–7 in order and confirm the Cell 07/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "This effective 2D tensor is a retained source model, not a symmetry certificate for CaNb2O6.",
+      "The alternative convention in the source appendix is not silently substituted for the adopted main chain.",
+      "The cached symbolic expressions must be evaluated with source parameters, not the general crystal coefficient dictionary.",
+      "A 3D material extension preserves the chosen QWP optical sequence while supplying a rotated symmetry-allowed crystal tensor."
+    ]
+  },
+  {
+    "cell": 8,
+    "overview": "Attach reference conventions, illustrative material examples and conditional circular selection diagnostics to the existing engine. The complex-linear reference supplies phase-sensitive VV/VH examples; the circular-selection reference supplies necessary angular-momentum congruences with stated scope. These congruences do not predict a quantitative vortex-beam intensity.",
+    "workflow": [
+      "Record reference roles and extend the material library.",
+      "Build explicit linear and circular demonstration configurations.",
+      "Validate integer selection-rule controls and transform tensors into the circular basis.",
+      "Report plane-wave channels and conditional selection checks separately.",
+      "Offer a supplied-term resonance utility without inferring microscopic parameters."
+    ],
+    "blocks": [
+      {
+        "start_line": 1,
+        "end_line": 30,
+        "title": "Identify the scan symbol and reference roles",
+        "explanation": "Declare theta as a real display symbol. PAPER_SOURCES records the two reference titles, DOIs, relevant equation ranges and documented scope, then merges them into SOURCES. The calculation still uses the explicit state and tensor definitions; citation metadata does not choose the optical method.",
+        "why": "A linear-polarization intensity formalism and an angular-momentum selection rule answer different questions. The program must not promote a necessary circular rule into a universal quantitative scattering law.",
+        "check": "The circular source role points to DOI 10.1039/D1CP02209A, while complex-linear scans point to DOI 10.1039/D1CP03626B."
+      },
+      {
+        "start_line": 31,
+        "end_line": 43,
+        "title": "Extend the library with black phosphorus",
+        "explanation": "Add a D2h example with layer plane xz, surface normal y and separate Ag(1),B2g,Ag(2) branches. The lattice is a unity principal-plane reference; the dedicated reference factory below supplies the printed coefficient ratios.",
+        "why": "The same group label D2h can use an axis setting different from an intuitive xy layer drawing. The axes must match the equations being reproduced.",
+        "check": "The chosen (010) geometry projects the xz tensor subspace. The two Ag branches retain independent coefficient dictionaries."
+      },
+      {
+        "start_line": 44,
+        "end_line": 55,
+        "title": "Extend the library with monolayer MoS2",
+        "explanation": "Add the D3h A1-prime and E-prime branches with a conventional hexagonal cell. The note identifies the preset as a plane-wave Jones example and uses monolayer irrep names.",
+        "why": "Bulk-like A1g/E2g names appearing in a reference passage must not replace the correct monolayer D3h labels in the material library.",
+        "check": "The preset is MoS2-1L, not a bulk D6h material. Its coefficients remain illustrative."
+      },
+      {
+        "start_line": 56,
+        "end_line": 64,
+        "title": "Extend the library with graphene",
+        "explanation": "Add a monolayer D6h G-mode example mapped to E2g. Supply the conventional hexagonal metric and a note that neither electronic bands nor vortex intensity are inferred.",
+        "why": "A known Raman irrep is sufficient to demonstrate a polarization contraction, but not sufficient to compute all microscopic optical transitions.",
+        "check": "The G family retains both E2g partners and their shared branch coefficient."
+      },
+      {
+        "start_line": 65,
+        "end_line": 74,
+        "title": "Extend the library with monoclinic 1T-prime MoTe2",
+        "explanation": "Add C2h Ag and Bg in the unique-y convention, using an illustrative monoclinic beta angle of 100 degrees. The note distinguishes the chosen inputs from measured fit parameters in the cited figure.",
+        "why": "Nonorthogonal crystallographic axes require the lattice metric, while the tensor remains expressed in an orthonormal Cartesian frame.",
+        "check": "The monoclinic Ag template contains an allowed xz entry; it is not forced into an orthorhombic diagonal tensor."
+      },
+      {
+        "start_line": 75,
+        "end_line": 86,
+        "title": "Extend the library with ReSe2",
+        "explanation": "Add a Ci Ag example in Cartesian tensor axes, with an illustrative metric and a note requiring measured triclinic cell parameters and mode-specific coefficients for a sample calculation.",
+        "why": "A fully populated symmetric tensor is allowed by Ci. A material dropdown alone cannot determine its orientation, principal axes or numerical coefficients.",
+        "check": "The full Ci Ag family exposes all six independent symmetric entries."
+      },
+      {
+        "start_line": 87,
+        "end_line": 99,
+        "title": "default_paper_parameters: keep controls explicit",
+        "explanation": "Return circular-rule defaults for the CIRCULAR workflow: s_in=+1, N=2, zero incident OAM, one zero phonon charge, no absorption charge and unestablished thin-2D assumptions. Linear and cubic workflows receive a zero scan-angle offset. Other workflows receive no paper-parameter dictionary here.",
+        "why": "A workflow should not inherit another reference calculation merely because a hidden control retains an old value.",
+        "check": "The general pipeline later merges these defaults with explicitly supplied active parameters. The assumptions checkbox is false by default."
+      },
+      {
+        "start_line": 100,
+        "end_line": 115,
+        "title": "paper_demo_config: build a declared reference workflow",
+        "explanation": "Validate the requested CIRCULAR or LINEAR method, obtain a material demonstration configuration and replace its workflow policy with a coherent full-tensor rule and the selected direct circular-linear or paired-linear optical profile. Add explicit reference and illustrative-input notes.",
+        "why": "The tensor library and scattering engine remain shared, while the reference-specific input set remains inspectable. Creating a demonstration does not certify its coefficients as measured material constants.",
+        "check": "A LINEAR demonstration uses LINEAR_PAIR; a CIRCULAR demonstration uses CIRCULAR_LINEAR. Both retain coherent complete phonon tensors."
+      },
+      {
+        "start_line": 116,
+        "end_line": 130,
+        "title": "linear_bp_reference_config: enter published example ratios",
+        "explanation": "Load the BP linear example, choose the declared normal side and enter separate Ag ratios c/a=1.96 with zero relative phase and c/a=1.32 with 94-degree relative phase. Enter the off-diagonal branch reference magnitude 1.30. The library xz coefficient is e even though the review names that entry f.",
+        "why": "Reproducing a reference formula requires its coefficient ratio, phase, plane and angle convention, not only the material name or a visually similar curve.",
+        "check": "The examples reproduce the stated coherent Eq. 13 convention; they are not digitized fits to all experimental points. The global a=1 scale is arbitrary for each illustrative branch."
+      },
+      {
+        "start_line": 131,
+        "end_line": 141,
+        "title": "circular_mos2_reference_config: declare the plane-wave example",
+        "explanation": "Load the monolayer circular-channel example, label its intensity model as ell_i=0 and set the cyclic order to 3 with phonon charges 0,+2,-2. Mark the reference assumptions as declared for this example.",
+        "why": "The polarization contractions demonstrate A1-prime and E-prime channels while the charge list supports a separate necessary-congruence diagnostic.",
+        "check": "Changing an OAM charge later affects the rule check only; it does not turn the plane-wave intensity into a quantitative vortex calculation."
+      },
+      {
+        "start_line": 142,
+        "end_line": 151,
+        "title": "circular_integer: require true integer charges",
+        "explanation": "Reject Python and NumPy Booleans, require a finite real scalar and verify that converting it to int does not change its value. Return that integer.",
+        "why": "Modulo-N angular-momentum conditions are defined for integer charges. Accepting True as 1 or truncating 1.5 to 1 would silently change a selection-rule input.",
+        "check": "2 and 2.0 are accepted; True and 1.5 are rejected."
+      },
+      {
+        "start_line": 152,
+        "end_line": 169,
+        "title": "circular_congruence: validate the discrete rule inputs",
+        "explanation": "Validate N and incident/scattered circular labels as integers. Restrict N to the implemented 2,3,4,6 orders and the two circular labels to +/-1. Validate incident OAM and require at least one integer phonon charge.",
+        "why": "The congruence is a discrete symmetry condition under the assumptions of the reference. Invalid labels cannot be interpreted as an elliptical state or rounded into a valid charge.",
+        "check": "A missing phonon-charge list or an unsupported cyclic order gives an error before a pass/fail statement is generated."
+      },
+      {
+        "start_line": 170,
+        "end_line": 187,
+        "title": "circular_congruence: test necessary conservation and absorption",
+        "explanation": "For each phonon charge q, test (s_s-s_i-ell_i+q) mod N=0. If an electronic absorption charge difference is supplied, also test (delta_m-s_i-ell_i) mod N=0. Return matching charges, both pass indicators and whether absorption was actually checked.",
+        "why": "A conservation congruence can pass while an optical subprocess is forbidden or an assumed symmetry axis is absent. The output therefore records necessary conditions instead of claiming an intensity or a sufficient scattering rule.",
+        "check": "If absorption_delta_m is omitted, combined_necessary_pass is None rather than a fabricated complete pass. Each phonon charge is tested separately."
+      },
+      {
+        "start_line": 188,
+        "end_line": 193,
+        "title": "circular_basis_matrix: change the optical basis",
+        "explanation": "Build U with sigma+ and sigma- as columns and return U.H*R_perp*U. Rows correspond to the outgoing circular basis and columns to the incident circular basis.",
+        "why": "Changing basis is a representation change of the same tensor contraction, not a new material response or a different intensity prescription.",
+        "check": "The circular-basis amplitude for transformed states must equal the original Cartesian-basis amplitude. The Hermitian transpose is required because U is complex unitary."
+      },
+      {
+        "start_line": 194,
+        "end_line": 217,
+        "title": "circular_diagnostics: keep rules and intensities separate",
+        "explanation": "Read the explicit paper parameters, copy them into a diagnostic record and state the plane-wave intensity scope. Independently test the necessary rule for both outgoing circular labels and append those results.",
+        "why": "Requested vortex charge must not silently mask or rescale a plane-wave Jones curve. The user needs to see which assumptions were declared and which rules were actually evaluated.",
+        "check": "The scope says whether thin-2D/electronic assumptions were declared. The selected intensity arrays are not modified by this function."
+      },
+      {
+        "start_line": 218,
+        "end_line": 229,
+        "title": "Compute complete circular channel matrices and powers",
+        "explanation": "For each selected mode, transform every production term R_perp into the circular basis, substitute the same coefficient values and accumulate absolute-squared matrix entries over the declared partner tensors. Save the matrices, powers and row/column labels.",
+        "why": "This gives all four circular input/output channels from the same tensor used elsewhere and preserves the distinction between within-tensor amplitude interference and partner-power addition.",
+        "check": "For a single term, each matrix entry is one complete circular amplitude. Matrix element phases remain available separately from the tabulated powers."
+      },
+      {
+        "start_line": 230,
+        "end_line": 247,
+        "title": "Check the cyclic axis for orthorhombic and monoclinic settings",
+        "explanation": "Inspect the actual Cartesian Z column of T. D2/D2h require a principal Cartesian normal and N=2. C2v uses its unique z C2 axis; C2/C2h use the unique y axis. Save compatibility and its convention note.",
+        "why": "A tilted (211) surface normal in D2h is not automatically a twofold rotation axis. Selecting N=2 in a dropdown does not create that symmetry about the beam direction.",
+        "check": "An orthorhombic principal-axis orientation can pass this axis check; a general tilted normal does not receive an extinction prediction from it."
+      },
+      {
+        "start_line": 248,
+        "end_line": 276,
+        "title": "Check higher cyclic axes or report uncertified cases",
+        "explanation": "For supported trigonal, tetragonal and hexagonal settings, require Z along crystallographic z and an order dividing the implemented principal rotation order. Other groups receive an explicit unknown/uncertified axis record.",
+        "why": "The reference rule depends on an actual cyclic symmetry operation about the chosen axis. The program must not infer that operation from a generic hkl label alone.",
+        "check": "A compatible basal normal in a D3 setting supports order 3; a tilted normal does not. Unknown axis certification is not a proof that physical scattering is forbidden."
+      },
+      {
+        "start_line": 277,
+        "end_line": 286,
+        "title": "State the final applicability scope",
+        "explanation": "Mark the rule applicable only when the declared thin-2D assumptions and cyclic-axis compatibility are both true. If the axis is incompatible, replace the scope message with a formal-congruence-only statement and return the diagnostic record.",
+        "why": "A formal congruence result has a narrower meaning than a physically established extinction rule. Explicit scope prevents a bulk tilted-crystal example from being overinterpreted.",
+        "check": "Passing eq24_pass alone must not override rule_applicable=False."
+      },
+      {
+        "start_line": 287,
+        "end_line": 298,
+        "title": "resonance_element: validate supplied energy inputs",
+        "explanation": "Convert the laser-energy grid to a NumPy array, validate a nonnegative phonon energy and require finite excitation energies. Initialize a complex result array with the same shape.",
+        "why": "This utility evaluates a supplied finite resonance sum. Symmetry, a band-gap number or a material label does not provide the missing microscopic matrix elements.",
+        "check": "All energies and damping parameters must use the same unit; the function interface names eV. No resonance terms produces a zero supplied-term sum."
+      },
+      {
+        "start_line": 299,
+        "end_line": 310,
+        "title": "Evaluate complex third-order resonance denominators",
+        "explanation": "For each supplied contribution, read the two transition energies, two positive damping values and a finite complex numerator weight. Add weight/[(E_L-Ecv+i*Gamma_c)*(E_L-Ephonon-Ecprime_v+i*Gamma_cprime)] to the result and return the complex array.",
+        "why": "Finite damping regularizes resonance denominators and complex weights allow phase-sensitive interference between supplied terms. These values represent external microscopic input rather than a prediction from the tensor library.",
+        "check": "The returned object is a complex response element versus excitation energy, not its squared intensity. Relative phase among contributions can change both its magnitude and argument."
+      },
+      {
+        "start_line": 312,
+        "end_line": 312,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–8 in order and confirm the Cell 08/22 message. Model/source checks must be inspected separately in Validation."
+      }
+    ],
+    "pitfalls": [
+      "The source circular rule is a necessary condition with assumptions; it is not a general quantitative vortex intensity model.",
+      "N=2 congruence alone often cannot distinguish circular channels and cannot replace the tensor calculation.",
+      "The layer-plane and axis conventions must match the reference equations before interpreting a VV/VH comparison.",
+      "The resonance utility requires supplied energies, broadenings and complex numerator weights; these are not inferred from the material dropdown."
+    ]
+  }
+]
