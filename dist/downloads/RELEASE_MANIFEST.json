@@ -1,0 +1,57 @@
+{
+  "version": "4",
+  "revision": "2026-10-23-r2",
+  "source_sha256": "4d8b24edf69ee418dee6854e4c93d48d03056e2dbb41076392eafcd46f8e22b4",
+  "code_cells": 22,
+  "default_input": {
+    "material": "Si",
+    "hkl": [
+      5,
+      0,
+      0
+    ],
+    "optics": "CUBIC_VV"
+  },
+  "files": {
+    "notebook": {
+      "filename": "Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.ipynb",
+      "canonical": "ROTATION_RAMAN_TENSOR_CALCULATION.ipynb",
+      "sha256": "4064d1f05ec2d10fe27b50dbc3f0479e32200f03a91ecb4da115e7d72135e46d",
+      "size_bytes": 762242
+    },
+    "python": {
+      "filename": "Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.py",
+      "canonical": "ROTATION_RAMAN_TENSOR_CALCULATION.py",
+      "sha256": "a617d8990daaeb64f6fcdf82c8e5c4de6fa99da0fee5cb5b2fb72abad7935338",
+      "size_bytes": 393110
+    },
+    "bundle": {
+      "filename": "Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.zip",
+      "canonical": "All_Python_Programs.zip",
+      "sha256": "3f8974bf54198fa165baf2c0edad11f5452d37d181f1cd45271bef6449302999",
+      "size_bytes": 1030631
+    }
+  },
+  "assets": {
+    "original_optical_reference.ipynb": "c1fa022ce24803c411a24e9aed8152743da6a8feb29cd7ea3cd69885c31aeee0",
+    "All_Python_Programs.zip": "efcf70918b2e4087ee1501b4fbfe5496a1499e93d05c2079547fb5c2991d9fff",
+    "Silicon_Startup_Polar_Plot.png": "023c56b9726ff85f88bfe0bc5c7d635ae496a5554a641977fa62ccb5dae0cb03",
+    "README.txt": "84b79c895b425e6da9905c3cd0b5300245857315fae399d92226b9697ec7b2cc",
+    "raman_engine.py": "6b24e0e42b4339b9e31156e61f85dd853ddb69c747a8432fe4f40b78b172320f",
+    "sci.mplstyle": "14635df30cd9f8f33431b83dc6700ce51569c28f6e2113d217eb3e60e284bca5",
+    "Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.py": "a617d8990daaeb64f6fcdf82c8e5c4de6fa99da0fee5cb5b2fb72abad7935338",
+    "QUICKSTART.md": "01c13f39811a4b9ff074742cdf3fe2755eebe42a0f4dfbef3b29b03d741ca318",
+    "example_input_v4.json": "d384c2de443800263d5fec6dfacc384acd9de874b98600640eb00bfd8cd776a8",
+    "Optical_Methods_Guide.md": "1a49fe9a863fa83c5bee01046c0c398364a9151ad423671055fac989394e8f95",
+    "Symbols_And_References.md": "d19022e21e2daed1eacf4f2e43dced4c553e0e2cccd9288e74988cb75bd737df",
+    "requirements.txt": "0cb5038254c3346aab5a31db0760daa181dabd4e4efdeeddd54363c25ad647e1",
+    "web_bridge.py": "2fc46cbc0133145ded5664d47e00fe6aa3b9850fc5972fe739e7660376ecb9d5",
+    "silicon_startup_input_v4.json": "d384c2de443800263d5fec6dfacc384acd9de874b98600640eb00bfd8cd776a8",
+    "Dr_Kumar_Original.ipynb": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
+    "Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.ipynb": "4064d1f05ec2d10fe27b50dbc3f0479e32200f03a91ecb4da115e7d72135e46d",
+    "Raman_Tensor_V4_Si500_20261023R2_4d8b24ed.zip": "3f8974bf54198fa165baf2c0edad11f5452d37d181f1cd45271bef6449302999",
+    "SAITO_FEEDBACK_AUDIT.md": "00240ef3f4fb7ddb36ccb37dbcc8e1a527d3aae00dd7e74ce80659fc8e1a2b3e",
+    "ROTATION_RAMAN_TENSOR_CALCULATION.py": "a617d8990daaeb64f6fcdf82c8e5c4de6fa99da0fee5cb5b2fb72abad7935338",
+    "ROTATION_RAMAN_TENSOR_CALCULATION.ipynb": "4064d1f05ec2d10fe27b50dbc3f0479e32200f03a91ecb4da115e7d72135e46d"
+  }
+}

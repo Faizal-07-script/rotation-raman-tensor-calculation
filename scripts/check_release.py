@@ -30,6 +30,31 @@ assert cells["source_sha256"] == digest
 assert [c["source"] for c in cells["cells"]] == code
 assert (DOWNLOADS / "ROTATION_RAMAN_TENSOR_CALCULATION.ipynb").read_bytes() == notebook_bytes
 assert 'AUDIT_VERSION = "4"' in "\n".join(code)
+release = json.loads((DIST / 'data/release.json').read_text())
+revision = book['metadata']['rotation_raman_revision']['download_revision']
+assert release['version'] == VERSION and release['revision'] == revision
+assert release['source_sha256'] == digest
+assert f'NOTEBOOK_REVISION = "{revision}"' in code[0]
+assert release['default_input'] == dict(material='Si',hkl=[5,0,0],optics='CUBIC_VV')
+for name, record in release['files'].items():
+    payload = (DOWNLOADS / record['filename']).read_bytes()
+    assert record['filename'].startswith('Raman_Tensor_V4_Si500_')
+    assert hashlib.sha256(payload).hexdigest() == record['sha256']
+    assert len(payload) == record['size_bytes']
+    if name != 'bundle':
+        assert payload == (DOWNLOADS / record['canonical']).read_bytes()
+with zipfile.ZipFile(DOWNLOADS / release['files']['bundle']['filename']) as named_bundle:
+    assert named_bundle.testzip() is None
+    for name in ['notebook','python']:
+        record = release['files'][name]
+        assert named_bundle.read(record['filename']) == (DOWNLOADS / record['filename']).read_bytes()
+    assert 'ROTATION_RAMAN_TENSOR_CALCULATION.ipynb' not in named_bundle.namelist()
+assert (DOWNLOADS / 'RELEASE_MANIFEST.json').read_bytes() == (DIST / 'data/release.json').read_bytes()
+python_source = (DOWNLOADS / release['files']['python']['filename']).read_text()
+assert len(re.findall(r'^# %% Code cell \d+:', python_source, re.M)) == 22
+for name in ['app.js','content.js','optical-guide.js','user-guide.js','styles.css','user-guide.css']:
+    fingerprint = hashlib.sha256((DIST / name).read_bytes()).hexdigest()[:12]
+    assert f'./{name}?v=4-{fingerprint}' in (DIST / 'index.html').read_text()
 assert "VERSION 4" in (DIST / "index.html").read_text()
 assert "version: '4'" in (DIST / "engine-worker.js").read_text()
 

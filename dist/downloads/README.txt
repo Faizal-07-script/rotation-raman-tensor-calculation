@@ -1,3 +1,10 @@
+Version 4 | Revision 2026-10-23-r2 | Silicon (500) default
+
+The recommended notebook filename includes V4, Si500, the revision and its source fingerprint.
+Cell 1 prints this same revision before preparing the environment.
+Open the newly downloaded file, then restart its kernel and Run All.
+The .py source has 22 # %% cell boundaries for editors that support Python cells.
+
 ROTATION RAMAN TENSOR CALCULATION — PYTHON DOWNLOADS
 
 Current version: 4. Run all 22 cells of the .ipynb in Jupyter or Colab.

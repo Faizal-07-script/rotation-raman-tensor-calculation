@@ -6,7 +6,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const math = value => '<div class="equation" data-tex="' + esc(value) + '"></div>';
 const rich = value => esc(value).replace(/\x60([^\x60]+)\x60/g, '<code>$1</code>').replace(/\n/g, '<br>');
 const compact = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(Number(value).toPrecision(7)).toString() : '—';
-const S = {catalog:null,cells:[],tutorial:[],form:null,result:null,dirty:false,busy:false,tab:'plots',
+const S = {catalog:null,release:null,cells:[],tutorial:[],form:null,result:null,dirty:false,busy:false,tab:'plots',
   error:null,comparisons:[],comparison:null,benchmark:null,validation:null,runtimeHasRun:false,
   selectedExample:'SI_500',relation:'free',lastCrystal:null,openGroups:new Set(),searchIndex:[]};
 let toastTimer,preparedDownloadUrl;
@@ -145,10 +145,11 @@ function renderTutorial(number){
 }
 
 function renderReferences(downloadOnly=false){
+  const release=S.release;
   const downloads=[
-    ['IPYNB','Current Python notebook','Version 4 · all 22 code cells and notebook controls','ROTATION_RAMAN_TENSOR_CALCULATION.ipynb'],
-    ['ZIP','All Python programs','Version 4 notebook, scientific engine, browser adapter, stylesheet and original references','All_Python_Programs.zip'],
-    ['PY','Complete Python cell source','Matching version 4 source for an IPython/Jupyter kernel','ROTATION_RAMAN_TENSOR_CALCULATION.py'],
+    ['IPYNB','Current Python notebook','Version 4 · revision '+release.revision+' · all 22 code cells',release.files.notebook.filename],
+    ['ZIP','All Python programs','Current notebook and Python source, supporting files and original references',release.files.bundle.filename],
+    ['PY','Complete Python cell source','Matching Version 4 source · 22 executable Python cell boundaries',release.files.python.filename],
     ['MD','First run & numbered tools','Input formats, units, last-cell instructions and expected example outputs','QUICKSTART.md'],
     ['JSON','Silicon (500) startup input','The same Si T2g, VV, d = 1 example used by the notebook and website','example_input_v4.json'],
     ['MD','Symbols, units & derivation references','Definitions shown below the calculated equations, with unit conventions and source locations','Symbols_And_References.md'],
@@ -158,9 +159,10 @@ function renderReferences(downloadOnly=false){
     ['IPYNB','QWP source reference','Unmodified uploaded notebook · source of the checking procedures','Dr_Kumar_Original.ipynb'],
     ['MD','Optical methods: physics and equations','Nine profiles, exact state definitions, equality conditions and references','Optical_Methods_Guide.md'],
     ['STYLE','Scientific plot style','The supplied sci.mplstyle, embedded in the Python program','sci.mplstyle'],
-    ['TXT','Python requirements','Packages for the notebook environment','requirements.txt']
+    ['TXT','Python requirements','Packages for the notebook environment','requirements.txt'],
+    ['JSON','Download verification record','Revision, filenames and SHA-256 checksums','RELEASE_MANIFEST.json']
   ];
-  const downloadHtml='<section class="card doc-section" id="downloads"><div class="card-header"><div><h2>Python programs & supporting files</h2><p>The current notebook is the recommended Python entry point.</p></div><span class="tag success">Version 4</span></div>'+downloads.map(([type,title,desc,file])=>'<div class="download-item"><span class="download-icon">'+type+'</span><div><h3>'+title+'</h3><p>'+desc+'</p></div><a class="button secondary small" href="./downloads/'+file+'?v=4" download>Download ↓</a></div>').join('')+
+  const downloadHtml='<section class="card doc-section" id="downloads"><div class="card-header"><div><h2>Python programs & supporting files</h2><p>The current notebook is the recommended Python entry point.</p></div><span class="tag success">Version 4</span></div><div class="callout" id="download-revision"><strong>Revision '+esc(release.revision)+' · Silicon (500)</strong>Open the new file whose name contains V4 and Si500. Run Cell 1 and check that it prints <code>Version 4 | Revision '+esc(release.revision)+' | Silicon (500) default</code>. Then restart the kernel and Run All.</div>'+downloads.map(([type,title,desc,file])=>'<div class="download-item"><span class="download-icon">'+type+'</span><div><h3>'+title+'</h3><p>'+esc(desc)+'</p></div><a class="button secondary small" href="./downloads/'+esc(file)+'?sha='+esc((release.assets[file]||release.source_sha256).slice(0,12))+'" download="'+esc(file)+'" aria-label="Download '+esc(title)+'">Download ↓</a></div>').join('')+
     '<p class="small-note">Original optical implementation sources are preserved in the references folder of the program archive.</p></section>';
   const refs='<section class="card"><h2>Primary references & implementation sources</h2>'+RAMAN_DOCS.references.map(r=>'<article class="reference-item" id="ref-'+r.id+'"><div class="reference-number">['+r.number+']</div><div><h3>'+esc(r.title)+'</h3><p>'+esc(r.authors)+'<br>'+esc(r.publication)+'</p><a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+esc(r.url)+' ↗</a>'+(r.extra?'<div class="source-link-row">'+r.extra.map(([name,url])=>'<a href="'+esc(url)+'" target="_blank" rel="noopener noreferrer">'+esc(name)+' ↗</a>').join('')+'</div>':'')+'<p style="margin-top:12px">'+esc(r.role)+'</p></div></article>').join('')+'</section>';
   return heading('REFERENCES & DOWNLOADS',downloadOnly?'The complete Python programs.':'References and Python downloads','Read the references or download the notebook, Python source and example inputs.')+
@@ -560,8 +562,9 @@ function search(query){
 }
 async function initialize(){
   try{
-    const [catalog,cells,tutorial,example]=await Promise.all(['catalog','cells','tutorial','reference-example'].map(async name=>{const response=await fetch('./data/'+name+'.json',{cache:'no-cache'});if(!response.ok)throw new Error('Unable to load '+name+'.');return response.json();}));
-    S.catalog=catalog;S.cells=cells.cells;S.sourceHash=cells.source_sha256;S.tutorial=tutorial;S.form=clone(catalog.examples[catalog.default_example].config);S.selectedExample=catalog.default_example;S.result=example;S.lastCrystal=clone(S.form);
+    const [catalog,cells,tutorial,example,release]=await Promise.all(['catalog','cells','tutorial','reference-example','release'].map(async name=>{const response=await fetch('./data/'+name+'.json',{cache:'no-store'});if(!response.ok)throw new Error('Unable to load '+name+'.');return response.json();}));
+    if(release.source_sha256!==cells.source_sha256)throw new Error('The notebook update is still publishing. Reload this page in a moment.');
+    S.catalog=catalog;S.release=release;S.cells=cells.cells;S.sourceHash=cells.source_sha256;S.tutorial=tutorial;S.form=clone(catalog.examples[catalog.default_example].config);S.selectedExample=catalog.default_example;S.result=example;S.lastCrystal=clone(S.form);
     S.searchIndex=[...Object.entries(RAMAN_DOCS.tools).map(([key,d])=>({href:'#introduction/'+key,label:d.title,category:'Introduction',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()})),
       ...S.cells.map(c=>({href:'#tutorial/cell/'+c.number,label:'Cell '+c.number+' · '+c.title,category:'Python tutorial',text:('cell '+c.number+' cell'+c.number+' '+c.title+' '+c.source).toLowerCase()})),
       ...Object.entries(RAMAN_DOCS.physics).map(([key,d])=>({href:'#physics/'+key,label:d.title,category:'Physics & equations',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()}))];

@@ -11,39 +11,47 @@
     "blocks": [
       {
         "start_line": 1,
-        "end_line": 5,
+        "end_line": 4,
+        "title": "Identify the downloaded revision",
+        "explanation": "Print Version 4 and the exact download revision before preparing packages. This visible line distinguishes the current file from an older notebook with the same title.",
+        "why": "Verify the file being executed directly in Cell 1.",
+        "check": "The first output reads Version 4 | Revision 2026-10-23-r2 | Silicon (500) default."
+      },
+      {
+        "start_line": 6,
+        "end_line": 10,
         "title": "Import environment tools",
         "explanation": "importlib.util.find_spec will locate installed packages without importing their full contents. subprocess runs a package-installation command when necessary. sys.executable identifies the Python interpreter that is running this notebook.",
         "why": "Installing into the active interpreter avoids the common mismatch in which terminal pip installs a package for a different Python environment.",
         "check": "After execution, sys.executable should refer to the interpreter used by the selected notebook kernel."
       },
       {
-        "start_line": 6,
-        "end_line": 9,
+        "start_line": 11,
+        "end_line": 14,
         "title": "Find and install dependencies",
         "explanation": "required lists sympy for symbolic algebra, numpy for numerical arrays, matplotlib for figures and ipywidgets for the notebook interface. The list comprehension retains packages whose import specification cannot be found. If that list is nonempty, check_call invokes the active interpreter with -m pip install followed by only those package names.",
         "why": "The scientific calculation depends on these packages, but a working environment should not reinstall all of them whenever the notebook is opened.",
         "check": "An existing installation produces an empty missing list. A failed installation raises an exception rather than continuing into an unusable interface."
       },
       {
-        "start_line": 10,
-        "end_line": 15,
+        "start_line": 15,
+        "end_line": 20,
         "title": "Enable the optional Colab widget manager",
         "explanation": "The try block imports google.colab.output and enables its custom widget manager. In an ordinary Jupyter environment, importing google.colab raises ImportError; the except branch deliberately continues because this integration is optional.",
         "why": "The same notebook can display its controls in Colab and ordinary Jupyter without treating the absence of a Colab-only module as a physics or calculation error.",
         "check": "In Colab, the final application should display interactive selectors and buttons. In Jupyter, the absence of google.colab should not stop this cell."
       },
       {
-        "start_line": 16,
-        "end_line": 19,
+        "start_line": 21,
+        "end_line": 24,
         "title": "Request inline figures",
         "explanation": "get_ipython().run_line_magic requests the inline Matplotlib backend. NameError or NotImplementedError is ignored when this command is unavailable, allowing the scientific definitions to be imported in another supported context.",
         "why": "This changes how figures are displayed in a notebook, not the tensor contraction or calculated intensity.",
         "check": "A later figure should appear inside a supported notebook. A browser-hosted calculator supplies its own figure display instead of requiring this IPython display setting."
       },
       {
-        "start_line": 21,
-        "end_line": 21,
+        "start_line": 26,
+        "end_line": 26,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",

@@ -18,6 +18,9 @@ for cell in book.cells:
     expected_message=f"Cell {cell.metadata['code_cell_number']:02d}/22 — Run completed successfully."
     assert expected_message in captured.stdout,(expected_message,captured.stdout)
     assert 'Ready:' in captured.stdout and 'Next:' in captured.stdout
+    if cell.metadata['code_cell_number']==1:
+        revision=book.metadata['rotation_raman_revision']['download_revision']
+        assert f'Version 4 | Revision {revision} | Silicon (500) default' in captured.stdout
     cell.execution_count=shell.execution_count-1;cell.outputs=[]
     for name,value in [('stdout',captured.stdout),('stderr',captured.stderr)]:
         if value:cell.outputs.append(nbformat.v4.new_output('stream',name=name,text=value))
@@ -69,7 +72,7 @@ with capture_output():
 assert ns['state']['last_error'] is None
 book.metadata['widgets']={'application/vnd.jupyter.widget-state+json':embed_data([ns['app_view']],state=dependency_state([ns['app_view']]))['manager_state']}
 (P.parents[1]/'dist/downloads/Silicon_Startup_Polar_Plot.png').write_bytes(png)
-record=dict(status='passed',version='4',checks=ns['state']['validation']['checks'],
+record=dict(status='passed',version='4',download_revision=revision,checks=ns['state']['validation']['checks'],
     cell_completion_messages=22,
     example_input='Built-in cubic_fig1_config(0, "VV"): Si (500), T2g, d=1; no edits or external file required.',
     startup_test=dict(material='Si',point_group='Oh',hkl=[5,0,0],uvw=[0,-5,0],

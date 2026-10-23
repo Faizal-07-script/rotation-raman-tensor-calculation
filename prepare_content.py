@@ -17,6 +17,7 @@ DOWNLOADS=DIST/'downloads'
 DATA.mkdir(exist_ok=True);DOWNLOADS.mkdir(exist_ok=True)
 notebook_path=SOURCE/'notebook_v4.ipynb'
 notebook=json.loads(notebook_path.read_text())
+revision=notebook['metadata']['rotation_raman_revision']['download_revision']
 cells=[c for c in notebook['cells'] if c['cell_type']=='code']
 assert len(cells)==22
 for cell in cells:
@@ -42,7 +43,7 @@ for i,cell in enumerate(cells,1):
            for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef,ast.AsyncFunctionDef))]
     content.append(dict(number=i,title=titles[i-1],tag=cell['metadata']['tags'][0],source=source,
         lines=len(source.splitlines()),symbols=nodes,sha256=hashlib.sha256(source.encode()).hexdigest()))
-(DATA/'cells.json').write_text(json.dumps(dict(version='4',source_sha256=source_hash,cells=content)))
+(DATA/'cells.json').write_text(json.dumps(dict(version='4',revision=revision,source_sha256=source_hash,cells=content)))
 
 selected=[i for i in range(2,23) if i not in [17,18,19,22]]
 prefix='''# Generated from the scientific cells of notebook version 4.
@@ -113,7 +114,7 @@ shutil.copy2(notebook_path,DOWNLOADS/'ROTATION_RAMAN_TENSOR_CALCULATION.ipynb')
 full_python='''"""Complete notebook source, version 4.
 Run with an IPython/Jupyter kernel for the interactive widget application.
 The .ipynb notebook is the recommended entry point.
-"""\n\n'''+ '\n\n'.join(f'# Code cell {item["number"]}: {item["title"]}\n'+item['source'] for item in content)
+"""\n\n'''+ '\n\n'.join(f'# %% Code cell {item["number"]}: {item["title"]}\n'+item['source'] for item in content)
 (DOWNLOADS/'ROTATION_RAMAN_TENSOR_CALCULATION.py').write_text(full_python)
 shutil.copy2(DIST/'raman_engine.py',DOWNLOADS/'raman_engine.py')
 shutil.copy2(PROJECT/'web_bridge.py',DOWNLOADS/'web_bridge.py')
@@ -172,9 +173,55 @@ Material coefficients and noncubic lattice ratios are illustrative until replace
 Separate Ag Cartesian powers are diagnostics of one phonon and are not summed
 in the main figures. A coherent full-mode audit is exported separately.
 '''
-(DOWNLOADS/'README.txt').write_text(readme)
+(DOWNLOADS/'README.txt').write_text(
+    f'Version 4 | Revision {revision} | Silicon (500) default\n\n'
+    'The recommended notebook filename includes V4, Si500, the revision and its source fingerprint.\n'
+    'Cell 1 prints this same revision before preparing the environment.\n'
+    'Open the newly downloaded file, then restart its kernel and Run All.\n'
+    'The .py source has 22 # %% cell boundaries for editors that support Python cells.\n\n'+readme)
 with zipfile.ZipFile(DOWNLOADS/'All_Python_Programs.zip','w',zipfile.ZIP_DEFLATED) as archive:
     for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','Symbols_And_References.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v4.json','silicon_startup_input_v4.json','Silicon_Startup_Polar_Plot.png']:
         archive.write(DOWNLOADS/name,name)
     for name in archive_paths:archive.write(DOWNLOADS/name,'references/'+name)
+
+# Each published revision has a separate filename. Keep the stable names as
+# compatibility copies, but use the named revision for the website's main links.
+stem='Raman_Tensor_V4_Si500_'+revision.replace('-','').upper()+'_'+source_hash[:8]
+named_files={
+    'notebook':(stem+'.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.ipynb'),
+    'python':(stem+'.py','ROTATION_RAMAN_TENSOR_CALCULATION.py'),
+}
+for filename,canonical in named_files.values():
+    shutil.copy2(DOWNLOADS/canonical,DOWNLOADS/filename)
+bundle_names={canonical:filename for filename,canonical in named_files.values()}
+bundle_path=DOWNLOADS/(stem+'.zip')
+with zipfile.ZipFile(DOWNLOADS/'All_Python_Programs.zip') as original:
+    with zipfile.ZipFile(bundle_path,'w',zipfile.ZIP_DEFLATED) as bundle:
+        for entry in original.infolist():
+            bundle.writestr(bundle_names.get(entry.filename,entry.filename),original.read(entry.filename))
+named_files['bundle']=(bundle_path.name,'All_Python_Programs.zip')
+release=dict(version='4',revision=revision,source_sha256=source_hash,code_cells=22,
+    default_input=dict(material='Si',hkl=[5,0,0],optics='CUBIC_VV'),files={})
+for key,(filename,canonical) in named_files.items():
+    payload=(DOWNLOADS/filename).read_bytes()
+    release['files'][key]=dict(filename=filename,canonical=canonical,
+        sha256=hashlib.sha256(payload).hexdigest(),size_bytes=len(payload))
+release['assets']={path.name:hashlib.sha256(path.read_bytes()).hexdigest()
+    for path in DOWNLOADS.iterdir() if path.is_file() and path.name!='RELEASE_MANIFEST.json'}
+(DATA/'release.json').write_text(json.dumps(release,indent=2)+'\n')
+(DOWNLOADS/'RELEASE_MANIFEST.json').write_text(json.dumps(release,indent=2)+'\n')
+readme_path=PROJECT/'README.md'
+readme_text=readme_path.read_text()
+for label,key in [('Download the current Python notebook','notebook'),('Download all Python programs','bundle')]:
+    record=release['files'][key]
+    pattern=r'(\['+re.escape(label)+r'\]\()([^\n)]+/downloads/)[^\n)]+(\))'
+    readme_text=re.sub(pattern,lambda match:match[1]+match[2]+record['filename']+'?sha='+record['sha256'][:12]+match[3],readme_text)
+readme_path.write_text(readme_text)
+
+# Browser caches must see a new URL whenever first-party JavaScript or CSS changes.
+index=(DIST/'index.html').read_text()
+for name in ('app.js','content.js','optical-guide.js','user-guide.js','styles.css','user-guide.css'):
+    fingerprint=hashlib.sha256((DIST/name).read_bytes()).hexdigest()[:12]
+    index=re.sub(re.escape('./'+name)+r'(?:\?[^"\s]*)?', './'+name+'?v=4-'+fingerprint,index)
+(DIST/'index.html').write_text(index)
 print('Prepared 22 cells,',sum(len(x['blocks']) for x in annotations),'annotated code blocks and Python downloads.',flush=True)

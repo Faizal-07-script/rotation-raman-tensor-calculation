@@ -3,7 +3,12 @@ Run with an IPython/Jupyter kernel for the interactive widget application.
 The .ipynb notebook is the recommended entry point.
 """
 
-# Code cell 1: Setup
+# %% Code cell 1: Setup
+PROGRAM_VERSION = "4"
+NOTEBOOK_REVISION = "2026-10-23-r2"
+print(f"Version {PROGRAM_VERSION} | Revision {NOTEBOOK_REVISION} | Silicon (500) default", flush=True)
+print("This notebook has 22 code cells. Run them in order; each completed cell reports its own success.", flush=True)
+
 # Prepare packages only when the current kernel does not already provide them.
 import importlib.util
 import subprocess
@@ -27,7 +32,7 @@ except (NameError, NotImplementedError):
 print("Cell 01/22 — Run completed successfully.\nReady: The Python environment and notebook display are ready.\nNext: Run Cell 02.", flush=True)
 
 
-# Code cell 2: Numerical helpers and figure style
+# %% Code cell 2: Numerical helpers and figure style
 """Shared symbols and small numerical helpers. No material model is selected here."""
 
 import base64
@@ -242,7 +247,7 @@ def raman_latex(expression, **settings):
 print("Cell 02/22 — Run completed successfully.\nReady: Numerical helpers, complex-coefficient input and the figure style are ready.\nNext: Run Cell 03.", flush=True)
 
 
-# Code cell 3: Crystal orientation
+# %% Code cell 3: Crystal orientation
 """Build a proper 3D frame using the direct and reciprocal lattice metrics."""
 
 
@@ -384,7 +389,7 @@ def build_orientation(config):
 print("Cell 03/22 — Run completed successfully.\nReady: The lattice, reciprocal-normal and measurement-frame functions are ready.\nNext: Run Cell 04.", flush=True)
 
 
-# Code cell 4: Tensor and material library
+# %% Code cell 4: Tensor and material library
 # First-order symmetric electric-dipole Raman tensor library.
 # Components are expressed in orthonormal Cartesian axes, not a skew lattice basis.
 def symmetric(xx=0, yy=0, zz=0, xy=0, xz=0, yz=0):
@@ -764,7 +769,7 @@ SOURCES["birefringence"] = dict(
 print("Cell 04/22 — Run completed successfully.\nReady: Material presets and symmetry-allowed Raman tensors are ready.\nNext: Run Cell 05.", flush=True)
 
 
-# Code cell 5: Jones states and optical protocols
+# %% Code cell 5: Jones states and optical protocols
 """Jones states and the optical sequence adopted from the Quarter-wave-plate notebook."""
 
 x_hat = sp.Matrix([1, 0])
@@ -1137,7 +1142,7 @@ def validate_optical_method_guide():
 print("Cell 05/22 — Run completed successfully.\nReady: Jones polarization states and optical-protocol functions are ready.\nNext: Run Cell 06.", flush=True)
 
 
-# Code cell 6: Amplitude and intensity engine
+# %% Code cell 6: Amplitude and intensity engine
 """One matrix-based scattering engine for every material and point group."""
 
 
@@ -1388,7 +1393,7 @@ def numeric_summary(result, values):
 print("Cell 06/22 — Run completed successfully.\nReady: Tensor rotation, detected amplitude and intensity functions are ready.\nNext: Run Cell 07.", flush=True)
 
 
-# Code cell 7: Optical reference model
+# %% Code cell 7: Optical reference model
 """The Quarter-wave-plate main-source model, with no REFERENCE channel or intensity rules."""
 
 # Separate REAL symbols reproduce the assumptions in Quarter-wave-plate's source.
@@ -1494,7 +1499,7 @@ def qwp_source_values(parameters):
 print("Cell 07/22 — Run completed successfully.\nReady: The supplied effective 2D optical-reference functions are ready.\nNext: Run Cell 08.", flush=True)
 
 
-# Code cell 8: Circular and complex-linear models
+# %% Code cell 8: Circular and complex-linear models
 """Paper-specific conventions, examples and conditional selection diagnostics.
 
 The circular-selection reference supply selection rules, not a quantitative vortex intensity model.
@@ -1809,7 +1814,7 @@ def resonance_element(excitation_ev, phonon_ev, contributions):
 print("Cell 08/22 — Run completed successfully.\nReady: Complex linear, circular-state and reference-example functions are ready.\nNext: Run Cell 09.", flush=True)
 
 
-# Code cell 9: Polarization and interference checks
+# %% Code cell 9: Polarization and interference checks
 """Independent polarization-state and within-mode interference diagnostics.
 
 The diagnostics do not choose coefficients, align a polar plot, or replace
@@ -2038,7 +2043,7 @@ def physics_audit_markdown(run):
 print("Cell 09/22 — Run completed successfully.\nReady: Polarization-state and interference diagnostics are ready.\nNext: Run Cell 10.", flush=True)
 
 
-# Code cell 10: Common calculation pipeline
+# %% Code cell 10: Common calculation pipeline
 """Validate one declared experiment and run the same scattering engine for all modes."""
 
 
@@ -2754,7 +2759,7 @@ def protocol_state_comparison():
 print("Cell 10/22 — Run completed successfully.\nReady: The common material-to-intensity calculation pipeline is ready.\nNext: Run Cell 11.", flush=True)
 
 
-# Code cell 11: Slide reference algebra
+# %% Code cell 11: Slide reference algebra
 """A separate derivation/check of the user-provided component reference, not a plotting engine."""
 
 @lru_cache(maxsize=1)
@@ -2938,7 +2943,7 @@ def component_ag_flow_markdown(run):
 print("Cell 11/22 — Run completed successfully.\nReady: The separate slide-reference derivation functions are ready.\nNext: Run Cell 12.", flush=True)
 
 
-# Code cell 12: Complete mathematical derivation
+# %% Code cell 12: Complete mathematical derivation
 """Readable paper notes and calculation records, with equations tied to their source."""
 
 PAPER_NOTES = "### Sources and model scope\n\nCircular selection rules: DOI 10.1039/D1CP02209A. Complex linear response: DOI 10.1039/D1CP03626B. Cubic benchmark: DOI 10.1002/jrs.70113.\n\nThe companion guides explain the assumptions and every code cell. Tensor coefficients are supplied inputs; the component reference remains an explicit separate intensity prescription."
@@ -3969,7 +3974,7 @@ def paper_intensity_latex(run, derivation):
 print("Cell 12/22 — Run completed successfully.\nReady: Derivation functions, symbol definitions, units and reference notes are ready.\nNext: Run Cell 13.", flush=True)
 
 
-# Code cell 13: Scientific figures
+# %% Code cell 13: Scientific figures
 """Create readable calculation records and figures from already-computed results."""
 
 
@@ -4550,7 +4555,7 @@ def publication_comparison(runs, channel_name, normalized=True):
 print("Cell 13/22 — Run completed successfully.\nReady: Polar-plot, Cartesian-plot and measurement-frame figure functions are ready.\nNext: Run Cell 14.", flush=True)
 
 
-# Code cell 14: Six-surface silicon benchmark
+# %% Code cell 14: Six-surface silicon benchmark
 """Cubic benchmark, computed by the existing 3D Jones engine."""
 
 CUBIC_SOURCE = dict(
@@ -4748,7 +4753,7 @@ cubic_fig1_figure = publication_cubic_figure
 print("Cell 14/22 — Run completed successfully.\nReady: The six-surface silicon benchmark and its reference checks are ready.\nNext: Run Cell 15.", flush=True)
 
 
-# Code cell 15: OriginLab handoff
+# %% Code cell 15: OriginLab handoff
 """OriginLab handoff for the computed Fig. 1 arrays, without recalculating curves."""
 
 ORIGIN_FIG1_SCRIPT = r'''"""Run inside Origin's Python Console with originpro available.
@@ -5004,7 +5009,7 @@ def make_cubic_origin_archive(study, validation=None):
 print("Cell 15/22 — Run completed successfully.\nReady: OriginLab data-export and plotting-script functions are ready.\nNext: Run Cell 16.", flush=True)
 
 
-# Code cell 16: Data, LaTeX and figure export
+# %% Code cell 16: Data, LaTeX and figure export
 """Reproducible ZIP export with explicit inputs and no dependence on widget globals."""
 
 
@@ -5286,7 +5291,7 @@ def make_general_archive(run, figures, derivation, validation=None, comparisons=
 print("Cell 16/22 — Run completed successfully.\nReady: Data, figures, annotated derivations and LaTeX export functions are ready.\nNext: Run Cell 17.", flush=True)
 
 
-# Code cell 17: Application controls
+# %% Code cell 17: Application controls
 """Notebook inputs and result controls."""
 
 import ipywidgets as widgets
@@ -5609,7 +5614,7 @@ ui = dict(busy=False, coefs={}, definitions={}, wired=False)
 print("Cell 17/22 — Run completed successfully.\nReady: Numbered input widgets are ready. The initial material is Silicon, surface (500).\nNext: Run Cell 18.", flush=True)
 
 
-# Code cell 18: Input handling
+# %% Code cell 18: Input handling
 @contextmanager
 def form_transaction():
     """Batch a preset update so observers do not interpret partial forms as active inputs."""
@@ -6004,7 +6009,7 @@ def on_load_example(_=None):
 print("Cell 18/22 — Run completed successfully.\nReady: Input handlers are ready. Enter your own values in the interface in Cell 22.\nNext: Run Cell 19.", flush=True)
 
 
-# Code cell 19: Calculation actions
+# %% Code cell 19: Calculation actions
 """Calculate once, then inspect the same matrices, components, LaTeX and plots."""
 
 
@@ -6362,7 +6367,7 @@ def on_cubic_export(_=None):
 print("Cell 19/22 — Run completed successfully.\nReady: Calculate, inspect, compare and download actions are ready for Cell 22.\nNext: Run Cell 20.", flush=True)
 
 
-# Code cell 20: Core validation
+# %% Code cell 20: Core validation
 def generator_matrices(group):
     """Return point-group generators in the same Cartesian convention as the library."""
     Rz = lambda t: sp.Matrix([[sp.cos(t), -sp.sin(t), 0], [sp.sin(t), sp.cos(t), 0], [0, 0, 1]])
@@ -6954,7 +6959,7 @@ def run_self_checks():
 print("Cell 20/22 — Run completed successfully.\nReady: Core validation functions are ready; the tests execute in Cell 22 or with tool 8.\nNext: Run Cell 21.", flush=True)
 
 
-# Code cell 21: General-model validation
+# %% Code cell 21: General-model validation
 """Independent checks against the equations and scope of the two supplied papers."""
 
 
@@ -7986,7 +7991,7 @@ def checking_report_markdown(report):
 print("Cell 21/22 — Run completed successfully.\nReady: General-model and source-reference checks are ready; the tests execute in Cell 22 or with tool 8.\nNext: Run Cell 22.", flush=True)
 
 
-# Code cell 22: Check Silicon (500) and open the application
+# %% Code cell 22: Check Silicon (500) and open the application
 """Check silicon, display its polar plot, then open the calculator."""
 
 from IPython.display import Image
