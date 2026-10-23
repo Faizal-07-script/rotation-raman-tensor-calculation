@@ -82,6 +82,7 @@ ns['plt'].close(guide_figure)
 shutil.copy2(PROJECT/'QUICKSTART.md',DOWNLOADS/'QUICKSTART.md')
 shutil.copy2(PROJECT/'SAITO_FEEDBACK_AUDIT.md',DOWNLOADS/'SAITO_FEEDBACK_AUDIT.md')
 shutil.copy2(SOURCE/'example_input_v4.json',DOWNLOADS/'example_input_v4.json')
+shutil.copy2(SOURCE/'silicon_startup_input_v4.json',DOWNLOADS/'silicon_startup_input_v4.json')
 for name,figure in ns['WEB_STATE']['figures']:
     if name.startswith('polar_'):
         figure.savefig(DIST/(name+'.svg'),format='svg',bbox_inches='tight',transparent=True)
@@ -131,11 +132,14 @@ remain available from the User guide button.
 
 Newcomers: read QUICKSTART.md and use Restart kernel and Run All.
 Every code cell prints its number and "This cell runs correctly."
-Cell 22 already loads, calculates and validates the included (211) example.
-No external input or manual code edit is needed for that initial run.
+Cell 22 loads silicon (530), T2g, d=1, VV, checks its 721-point curve against
+the reference equation and displays its polar PNG directly above the controls.
+No external input or manual code edit is needed. The Polar plots tab opens first.
 Tools are numbered 1-7 for the main workflow, with optional validation (8),
-comparisons (9), and the silicon benchmark (10). example_input_v4.json records
-the complete demonstration inputs. The guide gives expected numerical output.
+comparisons (9), and the silicon benchmark (10). silicon_startup_input_v4.json
+records the Python startup inputs; Silicon_Startup_Polar_Plot.png is the checked
+startup figure. The website retains its Ag (211) starting example, recorded in
+example_input_v4.json. The guide gives expected numerical output for silicon.
 SAITO_FEEDBACK_AUDIT.md distinguishes implemented changes from the still-pending
 independent colleague review and documentation consultation with Kumar-san.
 
@@ -161,7 +165,7 @@ in the main figures. A coherent full-mode audit is exported separately.
 '''
 (DOWNLOADS/'README.txt').write_text(readme)
 with zipfile.ZipFile(DOWNLOADS/'All_Python_Programs.zip','w',zipfile.ZIP_DEFLATED) as archive:
-    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v4.json']:
+    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v4.json','silicon_startup_input_v4.json','Silicon_Startup_Polar_Plot.png']:
         archive.write(DOWNLOADS/name,name)
     for name in archive_paths:archive.write(DOWNLOADS/name,'references/'+name)
 print('Prepared 22 cells,',sum(len(x['blocks']) for x in annotations),'annotated code blocks and Python downloads.',flush=True)

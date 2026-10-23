@@ -11,11 +11,14 @@ remain available from the User guide button.
 
 Newcomers: read QUICKSTART.md and use Restart kernel and Run All.
 Every code cell prints its number and "This cell runs correctly."
-Cell 22 already loads, calculates and validates the included (211) example.
-No external input or manual code edit is needed for that initial run.
+Cell 22 loads silicon (530), T2g, d=1, VV, checks its 721-point curve against
+the reference equation and displays its polar PNG directly above the controls.
+No external input or manual code edit is needed. The Polar plots tab opens first.
 Tools are numbered 1-7 for the main workflow, with optional validation (8),
-comparisons (9), and the silicon benchmark (10). example_input_v4.json records
-the complete demonstration inputs. The guide gives expected numerical output.
+comparisons (9), and the silicon benchmark (10). silicon_startup_input_v4.json
+records the Python startup inputs; Silicon_Startup_Polar_Plot.png is the checked
+startup figure. The website retains its Ag (211) starting example, recorded in
+example_input_v4.json. The guide gives expected numerical output for silicon.
 SAITO_FEEDBACK_AUDIT.md distinguishes implemented changes from the still-pending
 independent colleague review and documentation consultation with Kumar-san.
 

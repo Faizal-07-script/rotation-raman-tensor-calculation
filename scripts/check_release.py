@@ -31,6 +31,16 @@ assert 'AUDIT_VERSION = "4"' in "\n".join(code)
 assert "VERSION 4" in (DIST / "index.html").read_text()
 assert "version: '4'" in (DIST / "engine-worker.js").read_text()
 
+startup = book['metadata']['rotation_raman_revision']['validation']['startup_test']
+assert startup['material'] == 'Si' and startup['optics'] == 'CUBIC_VV'
+assert startup['hkl'] == [5, 3, 0] and startup['samples'] == 721
+assert startup['maximum_residual'] < 1e-10 and startup['inline_png_before_interface']
+last = [c for c in book['cells'] if c['cell_type'] == 'code'][-1]
+startup_images = [o for o in last['outputs'] if 'raman_startup_plot' in o.get('metadata', {})]
+assert len(startup_images) == 1 and 'image/png' in startup_images[0]['data']
+import base64
+assert base64.b64decode(startup_images[0]['data']['image/png']) == (DOWNLOADS / 'Silicon_Startup_Polar_Plot.png').read_bytes()
+
 tutorial = json.loads((DIST / "data/tutorial.json").read_text())
 assert sorted(c["cell"] for c in tutorial) == list(range(1, 23))
 for cell in tutorial:
@@ -46,8 +56,13 @@ with zipfile.ZipFile(DOWNLOADS / "All_Python_Programs.zip") as archive:
     assert archive.read("ROTATION_RAMAN_TENSOR_CALCULATION.ipynb") == notebook_bytes
     for name in ["ROTATION_RAMAN_TENSOR_CALCULATION.py", "raman_engine.py", "web_bridge.py"]:
         assert archive.read(name) == (DOWNLOADS / name).read_bytes()
-    for name in ["QUICKSTART.md", "SAITO_FEEDBACK_AUDIT.md", "example_input_v4.json"]:
+    for name in ["QUICKSTART.md", "SAITO_FEEDBACK_AUDIT.md", "example_input_v4.json", "silicon_startup_input_v4.json", "Silicon_Startup_Polar_Plot.png"]:
         assert archive.read(name) == (DOWNLOADS / name).read_bytes()
+
+silicon = json.loads((DOWNLOADS / "silicon_startup_input_v4.json").read_text())
+assert silicon == json.loads((ROOT / "sources/silicon_startup_input_v4.json").read_text())
+assert silicon['material'] == 'Si' and silicon['optics'] == 'CUBIC_VV'
+assert silicon['hkl'] == [5, 3, 0] and silicon['modes'] == ['T2g']
 
 assert (DOWNLOADS / "example_input_v4.json").read_bytes() == (ROOT / "sources/example_input_v4.json").read_bytes()
 sample = json.loads((DOWNLOADS / "example_input_v4.json").read_text())

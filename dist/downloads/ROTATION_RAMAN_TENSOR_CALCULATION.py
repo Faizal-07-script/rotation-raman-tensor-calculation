@@ -4990,7 +4990,7 @@ model_pick = dropdown(
     "1.1 Tensor model",
 )
 optics_pick = dropdown(
-    [(label, key) for key, label in GENERAL_PROFILES.items()], "CUBIC_SIGMA", "1.2 Optical method"
+    [(label, key) for key, label in GENERAL_PROFILES.items()], "CUBIC_VV", "1.2 Optical method"
 )
 example_pick = dropdown(
     [
@@ -5001,14 +5001,14 @@ example_pick = dropdown(
         ("Monolayer MoS2 circular-channel reference", "CIRCULAR_MOS2"),
         ("Silicon (530), VV reference frame", "SI_530"),
     ],
-    "SLIDE",
+    "SI_530",
     "1.3 Example",
 )
 load_example_button = widgets.Button(
     description="1.4 Load selected example", layout=widgets.Layout(width="260px")
 )
 case_label = widgets.Text(
-    value="Ag components on the (211) reference frame",
+    value="Silicon (530), VV reference frame",
     description="1.5 Case label",
     style=STYLE,
     layout=widgets.Layout(width="800px", max_width="100%"),
@@ -7654,8 +7654,10 @@ def checking_report_markdown(report):
 print("Cell 21/22 — This cell runs correctly. General-model checks are defined; they run from Cell 22 or tool 8.")
 
 
-# Code cell 22: Open the application
-"""Display the calculator and load the example."""
+# Code cell 22: Check silicon and open the application
+"""Check silicon, display its polar plot, then open the calculator."""
+
+from IPython.display import Image
 
 crystal_inputs = widgets.VBox(
     [
@@ -7716,7 +7718,7 @@ optical_guide_panel.selected_index = None
 app_view = widgets.VBox(
     [
         widgets.HTML(
-            "<h2>ROTATION RAMAN TENSOR CALCULATION</h2><p><b>Version 4.</b> The (211) example is ready to inspect. To use your own inputs, follow tools 1–5, press 6 to calculate, then use 7 to download. Tools 8–10 provide validation, comparisons and the silicon benchmark. Input formats and example values are listed above.</p>"
+            "<h2>ROTATION RAMAN TENSOR CALCULATION</h2><p><b>Version 4.</b> The first run uses silicon (530), VV. To use your own inputs, follow tools 1–5, press 6 to calculate, then use 7 to download. Tools 8–10 provide validation, comparisons and the silicon benchmark. Input formats and example values are listed above.</p>"
         ),
         model_pick,
         optics_pick,
@@ -7795,7 +7797,6 @@ def start_application():
     for control in [cubic_d, cubic_points]:
         control.observe(invalidate_cubic, names="value")
     ui["wired"] = True
-    display(app_view)
     with sources_out:
         display(
             Markdown(
@@ -7810,12 +7811,35 @@ def start_application():
                 "The style follows the supplied screenshots. Material symmetry, complex coefficients, lattice metric, surface orientation and optical states all enter the calculation."
             )
         )
-    load_configuration(slide_component_config())
+    load_configuration(cubic_fig1_config(3, "VV"))
     on_run()
-    if state["last_error"] is not None: raise RuntimeError(state["last_error"])
+    if state["last_error"] is not None:
+        raise RuntimeError(state["last_error"])
+    startup_theta = state["run"]["angles"]
+    startup_expected = np.sin(2 * startup_theta) ** 2 + (225 / 289) * np.cos(startup_theta) ** 4
+    np.testing.assert_allclose(
+        state["run"]["display_curves"]["T2g"], startup_expected, rtol=0, atol=1e-10,
+        err_msg="Silicon (530) VV startup check failed.",
+    )
     on_validate()
+    tabs.selected_index = tab_index["Polar plots"]
+    display(Markdown(
+        "### Silicon startup check — Si (530), VV\n\n"
+        "Passed: 721 angular samples agree with the silicon reference equation (d = 1). "
+        "This image records the startup result. For later calculations, use Polar plots below."
+    ))
+    for name, figure in state["figures"]:
+        if name.startswith("polar_"):
+            image_buffer = io.BytesIO()
+            figure.savefig(image_buffer, format="png", dpi=110, bbox_inches="tight",
+                           transparent=False, facecolor="white")
+            display(Image(data=image_buffer.getvalue()), metadata={
+                "raman_startup_plot": {"material": "Si", "surface": [5, 3, 0],
+                                       "optics": "CUBIC_VV", "channel": "T2g"}
+            })
+    display(app_view)
 
 
 start_application()
 
-print("Cell 22/22 — This cell runs correctly. The interface is displayed. Inspect Calculation status and Validation for result checks.")
+print("Cell 22/22 — This cell runs correctly. The silicon startup check passed; its polar plot and the interface are displayed. Inspect Validation for model checks.")

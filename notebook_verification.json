@@ -26,7 +26,33 @@
     "QWP source reference: 25/25 checking procedures pass."
   ],
   "cell_completion_messages": 22,
-  "example_input": "Built-in slide_component_config(): no user edits or external input file required.",
+  "example_input": "Built-in cubic_fig1_config(3, \"VV\"): Si (530), T2g, d=1; no edits or external file required.",
+  "startup_test": {
+    "material": "Si",
+    "point_group": "Oh",
+    "hkl": [
+      5,
+      3,
+      0
+    ],
+    "uvw": [
+      3,
+      -5,
+      0
+    ],
+    "optics": "CUBIC_VV",
+    "mode": "T2g",
+    "coefficient_d": 1,
+    "samples": 721,
+    "reference_equation": "sin(2\u03b8)^2 + (225/289) cos(\u03b8)^4",
+    "absolute_tolerance": 1e-10,
+    "maximum_residual": 4.440892098500626e-16,
+    "sampled_maximum": 1.2416755687678902,
+    "continuous_maximum": 1.2416756176154673,
+    "inline_png_before_interface": true,
+    "selected_result_tab": "Polar plots",
+    "redisplay_preserves_calculation": true
+  },
   "optical_reference": {
     "status": "passed",
     "kind": "QWP source reference validation",
@@ -657,5 +683,5 @@
     "notation_note": "Cells 6-11 intermittently call <\u03c3\u207b|R|\u03c3\u207a> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel."
   },
   "inactive_circular_rule_fields": "Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.",
-  "elapsed_seconds": 25.75
+  "elapsed_seconds": 19.49
 }

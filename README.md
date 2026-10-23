@@ -37,14 +37,17 @@ imports and notebook-only cell completion messages are omitted in the browser en
 
 Start with [QUICKSTART.md](QUICKSTART.md), then restart the notebook kernel and
 run all 22 cells unchanged. Each cell prints its number and “This cell runs
-correctly.” Cell 22 displays the controls, loads the included (211) example,
-calculates it and runs the actual model checks. The guide lists input formats,
-units, expected values and what each of the last cells needs.
+correctly.” Cell 22 loads silicon (530), VV, checks all 721 angular samples
+against the reference equation and displays its polar plot directly above the
+controls. It opens the Polar plots result tab and runs the model checks.
+The guide lists input formats, units, expected values and what the last cells need.
 
 Tools 1–5 set the model, tensors, orientation, Jones states and display;
 6 calculates and 7 exports. Tools 8–10 are optional validation, comparison
 and silicon benchmark actions. The same group numbers appear in the web calculator.
-The complete example input is in sources/example_input_v4.json and the program ZIP.
+The Python startup inputs are in sources/silicon_startup_input_v4.json and the
+program ZIP. The website retains its Ag (211) starting example, recorded in
+sources/example_input_v4.json; its interface and scientific engine are unchanged.
 See [SAITO_FEEDBACK_AUDIT.md](SAITO_FEEDBACK_AUDIT.md) for the five recommendations,
 their baseline status and the remaining independent review/consultation items.
 

@@ -1,7 +1,5 @@
-"""Execute the current notebook and check the corrected inactive-field path."""
+"""Execute all 22 cells and verify the visible silicon startup and inactive fields."""
 import base64
-import copy
-import io
 import json
 import os
 import time
@@ -25,8 +23,32 @@ for cell in book.cells:
     for output in captured.outputs:cell.outputs.append(nbformat.v4.new_output('display_data',data=output.data,metadata=output.metadata))
 ns=shell.user_ns
 assert ns['state']['validation']['status']=='passed', ns['state']['validation']
-assert len(ns['state']['run']['display_channels'])==3
-assert len(ns['state']['run']['angles'])==721
+startup=ns['state']['run']
+cfg=startup['config']
+assert (cfg['material'],cfg['point_group'],cfg['optics'])==('Si','Oh','CUBIC_VV')
+assert tuple(cfg['hkl'])==(5,3,0) and tuple(cfg['uvw'])==(3,-5,0)
+assert cfg['normal_sign']==1 and not cfg['normalize']
+assert cfg['modes']==['T2g'] and cfg['mode_values']['T2g'][ns['d']]==1
+assert list(startup['display_channels'])==['T2g']
+assert len(startup['angles'])==721
+assert ns['example_pick'].value=='SI_530'
+assert ns['tabs'].selected_index==ns['tab_index']['Polar plots']
+theta=startup['angles'];curve=startup['display_curves']['T2g']
+reference=ns['np'].sin(2*theta)**2+(225/289)*ns['np'].cos(theta)**4
+ns['np'].testing.assert_allclose(curve,reference,rtol=0,atol=1e-10)
+ns['np'].testing.assert_allclose(curve[[0,90,180,540,720]],
+                               [225/289,1381/1156,0,0,225/289],rtol=0,atol=1e-10)
+last=next(c for c in reversed(book.cells) if c.cell_type=='code')
+images=[o for o in last.outputs if 'raman_startup_plot' in o.get('metadata',{})]
+assert len(images)==1 and 'image/png' in images[0]['data'], [(list(o.get('data',{})),o.get('metadata',{})) for o in last.outputs if o.get('output_type')=='display_data']
+assert images[0]['metadata']['raman_startup_plot']==dict(material='Si',surface=[5,3,0],optics='CUBIC_VV',channel='T2g')
+png=base64.b64decode(images[0]['data']['image/png'])
+assert png.startswith(b'\x89PNG\r\n\x1a\n')
+app_outputs=[i for i,o in enumerate(last.outputs) if 'application/vnd.jupyter.widget-view+json' in o.get('data',{})
+             and o['data']['application/vnd.jupyter.widget-view+json']['model_id']==ns['app_view'].model_id]
+assert app_outputs and last.outputs.index(images[0])<app_outputs[0]
+with capture_output():ns['start_application']()
+assert ns['state']['run'] is startup, 'Redisplay must preserve the current calculation.'
 with capture_output():
     ns['optics_pick'].value='CIRCULAR_SAME';ns['circular_charges'].value='';ns['on_run']()
 assert ns['state']['last_error'] is not None
@@ -37,17 +59,21 @@ with capture_output():
     ns['optics_pick'].value='CIRCULAR_SAME';ns['on_run']()
 assert ns['state']['last_error'] is not None
 with capture_output():
-    ns['load_configuration'](ns['slide_component_config']());ns['on_run']()
+    ns['load_configuration'](ns['cubic_fig1_config'](3,'VV'));ns['on_run']()
+    ns['tabs'].selected_index=ns['tab_index']['Polar plots']
 assert ns['state']['last_error'] is None
 book.metadata['widgets']={'application/vnd.jupyter.widget-state+json':embed_data([ns['app_view']],state=dependency_state([ns['app_view']]))['manager_state']}
-last=next(c for c in reversed(book.cells) if c.cell_type=='code')
-for name,figure in ns['state']['figures']:
-    if name.startswith('polar_'):
-        b=io.BytesIO();figure.savefig(b,format='png',dpi=110,bbox_inches='tight',transparent=False,facecolor='white')
-        last.outputs.append(nbformat.v4.new_output('display_data',data={'image/png':base64.b64encode(b.getvalue()).decode()},metadata={}))
+(P.parents[1]/'dist/downloads/Silicon_Startup_Polar_Plot.png').write_bytes(png)
 record=dict(status='passed',version='4',checks=ns['state']['validation']['checks'],
     cell_completion_messages=22,
-    example_input='Built-in slide_component_config(): no user edits or external input file required.',
+    example_input='Built-in cubic_fig1_config(3, "VV"): Si (530), T2g, d=1; no edits or external file required.',
+    startup_test=dict(material='Si',point_group='Oh',hkl=[5,3,0],uvw=[3,-5,0],
+        optics='CUBIC_VV',mode='T2g',coefficient_d=1,samples=721,
+        reference_equation='sin(2θ)^2 + (225/289) cos(θ)^4',absolute_tolerance=1e-10,
+        maximum_residual=float(ns['np'].max(ns['np'].abs(curve-reference))),
+        sampled_maximum=float(curve.max()),continuous_maximum=1156/931,
+        inline_png_before_interface=True,selected_result_tab='Polar plots',
+        redisplay_preserves_calculation=True),
     optical_reference=ns['state']['validation']['optical_reference'],
     inactive_circular_rule_fields='Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.',
     elapsed_seconds=round(time.time()-started,2))
