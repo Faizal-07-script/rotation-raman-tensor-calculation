@@ -1,8 +1,22 @@
-"""261024 - Raman Tensor Rotation Ver 4.0.
-Complete notebook source, version 4.
-Run with an IPython/Jupyter kernel for the interactive widget application.
-The .ipynb notebook is the recommended entry point.
-"""
+# %% [markdown]
+# # ROTATION RAMAN TENSOR CALCULATION
+#
+# **Version 4**
+#
+# Run all cells in order. Select the tensor model and optical method, enter the crystal inputs, then calculate. Ag Cartesian contributions are plotted separately. The result ZIP includes full mathematical steps, symbolic LaTeX and figures.
+#
+# ## Symbols
+#
+# | Symbol | Meaning |
+# | --- | --- |
+# | α | Analyzer or detection-state scan angle |
+# | θ | Linear polarization angle |
+# | β, β′ | Relative Jones-state phases in the reference convention |
+# | βᵢ, βₛ | Incident and detected Jones-state phases in the direct controls |
+# | ψ | In-plane frame rotation |
+# | δ, φ | Effective-source phases |
+# | σ⁺, σ⁻; σ⁺α | Circular basis states; circular-input analyzer scan |
+# | Γ; Δ; ∑ | Brillouin-zone center; a difference; summation |
 
 # %% Code cell 1: Setup
 PROGRAM_VERSION = "4"

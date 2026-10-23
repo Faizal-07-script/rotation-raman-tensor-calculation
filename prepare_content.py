@@ -86,7 +86,10 @@ ns['plt'].close(guide_figure)
 (DOWNLOADS/'Optical_Methods_Guide.md').write_text(ns['optical_methods_overview_markdown']()+'\n\n'+'\n\n'.join(ns['optical_method_markdown'](key) for key in ns['GENERAL_PROFILES']))
 (DOWNLOADS/'Symbols_And_References.md').write_text(ns['symbols_and_references_markdown']())
 shutil.copy2(PROJECT/'QUICKSTART.md',DOWNLOADS/'QUICKSTART.md')
-shutil.copy2(PROJECT/'SAITO_FEEDBACK_AUDIT.md',DOWNLOADS/'SAITO_FEEDBACK_AUDIT.md')
+feedback_path=PROJECT/'Saito-sensei feedback.md'
+if not feedback_path.is_file():
+    feedback_path=PROJECT/'SAITO_FEEDBACK_AUDIT.md'
+shutil.copy2(feedback_path,DOWNLOADS/'SAITO_FEEDBACK_AUDIT.md')
 shutil.copy2(SOURCE/'example_input_v4.json',DOWNLOADS/'example_input_v4.json')
 shutil.copy2(SOURCE/'silicon_startup_input_v4.json',DOWNLOADS/'silicon_startup_input_v4.json')
 for name,figure in ns['WEB_STATE']['figures']:
@@ -111,11 +114,9 @@ for item in annotations:
 (DATA/'tutorial.json').write_text(json.dumps(annotations))
 
 shutil.copy2(notebook_path,DOWNLOADS/'ROTATION_RAMAN_TENSOR_CALCULATION.ipynb')
-full_python='''"""261024 - Raman Tensor Rotation Ver 4.0.
-Complete notebook source, version 4.
-Run with an IPython/Jupyter kernel for the interactive widget application.
-The .ipynb notebook is the recommended entry point.
-"""\n\n'''+ '\n\n'.join(f'# %% Code cell {item["number"]}: {item["title"]}\n'+item['source'] for item in content)
+intro=''.join(notebook['cells'][0]['source'])
+full_python='# %% [markdown]\n'+ '\n'.join('# '+line if line else '#' for line in intro.splitlines())+'\n\n'
+full_python+='\n\n'.join(f'# %% Code cell {item["number"]}: {item["title"]}\n'+item['source'] for item in content)
 (DOWNLOADS/'ROTATION_RAMAN_TENSOR_CALCULATION.py').write_text(full_python)
 shutil.copy2(DIST/'raman_engine.py',DOWNLOADS/'raman_engine.py')
 shutil.copy2(PROJECT/'web_bridge.py',DOWNLOADS/'web_bridge.py')

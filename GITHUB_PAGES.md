@@ -1,5 +1,7 @@
 # GitHub Pages
 
+**Release Version 4: Greek Notation and Improved Instructions**
+
 The website and Python program use Version 4. The static website in `dist/`
 runs its scientific Python engine in the browser. A separate Python server
 or ChatGPT login is not required by this application.
@@ -28,6 +30,10 @@ python scripts/check_release.py
 Commit both the sources and generated `dist/` files. The Pages workflow
 publishes those exact checked static assets. The workflow does not rerun
 scientific calculations or infer tensor coefficients during deployment.
+
+Keep the notebook opening cell brief: title, version, the run instructions
+and the Symbols table. Detailed instructions remain in the later cell guides
+and `QUICKSTART.md`. The Python export uses the same opening cell.
 
 Official instructions:
 https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages

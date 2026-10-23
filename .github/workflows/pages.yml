@@ -1,4 +1,4 @@
-name: Publish Version 4 website
+name: "Release Version 4: Greek Notation and Improved Instructions"
 
 on:
   push:
