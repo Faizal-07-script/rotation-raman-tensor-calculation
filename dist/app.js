@@ -8,13 +8,13 @@ const rich = value => esc(value).replace(/\x60([^\x60]+)\x60/g, '<code>$1</code>
 const compact = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(Number(value).toPrecision(7)).toString() : '—';
 const S = {catalog:null,cells:[],tutorial:[],form:null,result:null,dirty:false,busy:false,tab:'plots',
   error:null,comparisons:[],comparison:null,benchmark:null,validation:null,runtimeHasRun:false,
-  selectedExample:'SLIDE',relation:'free',lastCrystal:null,openGroups:new Set(),searchIndex:[]};
+  selectedExample:'SI_500',relation:'free',lastCrystal:null,openGroups:new Set(),searchIndex:[]};
 let toastTimer,preparedDownloadUrl;
 
 class PythonEngine {
   constructor(){this.worker=null;this.pending=new Map();this.sequence=0;this.ready=false;this.loading=null;}
   create(){
-    this.worker=new Worker('./engine-worker.js?v=4');
+    this.worker=new Worker('./engine-worker.js?v=4-si500-symbols');
     this.worker.onmessage=event=>{
       const data=event.data;
       if(data.kind==='progress'){$('#operation-message').textContent=data.message;return;}
@@ -40,7 +40,7 @@ function download(content,name,type='text/plain'){if(preparedDownloadUrl)URL.rev
 async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Copied to clipboard.');}catch{const area=document.createElement('textarea');area.value=text;document.body.append(area);area.select();document.execCommand('copy');area.remove();toast('Copied to clipboard.');}}
 function sourceLinks(ids=[]){return ids.length?'<div class="citations">Sources: '+ids.map(id=>{const r=RAMAN_DOCS.references.find(x=>x.id===id);return r?'<a href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">['+r.number+'] '+esc(r.authors)+'</a>':'';}).join(' · ')+'</div>':'';}
 function typeset(root=document){
-  $$('[data-tex]',root).forEach(node=>{if(node.dataset.rendered)return;try{katex.render(node.dataset.tex,node,{displayMode:true,throwOnError:false,strict:false,trust:false});node.dataset.rendered='true';}catch{node.textContent=node.dataset.tex;}});
+  $$('[data-tex]',root).forEach(node=>{if(node.dataset.rendered)return;try{katex.render(node.dataset.tex,node,{displayMode:!node.hasAttribute('data-inline'),throwOnError:false,strict:false,trust:false});node.dataset.rendered='true';}catch{node.textContent=node.dataset.tex;}});
   $$('code.language-python',root).forEach(node=>{if(!node.dataset.highlighted)hljs.highlightElement(node);});
 }
 function slug(value){return String(value).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}
@@ -73,12 +73,12 @@ $('.skip-link').addEventListener('click',event=>{event.preventDefault();$('#main
 $('#dismiss-download').addEventListener('click',()=>{$('#download-ready').hidden=true;if(preparedDownloadUrl)URL.revokeObjectURL(preparedDownloadUrl);preparedDownloadUrl=null;});
 
 function renderHome(){
-  return '<section class="hero"><div><span class="kicker">RAMAN TENSOR CALCULATION</span><h1>Raman intensity<br>for your crystal.</h1><p class="lead">Choose the crystal orientation, tensor coefficients and polarization. Calculate polar plots and follow the equations in Python.</p><div class="button-row"><a class="button" href="#calculator">Open the calculator <span aria-hidden="true">→</span></a><a class="text-link" href="#tutorial">Explore the Python code ↗</a></div></div><div class="hero-visual"><img src="./polar_Ag_xx.svg" alt="Calculated Ag(xx) polar intensity on the reference (211) frame"><div class="figure-label"><strong>Ag(xx) example</strong>CaNb₂O₆ · (211) reference XY frame<br>Separate Ag(xx) contribution</div></div></section>'+
+  return '<section class="hero"><div><span class="kicker">RAMAN TENSOR CALCULATION</span><h1>Raman intensity<br>for your crystal.</h1><p class="lead">Choose the crystal orientation, tensor coefficients and polarization. Calculate polar plots and follow the equations in Python.</p><div class="button-row"><a class="button" href="#calculator">Open the calculator <span aria-hidden="true">→</span></a><a class="text-link" href="#tutorial">Explore the Python code ↗</a></div></div><div class="hero-visual"><img src="./polar_T2g.svg" alt="Silicon (500), T2g polar intensity with VV polarization"><div class="figure-label"><strong>Silicon (500) · VV</strong>Si / Oh · T2g triplet<br>Shared d = 1 · relative intensity</div></div></section>'+
     '<div class="stats-row"><div class="stat"><strong>21</strong><span>Point-group templates<br>Cartesian axis conventions</span></div><div class="stat"><strong>9</strong><span>Optical profiles<br>linear and circular polarization</span></div><div class="stat"><strong>22</strong><span>Python code cells<br>source and notes</span></div></div>'+
     renderOpticalGuide()+
     '<div class="section-heading"><h2>Getting started</h2></div><div class="grid-3 paths"><a class="path-card" href="#introduction"><span class="path-number">UNDERSTAND THE TOOLS</span><h3>Choose your inputs</h3><p>Tensor models, optical methods, crystal axes, coefficients and output conventions.</p><span class="path-action">Read the introduction →</span></a><a class="path-card" href="#tutorial"><span class="path-number">INSPECT THE CODE</span><h3>Read the Python program</h3><p>Read the exact source beside its purpose, call sequence, mathematics and checks.</p><span class="path-action">Open the tutorial →</span></a><a class="path-card" href="#physics"><span class="path-number">CHECK THE PHYSICS</span><h3>Equations and references</h3><p>Jones vectors, full tensor rotations, coherent interference and independent validation.</p><span class="path-action">Explore the equations →</span></a></div>'+
-    '<div class="section-heading"><h2>Calculation steps</h2></div><div class="card"><div class="workflow-strip"><div class="workflow-item"><strong>Crystal frame</strong><p>Lattice → surface normal → T</p></div><div class="workflow-item"><strong>Rotated tensor</strong><p>Full 3×3 response in the measurement frame</p></div><div class="workflow-item"><strong>Optical amplitude</strong><p>Incident state → tensor → detected state</p></div><div class="workflow-item"><strong>Intensity & export</strong><p>Polar plots, mathematical steps and raw data</p></div></div>'+math(String.raw`R_{lab}=T^TR_cT,\qquad \mathcal A=e_s^\dagger R_\perp E_i,\qquad I=|\mathcal A|^2`)+'</div>'+
-    '<div class="feature-kernel"><div><h3>Try the (211) example</h3><p>The initial (211) example keeps Ag(xx), Ag(yy) and Ag(zz) separate. Every figure has matching raw data and calculated equations.</p></div><a class="button secondary" href="#calculator">Calculate the reference</a></div>'+
+    '<div class="section-heading"><h2>Calculation steps</h2></div><div class="card"><div class="workflow-strip"><div class="workflow-item"><strong>Crystal frame</strong><p>Lattice → surface normal → T</p></div><div class="workflow-item"><strong>Rotated tensor</strong><p>Full 3×3 response in the measurement frame</p></div><div class="workflow-item"><strong>Optical amplitude</strong><p>Incident state → tensor → detected state</p></div><div class="workflow-item"><strong>Intensity & export</strong><p>Polar plots, mathematical steps and raw data</p></div></div>'+math(String.raw`R_{lab}=T^TR_cT,\qquad \mathcal A=e_s^\dagger R_\perp E_i,\qquad I=|\mathcal A|^2`)+equationNotes(S.catalog.home_equation)+'</div>'+
+    '<div class="feature-kernel"><div><h3>Start with Silicon (500)</h3><p>The initial example uses the Si T2g triplet, VV polarization and d = 1. Each calculated equation includes symbol definitions, units and source notes. Other material examples are available in tool 1.3.</p></div><a class="button secondary" href="#calculator">Open the silicon example</a></div>'+
     '<p class="small-note" style="margin-top:22px">Ideal transverse plane-wave model. Coefficients and noncubic lattice ratios are declared inputs; the program does not infer them from a material name.</p>';
 }
 function renderIntroduction(){
@@ -150,7 +150,8 @@ function renderReferences(downloadOnly=false){
     ['ZIP','All Python programs','Version 4 notebook, scientific engine, browser adapter, stylesheet and original references','All_Python_Programs.zip'],
     ['PY','Complete Python cell source','Matching version 4 source for an IPython/Jupyter kernel','ROTATION_RAMAN_TENSOR_CALCULATION.py'],
     ['MD','First run & numbered tools','Input formats, units, last-cell instructions and expected example outputs','QUICKSTART.md'],
-    ['JSON','Complete example input','The supplied (211) demonstration configuration; the notebook loads this example automatically','example_input_v4.json'],
+    ['JSON','Silicon (500) startup input','The same Si T2g, VV, d = 1 example used by the notebook and website','example_input_v4.json'],
+    ['MD','Symbols, units & derivation references','Definitions shown below the calculated equations, with unit conventions and source locations','Symbols_And_References.md'],
     ['MD','Saito-sensei feedback audit','What was already available, what was added and which reviews remain pending','SAITO_FEEDBACK_AUDIT.md'],
     ['PY','Reusable scientific engine','The same scientific functions without notebook-only rich-display imports','raman_engine.py'],
     ['PY','Browser JSON adapter','Validated input/output adapter used by this website','web_bridge.py'],
@@ -346,10 +347,17 @@ function resultFigures(figures,frameOnly=false){
   return figures.map((figure,index)=>({figure,index})).filter(({figure})=>frameOnly?figure.name==='measurement_frame':figure.name!=='measurement_frame').map(({figure,index})=>
     '<figure class="result-figure"><figcaption><strong>'+esc(figure.name.replaceAll('_',' '))+'</strong><div class="figure-actions"><button data-figure-svg="'+index+'" '+(S.dirty?'disabled':'')+'>SVG ↓</button><button data-figure-export="'+index+'" data-extension="png" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PNG 600 dpi ↓</button><button data-figure-export="'+index+'" data-extension="pdf" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PDF ↓</button></div></figcaption><img src="'+figure.png+'" alt="'+esc(figure.name.replaceAll('_',' '))+'"></figure>').join('')||'<div class="empty-state"><p>No 3D frame applies to this optical-source model.</p></div>';
 }
+function equationNotes(entry){
+  if(!entry.symbols?.length)return '';
+  const references=S.result?.derivation_references||S.catalog.derivation_references||{};
+  const rows=entry.symbols.map(symbol=>['<span class="symbol-math" data-inline data-tex="'+esc(symbol.latex)+'"></span>',esc(symbol.meaning),esc(symbol.units)]);
+  const sources=(entry.reference_ids||[]).map(id=>{const ref=references[id];if(!ref)return '';return (ref.url?'<a href="'+esc(ref.url)+'" target="_blank" rel="noopener noreferrer">'+esc(ref.label)+'</a>':esc(ref.label))+' <span>'+esc(ref.location)+'</span>';}).filter(Boolean);
+  return '<div class="equation-notes"><h4>Symbols and units</h4>'+table(['Symbol','Meaning','Unit / convention'],rows,'symbol-table')+'<p class="derivation-note"><strong>Derivation / source:</strong> '+esc(entry.derivation_note)+'</p><ul class="equation-references">'+sources.map(source=>'<li>'+source+'</li>').join('')+'</ul></div>';
+}
 function derivationHtml(entries){
   const groups=[];for(const entry of entries){if(entry.kind==='section')groups.push({title:entry.value,entries:[]});else{if(!groups.length)groups.push({title:'Mathematical derivation',entries:[]});groups.at(-1).entries.push(entry);}}
   return '<div class="content-section-tools"><button class="icon-button" data-expand-math>Expand all steps</button><button class="icon-button" data-collapse-math>Collapse all steps</button></div>'+
-    groups.map((group,i)=>'<details class="result-math-section" '+(i<3?'open':'')+'><summary>'+esc(group.title)+'</summary><div class="result-math-body">'+group.entries.map(entry=>entry.kind==='equation'?math(entry.value):'<p>'+rich(entry.value)+'</p>').join('')+'</div></details>').join('');
+    groups.map((group,i)=>'<details class="result-math-section" '+(i<3?'open':'')+'><summary>'+esc(group.title)+'</summary><div class="result-math-body">'+group.entries.map(entry=>entry.kind==='equation'?math(entry.value)+equationNotes(entry):'<p>'+rich(entry.value)+'</p>').join('')+'</div></details>').join('');
 }
 function renderValues(result){
   const rows=result.channels.map(c=>[esc(c.name),compact(c.summary.Imin),compact(c.summary.Imax),c.summary.alpha_max===null?'constant / zero':compact(c.summary.alpha_max)+'°']);
@@ -420,7 +428,7 @@ function resultBody(){
 function renderCalculator(section){
   const r=S.result;
   return heading('CALCULATOR','Raman intensity calculator','Choose your inputs in tools 1–5, then press 6. View the plots, equations and data in the result tabs.')+
-    '<details class="card doc-section" id="calculator-quickstart"><summary><strong>First run: numbered tools & example inputs</strong></summary><p>Follow <strong>1 → 2 → 3 → 4 → 5 → 6</strong>, then inspect results and use <strong>7</strong> to download. Optional: <strong>8</strong> validates, <strong>9</strong> compares, <strong>10</strong> benchmarks silicon.</p><p>To reproduce the supplied example, choose <strong>Slide-frame Ag components (211)</strong> in 1.3, press <strong>1.4 Load selected example</strong>, then <strong>6. Calculate</strong>. This replaces the current form with full 3D / σ⁺α optics, CaNb2O6 / D2h / Ag, a=1, b=0.8, c=0.6 with zero phases, hkl=(2,1,1), uvw=(0,1,−1), normal −1, ψ=0°, unity lattice lengths and 90° lattice angles. These are demonstration inputs.</p><p>Expected: 3 separate Ag channels, 721 samples and 271 equations. Maximum raw intensities: Ag(xx)=0.05555555555555555, Ag(yy)=0.13333333333333333, Ag(zz)=0.075 (absolute tolerance 1e-10). For both VV and VH, change 1.2 to the paired linear profile and calculate again.</p><p>The downloaded notebook loads and calculates its first example automatically when all 22 cells run. On this webpage, a stored reference example is labeled as saved; press 6 to calculate it in your own browser.</p><div class="button-row"><a class="button secondary small" href="./downloads/QUICKSTART.md?v=4" download>Download complete input guide</a><a class="text-link" href="./downloads/example_input_v4.json?v=4" download>Example input JSON ↓</a></div></details>'+
+    '<details class="card doc-section" id="calculator-quickstart"><summary><strong>First run: numbered tools &amp; Silicon (500) inputs</strong></summary><p>Follow <strong>1 → 2 → 3 → 4 → 5 → 6</strong>, then inspect results and use <strong>7</strong> to download. Optional: <strong>8</strong> validates, <strong>9</strong> compares and <strong>10</strong> benchmarks silicon.</p><p>The initial example is <strong>Silicon (500), VV</strong>: full 3D tensor, Si / Oh / T2g, shared d = 1 with zero phase, hkl = (5,0,0), uvw = (0,−5,0), normal +1, ψ = 0°, equal lattice lengths and 90° lattice angles. Tool 1.3 also offers the other reference examples; press 1.4 to load the selected example and then 6 to calculate.</p><p>Expected: one T2g curve combining three orthogonal phonon partners, 721 samples, zero at θ = 0° and 90°, and a maximum of 1 at θ = 45° (absolute tolerance 1e-10). For a VV/VH pair, change 1.2 to the paired linear profile and calculate again.</p><p>Each calculated equation has a Symbols and units table and a source note immediately below it. The downloaded notebook calculates the silicon example automatically after all 22 cells run, and every cell prints its own success message. On this webpage the first result is labeled as a saved reference; press 6 to run it in your browser.</p><div class="button-row"><a class="button secondary small" href="./downloads/QUICKSTART.md?v=4-si500-symbols" download>Download input guide</a><a class="text-link" href="./downloads/example_input_v4.json?v=4-si500-symbols" download>Silicon input JSON ↓</a><a class="text-link" href="./downloads/Symbols_And_References.md?v=4-si500-symbols" download>Symbols &amp; references ↓</a></div></details>'+
     '<div class="calc-layout">'+renderControls()+'<section class="calc-results" id="calculator-results"><div class="calc-status" id="calculation-status">'+(S.dirty?'<strong>Inputs changed — calculate to update the result.</strong><p>Previous figures describe previous inputs. Current-result downloads are disabled.</p>':r?'<strong>'+esc(r.case)+'</strong><p>'+esc(S.catalog.profiles[r.configuration.optics]||r.configuration.optics)+' · '+r.channels.length+' displayed channels · '+r.equation_count+' equations'+(!S.runtimeHasRun?' · saved reference example':'')+'</p>':'<strong>Ready for your inputs.</strong><p>Start a calculation to generate all outputs.</p>')+'</div>'+
     (S.error?'<div class="engine-error"><strong>Calculation could not complete.</strong><p>'+esc(S.error.split('\n').filter(Boolean).at(-1))+'</p><details><summary>Show diagnostic details</summary><pre>'+esc(S.error)+'</pre></details></div>':'')+
     '<div class="results-toolbar"><div class="button-row"><button class="button small" data-result-download="zip" '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>7.1 Download complete result ↓</button><button class="button secondary small" data-result-download="csv" '+(!r||S.dirty||S.busy?'disabled':'')+'>7.2 Raw CSV ↓</button><button class="button secondary small" data-add-comparison '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>9.1 Save comparison</button></div></div>'+
@@ -477,7 +485,7 @@ document.addEventListener('change',event=>{
   if(target.id==='tensor-model'){
     const next=target.value;
     if(next==='QWP_SOURCE_2D'){S.lastCrystal=clone(S.form);S.form=clone(S.catalog.examples.QWP_2D.config);}
-    else S.form=clone(S.lastCrystal||S.catalog.examples.SLIDE.config);
+    else S.form=clone(S.lastCrystal||S.catalog.examples[S.catalog.default_example].config);
     invalidate();replaceControls();return;
   }
   if(target.id==='material'){materialChange(target.value);return;}
@@ -553,7 +561,7 @@ function search(query){
 async function initialize(){
   try{
     const [catalog,cells,tutorial,example]=await Promise.all(['catalog','cells','tutorial','reference-example'].map(async name=>{const response=await fetch('./data/'+name+'.json',{cache:'no-cache'});if(!response.ok)throw new Error('Unable to load '+name+'.');return response.json();}));
-    S.catalog=catalog;S.cells=cells.cells;S.sourceHash=cells.source_sha256;S.tutorial=tutorial;S.form=clone(catalog.examples.SLIDE.config);S.result=example;S.lastCrystal=clone(S.form);
+    S.catalog=catalog;S.cells=cells.cells;S.sourceHash=cells.source_sha256;S.tutorial=tutorial;S.form=clone(catalog.examples[catalog.default_example].config);S.selectedExample=catalog.default_example;S.result=example;S.lastCrystal=clone(S.form);
     S.searchIndex=[...Object.entries(RAMAN_DOCS.tools).map(([key,d])=>({href:'#introduction/'+key,label:d.title,category:'Introduction',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()})),
       ...S.cells.map(c=>({href:'#tutorial/cell/'+c.number,label:'Cell '+c.number+' · '+c.title,category:'Python tutorial',text:('cell '+c.number+' cell'+c.number+' '+c.title+' '+c.source).toLowerCase()})),
       ...Object.entries(RAMAN_DOCS.physics).map(([key,d])=>({href:'#physics/'+key,label:d.title,category:'Physics & equations',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()}))];

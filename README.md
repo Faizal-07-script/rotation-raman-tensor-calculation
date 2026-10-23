@@ -36,8 +36,8 @@ imports and notebook-only cell completion messages are omitted in the browser en
 ## First run and numbered tools
 
 Start with [QUICKSTART.md](QUICKSTART.md), then restart the notebook kernel and
-run all 22 cells unchanged. Each cell prints its number and “This cell runs
-correctly.” Cell 22 loads silicon (530), VV, checks all 721 angular samples
+run all 22 cells unchanged. Each cell prints its number and “Run completed
+successfully.” Cell 22 loads silicon (500), VV, checks all 721 angular samples
 against the reference equation and displays its polar plot directly above the
 controls. It opens the Polar plots result tab and runs the model checks.
 The guide lists input formats, units, expected values and what the last cells need.
@@ -45,9 +45,12 @@ The guide lists input formats, units, expected values and what the last cells ne
 Tools 1–5 set the model, tensors, orientation, Jones states and display;
 6 calculates and 7 exports. Tools 8–10 are optional validation, comparison
 and silicon benchmark actions. The same group numbers appear in the web calculator.
-The Python startup inputs are in sources/silicon_startup_input_v4.json and the
-program ZIP. The website retains its Ag (211) starting example, recorded in
-sources/example_input_v4.json; its interface and scientific engine are unchanged.
+The notebook and website both start with Silicon (500), T2g, d=1, VV. The
+matching startup inputs are recorded in sources/silicon_startup_input_v4.json
+and sources/example_input_v4.json. Other material examples remain selectable.
+Each derived equation includes its symbol meanings, unit conventions and
+reference/algebra note; the Markdown and LaTeX exports contain the same notes.
+See dist/downloads/Symbols_And_References.md for the complete glossary.
 See [SAITO_FEEDBACK_AUDIT.md](SAITO_FEEDBACK_AUDIT.md) for the five recommendations,
 their baseline status and the remaining independent review/consultation items.
 

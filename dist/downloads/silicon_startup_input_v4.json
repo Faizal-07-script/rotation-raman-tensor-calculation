@@ -1,5 +1,5 @@
 {
-  "calculation_method": "CUBIC_REF",
+  "calculation_method": "GENERAL",
   "paper_parameters": {
     "s_in": 1,
     "N": 2,
@@ -9,12 +9,12 @@
     ],
     "absorption_delta_m": null,
     "thin_2d_assumptions": false,
-    "theta0_deg": 0,
-    "analyzer_zero_deg": 45
+    "theta0_deg": "0",
+    "analyzer_zero_deg": "45"
   },
   "tensor_model": "CRYSTAL_3D",
   "source_parameters": null,
-  "case_label": "Cubic benchmark VV: (530)",
+  "case_label": "Cubic benchmark VV: (500)",
   "input_note": "Si T2g triplet; paper Eq. 4 axes, Eq. 11 states, common d; theoretical matrix calculation.",
   "material": "Si",
   "point_group": "Oh",
@@ -41,15 +41,15 @@
   "orientation": "hkl",
   "hkl": [
     5,
-    3,
+    0,
     0
   ],
   "uvw": [
-    3,
+    0,
     -5,
     0
   ],
-  "azimuth_deg": 0,
+  "azimuth_deg": "0",
   "normal_sign": 1,
   "allow_reflection": false,
   "T_manual": [
@@ -70,16 +70,20 @@
     ]
   ],
   "optics": "CUBIC_VV",
-  "direct_jones": {
-    "theta_i_deg": 45.0,
-    "beta_i_deg": 90.0,
-    "theta_s0_deg": 45.0,
-    "beta_s_deg": 0.0
-  },
+  "direct_jones": null,
   "ag_rule": "COHERENT_SINGLE_TENSOR",
   "normalize": false,
   "show_steps": true,
-  "show_components": false,
+  "show_components": true,
   "show_geometry": true,
-  "plot_points": 721
+  "plot_points": 721,
+  "split_ag_plots": true,
+  "cartesian_plots": false,
+  "include_complete_audit": false,
+  "report_view": "GENERAL",
+  "effective_optical_parameters": {
+    "theta0_deg": "0",
+    "scan": "co-rotating linear states",
+    "channels": "vv"
+  }
 }

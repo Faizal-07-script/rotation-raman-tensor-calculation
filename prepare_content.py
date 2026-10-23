@@ -59,7 +59,7 @@ parts=[]
 for i in selected:
     source=content[i-1]['source']
     source=re.sub(r'^from IPython\.display import .*\n','',source,flags=re.M)
-    source=re.sub(r'^print\("Cell \d{2}/22 — This cell runs correctly\.[^\n]*\n?', '', source, flags=re.M)
+    source=re.sub(r'^print\("Cell \d{2}/22 — Run completed successfully\.[^\n]*\n?', '', source, flags=re.M)
     parts.append(f'\n# ==== Notebook code cell {i}: {titles[i-1]} ====\n'+source)
 engine=(prefix+'\n\n'.join(parts)).rstrip()+'\n'
 compile(engine,'raman_engine.py','exec')
@@ -71,14 +71,19 @@ ns={}
 exec(compile(engine,'raman_engine.py','exec'),ns)
 exec(compile((PROJECT/'web_bridge.py').read_text(),'web_bridge.py','exec'),ns)
 catalog=ns['web_catalog']()
+example=ns['web_calculate'](json.dumps(catalog['examples'][catalog['default_example']]['config']))
+canonical_startup=json.loads(example)['configuration']
+catalog['examples'][catalog['default_example']]['config']=canonical_startup
 (DATA/'catalog.json').write_text(ns['web_json'](catalog))
-example=ns['web_calculate'](json.dumps(catalog['examples']['SLIDE']['config']))
+for name in ['example_input_v4.json','silicon_startup_input_v4.json']:
+    (SOURCE/name).write_text(json.dumps(canonical_startup,indent=2)+'\n')
 (DATA/'reference-example.json').write_text(example)
 print('Native reference example generated.',flush=True)
 guide_figure=ns['optical_profile_comparison_figure']()
 guide_figure.savefig(DIST/'optical_profile_comparison.svg',format='svg',bbox_inches='tight',transparent=False,facecolor='white')
 ns['plt'].close(guide_figure)
 (DOWNLOADS/'Optical_Methods_Guide.md').write_text(ns['optical_methods_overview_markdown']()+'\n\n'+'\n\n'.join(ns['optical_method_markdown'](key) for key in ns['GENERAL_PROFILES']))
+(DOWNLOADS/'Symbols_And_References.md').write_text(ns['symbols_and_references_markdown']())
 shutil.copy2(PROJECT/'QUICKSTART.md',DOWNLOADS/'QUICKSTART.md')
 shutil.copy2(PROJECT/'SAITO_FEEDBACK_AUDIT.md',DOWNLOADS/'SAITO_FEEDBACK_AUDIT.md')
 shutil.copy2(SOURCE/'example_input_v4.json',DOWNLOADS/'example_input_v4.json')
@@ -131,15 +136,19 @@ instructions. The scientific calculations are unchanged. Optional website guides
 remain available from the User guide button.
 
 Newcomers: read QUICKSTART.md and use Restart kernel and Run All.
-Every code cell prints its number and "This cell runs correctly."
-Cell 22 loads silicon (530), T2g, d=1, VV, checks its 721-point curve against
+Every code cell prints "Run completed successfully.", its number, what is ready
+and which cell to run next. Each cell also explains its role, inputs and outputs.
+Cell 22 loads silicon (500), T2g, d=1, VV, checks its 721-point curve against
 the reference equation and displays its polar PNG directly above the controls.
 No external input or manual code edit is needed. The Polar plots tab opens first.
 Tools are numbered 1-7 for the main workflow, with optional validation (8),
 comparisons (9), and the silicon benchmark (10). silicon_startup_input_v4.json
 records the Python startup inputs; Silicon_Startup_Polar_Plot.png is the checked
-startup figure. The website retains its Ag (211) starting example, recorded in
-example_input_v4.json. The guide gives expected numerical output for silicon.
+startup figure. The website also starts with Si (500); example_input_v4.json
+records the same input configuration. Other material examples remain available.
+Symbols_And_References.md collects the symbol definitions, unit conventions and
+sources shown directly below every calculated equation in the notebook and website.
+The full, symbolic and numerical LaTeX exports include those explanations.
 SAITO_FEEDBACK_AUDIT.md distinguishes implemented changes from the still-pending
 independent colleague review and documentation consultation with Kumar-san.
 
@@ -165,7 +174,7 @@ in the main figures. A coherent full-mode audit is exported separately.
 '''
 (DOWNLOADS/'README.txt').write_text(readme)
 with zipfile.ZipFile(DOWNLOADS/'All_Python_Programs.zip','w',zipfile.ZIP_DEFLATED) as archive:
-    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v4.json','silicon_startup_input_v4.json','Silicon_Startup_Polar_Plot.png']:
+    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','Symbols_And_References.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v4.json','silicon_startup_input_v4.json','Silicon_Startup_Polar_Plot.png']:
         archive.write(DOWNLOADS/name,name)
     for name in archive_paths:archive.write(DOWNLOADS/name,'references/'+name)
 print('Prepared 22 cells,',sum(len(x['blocks']) for x in annotations),'annotated code blocks and Python downloads.',flush=True)

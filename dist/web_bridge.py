@@ -68,6 +68,7 @@ def web_catalog():
         'QWP_2D': ('Original complex 2D optical reference', qwp_source_config()),
         'LINEAR_BP': ('Complex linear BP reference', linear_bp_reference_config()),
         'CIRCULAR_MOS2': ('Circular-channel monolayer MoS2 example', circular_mos2_reference_config()),
+        'SI_500': ('Silicon (500), VV startup example', cubic_fig1_config(0,'VV')),
         'SI_530': ('Silicon (530), VV reference frame', cubic_fig1_config(3,'VV')),
     }
     demo = optical_profile_example()
@@ -75,8 +76,10 @@ def web_catalog():
         angles=[0,30,45,90], profiles={key:dict(intensity=sp.latex(value['intensity']),
         values=[float(value['intensity'].subs(alpha,deg(angle))) for angle in [0,30,45,90]])
         for key,value in demo['profiles'].items()})
-    return dict(version=AUDIT_VERSION, materials=materials, groups=groups, optical_example=example_guide,
+    return dict(version=AUDIT_VERSION, default_example='SI_500', materials=materials, groups=groups, optical_example=example_guide,
         profiles=GENERAL_PROFILES, optical_guide=optical_method_catalog(),
+        derivation_references=DERIVATION_REFERENCES,
+        home_equation=annotate_equation(r'R_{lab}=T^TR_cT,\qquad \mathcal A=e_s^\dagger R_\perp E_i,\qquad I=|\mathcal A|^2',scope='record'),
         examples={key:dict(label=value[0],config=web_form(value[1])) for key,value in examples.items()},
         surfaces={**SURFACES, **{f'(5{k}0)':((5,k,0),(k,-5,0)) for k in range(6)}},
         style=PLOT_STYLE_STATUS, sources=UPGRADE_SOURCES,
@@ -91,7 +94,7 @@ def web_configuration(data):
         cfg['source_parameters'] = {key:exact(real_number(data.get('source_parameters',{}).get(key, value), key))
                                     for key,value in cfg['source_parameters'].items()}
     else:
-        cfg = general_config(data.get('material','CaNb2O6'), data.get('optics','CUBIC_SIGMA'))
+        cfg = general_config(data.get('material','Si'), data.get('optics','CUBIC_VV'))
         group = data.get('point_group', cfg['point_group'])
         definitions = definitions_for(cfg['material'], group)
         modes = data.get('modes', list(definitions))
@@ -189,6 +192,7 @@ def web_result(run, derivation, figures):
         angles=np.rad2deg(run['angles']),scan_label=run['scan_label'],scan_basis=run['optical']['scan_basis'],
         figures=[web_figure_view(name,figure) for name,figure in figures],
         equations=derivation['entries'],equation_count=sum(x['kind']=='equation' for x in derivation['entries']),
+        derivation_references=DERIVATION_REFERENCES,
         latex=tex,csv=csv_from_curves(run['angles'],run['display_curves'],'theta_deg' if run['optical']['scan_basis']=='SECOND' else 'alpha_deg'),
         checks=matching_protocol_audit(run),protocols=protocol_state_comparison(),states=states,
         interference=[dict(mode=name,maximum_cross_term=float(np.max(np.abs(item['interference']))),

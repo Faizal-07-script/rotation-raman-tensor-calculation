@@ -1,0 +1,65 @@
+{
+  "status": "passed",
+  "version": "4",
+  "startup": {
+    "material": "Si",
+    "surface": [
+      5,
+      0,
+      0
+    ],
+    "optics": "CUBIC_VV"
+  },
+  "examples": [
+    {
+      "key": "SLIDE",
+      "equations": 272,
+      "definitions": 970
+    },
+    {
+      "key": "QWP_3D",
+      "equations": 409,
+      "definitions": 1237
+    },
+    {
+      "key": "QWP_2D",
+      "equations": 54,
+      "definitions": 262
+    },
+    {
+      "key": "LINEAR_BP",
+      "equations": 1137,
+      "definitions": 3475
+    },
+    {
+      "key": "CIRCULAR_MOS2",
+      "equations": 173,
+      "definitions": 559
+    },
+    {
+      "key": "SI_500",
+      "equations": 169,
+      "definitions": 492
+    },
+    {
+      "key": "SI_530",
+      "equations": 169,
+      "definitions": 526
+    }
+  ],
+  "total_example_equations": 2383,
+  "profiles": [
+    "CUBIC_VV",
+    "CUBIC_VH",
+    "LINEAR_PAIR",
+    "CIRCULAR_LINEAR",
+    "CUBIC_SIGMA",
+    "QWP",
+    "CIRCULAR_SAME",
+    "CIRCULAR_OPPOSITE",
+    "DIRECT_JONES"
+  ],
+  "overloaded_symbols": "Calligraphic amplitude/source A; unit Jones/physical E; projection/response/physical P; phase, transpose and equilibrium evaluation.",
+  "units": "Local meanings and unit conventions checked for every calculated equation across all examples and profiles.",
+  "exports": "Markdown, JSON and all three LaTeX documents preserve the same definitions and reference ledger."
+}

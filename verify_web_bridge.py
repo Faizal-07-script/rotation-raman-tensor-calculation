@@ -36,7 +36,10 @@ def run(config):
 sample = json.loads((ROOT / "dist/downloads/example_input_v4.json").read_text())
 sample_result = run(sample)
 expected_sample = json.loads((ROOT / "dist/data/reference-example.json").read_text())
-assert sample_result["equation_count"] == 271
+assert sample_result["equation_count"] == expected_sample["equation_count"]
+assert sample_result['configuration']['material']=='Si'
+assert sample_result['configuration']['hkl']==[5,0,0]
+assert [channel['name'] for channel in sample_result['channels']]==['T2g']
 assert len(sample_result["angles"]) == 721
 for actual, expected in zip(sample_result["channels"], expected_sample["channels"]):
     assert actual["name"] == expected["name"]
@@ -45,6 +48,9 @@ checks.append("Published example input JSON runs unchanged and reproduces the do
 
 for name, example in catalog["examples"].items():
     result = run(example["config"])
+    if name=='SLIDE':
+        for channel,maximum in zip(result['channels'],[1/18,2/15,0.075]):
+            assert abs(max(channel['points'])-maximum)<1e-10
     checks.append(f"Example {name}: {len(result['channels'])} channels; JSON result, figures and calculated equations.")
     print(checks[-1], flush=True)
 

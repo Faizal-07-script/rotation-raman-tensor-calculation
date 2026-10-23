@@ -26,7 +26,10 @@ for (const guide of Object.values(catalog.optical_guide)) {
   equations.push(...guide.states, guide.amplitude, guide.intensity);
 }
 const result = JSON.parse(read('dist/data/reference-example.json'));
-for (const entry of result.equations) if (entry.kind === 'equation') equations.push(entry.value);
+for (const entry of result.equations) if (entry.kind === 'equation') {
+  equations.push(entry.value);
+  for (const symbol of entry.symbols || []) equations.push(symbol.latex);
+}
 for (const tex of equations) {
   katex.renderToString(tex, { displayMode: true, throwOnError: true, strict: 'ignore' });
 }

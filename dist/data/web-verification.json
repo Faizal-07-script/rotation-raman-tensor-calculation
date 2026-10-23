@@ -8,6 +8,7 @@
     "Example QWP_2D: 1 channels; JSON result, figures and calculated equations.",
     "Example LINEAR_BP: 14 channels; JSON result, figures and calculated equations.",
     "Example CIRCULAR_MOS2: 2 channels; JSON result, figures and calculated equations.",
+    "Example SI_500: 1 channels; JSON result, figures and calculated equations.",
     "Example SI_530: 1 channels; JSON result, figures and calculated equations.",
     "Optical profile CUBIC_VV: finite intensities and consistent raw data.",
     "Optical profile CUBIC_VH: finite intensities and consistent raw data.",
@@ -21,9 +22,9 @@
     "Inactive conditional fields cannot block the paired VV/VH profile.",
     "A reflected manual frame is rejected.",
     "Scientific PNG, PDF and SVG figure downloads have valid file signatures.",
-    "Full result ZIP: 38 valid entries, including figures, data, mathematics and comparison inputs.",
+    "Full result ZIP: 40 valid entries, including figures, data, mathematics and comparison inputs.",
     "Silicon benchmark: 18 calculated cases pass their independent identities and OriginLab export."
   ],
-  "elapsed_seconds": 30.16,
-  "engine_sha256": "f516658bb0aedfccfbad51f3d7212d5d722cc96cce898208502f010cd470c620"
+  "elapsed_seconds": 34.05,
+  "engine_sha256": "6b24e0e42b4339b9e31156e61f85dd853ddb69c747a8432fe4f40b78b172320f"
 }

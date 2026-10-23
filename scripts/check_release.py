@@ -1,4 +1,5 @@
 """Check release identity, exact source correspondence and portable static assets."""
+import base64
 import hashlib
 import json
 import re
@@ -15,12 +16,13 @@ book = json.loads(notebook_bytes)
 code = ["".join(c["source"]) for c in book["cells"] if c["cell_type"] == "code"]
 assert len(code) == 22
 for i, source in enumerate(code, 1):
-    message = f"Cell {i:02d}/22 — This cell runs correctly."
+    message = f"Cell {i:02d}/22 — Run completed successfully."
     assert message in source
     stdout = "".join(o.get("text", "") if isinstance(o.get("text", ""), str) else "".join(o["text"])
                      for o in [c for c in book["cells"] if c["cell_type"] == "code"][i-1].get("outputs", [])
                      if o.get("output_type") == "stream" and o.get("name") == "stdout")
     assert message in stdout, (i, "Missing executed cell confirmation")
+    assert 'Ready:' in stdout and 'Next:' in stdout
 digest = hashlib.sha256("\n\n".join(code).encode()).hexdigest()
 cells = json.loads((DIST / "data/cells.json").read_text())
 assert cells["version"] == VERSION
@@ -33,12 +35,11 @@ assert "version: '4'" in (DIST / "engine-worker.js").read_text()
 
 startup = book['metadata']['rotation_raman_revision']['validation']['startup_test']
 assert startup['material'] == 'Si' and startup['optics'] == 'CUBIC_VV'
-assert startup['hkl'] == [5, 3, 0] and startup['samples'] == 721
+assert startup['hkl'] == [5, 0, 0] and startup['samples'] == 721
 assert startup['maximum_residual'] < 1e-10 and startup['inline_png_before_interface']
 last = [c for c in book['cells'] if c['cell_type'] == 'code'][-1]
 startup_images = [o for o in last['outputs'] if 'raman_startup_plot' in o.get('metadata', {})]
 assert len(startup_images) == 1 and 'image/png' in startup_images[0]['data']
-import base64
 assert base64.b64decode(startup_images[0]['data']['image/png']) == (DOWNLOADS / 'Silicon_Startup_Polar_Plot.png').read_bytes()
 
 tutorial = json.loads((DIST / "data/tutorial.json").read_text())
@@ -56,23 +57,33 @@ with zipfile.ZipFile(DOWNLOADS / "All_Python_Programs.zip") as archive:
     assert archive.read("ROTATION_RAMAN_TENSOR_CALCULATION.ipynb") == notebook_bytes
     for name in ["ROTATION_RAMAN_TENSOR_CALCULATION.py", "raman_engine.py", "web_bridge.py"]:
         assert archive.read(name) == (DOWNLOADS / name).read_bytes()
-    for name in ["QUICKSTART.md", "SAITO_FEEDBACK_AUDIT.md", "example_input_v4.json", "silicon_startup_input_v4.json", "Silicon_Startup_Polar_Plot.png"]:
+    for name in ["QUICKSTART.md", "SAITO_FEEDBACK_AUDIT.md", "example_input_v4.json", "silicon_startup_input_v4.json", "Silicon_Startup_Polar_Plot.png", "Symbols_And_References.md"]:
         assert archive.read(name) == (DOWNLOADS / name).read_bytes()
 
 silicon = json.loads((DOWNLOADS / "silicon_startup_input_v4.json").read_text())
 assert silicon == json.loads((ROOT / "sources/silicon_startup_input_v4.json").read_text())
 assert silicon['material'] == 'Si' and silicon['optics'] == 'CUBIC_VV'
-assert silicon['hkl'] == [5, 3, 0] and silicon['modes'] == ['T2g']
+assert silicon['hkl'] == [5, 0, 0] and silicon['modes'] == ['T2g']
 
 assert (DOWNLOADS / "example_input_v4.json").read_bytes() == (ROOT / "sources/example_input_v4.json").read_bytes()
 sample = json.loads((DOWNLOADS / "example_input_v4.json").read_text())
 reference = json.loads((DIST / "data/reference-example.json").read_text())
 assert sample == reference["configuration"]
 assert len(reference["angles"]) == 721
-assert reference["equation_count"] == 271
-assert [c["name"] for c in reference["channels"]] == ["Ag(xx)", "Ag(yy)", "Ag(zz)"]
-for c, expected in zip(reference["channels"], [1/18, 2/15, 0.075]):
-    assert abs(max(c["points"]) - expected) < 1e-10
+assert reference['configuration']==silicon
+assert [c["name"] for c in reference["channels"]] == ["T2g"]
+assert abs(max(reference['channels'][0]['points'])-1)<1e-10
+assert abs(reference['channels'][0]['points'][90]-1)<1e-10
+assert abs(reference['channels'][0]['points'][180])<1e-10
+equations=[entry for entry in reference['equations'] if entry['kind']=='equation']
+assert len(equations)==reference['equation_count']
+assert all(entry.get('symbols') and entry.get('reference_ids') for entry in equations)
+assert all(s['meaning'] and s['units'] for entry in equations for s in entry['symbols'])
+catalog=json.loads((DIST/'data/catalog.json').read_text())
+assert catalog['default_example']=='SI_500'
+assert catalog['examples']['SI_500']['config']==silicon
+assert reference['latex']['full'].count('Symbols and units')==len(equations)
+assert 'Run completed successfully.' not in (DIST/'raman_engine.py').read_text()
 
 for name in ["index.html", "app.js", "styles.css", "engine-worker.js", "user-guide.js", "user-guide.css"]:
     text = (DIST / name).read_text()

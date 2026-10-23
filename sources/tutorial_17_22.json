@@ -1,7 +1,7 @@
 [
   {
     "cell": 17,
-    "overview": "Create the notebook controls and result containers. This cell declares visible choices and state holders; it does not rotate a tensor or calculate a Raman intensity. The optical-profile guide explains physical differences without changing the intensity engine. Tool numbers follow the first-run sequence: 1 model/optics/example, 2 material, 3 orientation, 4 Jones states, 5 display, 6 calculate, 7 export; 8 validation, 9 comparisons and 10 benchmark are optional.",
+    "overview": "Create the notebook controls and result containers. This cell declares visible choices and state holders; it does not rotate a tensor or calculate a Raman intensity. The optical-profile guide explains physical differences without changing the intensity engine. Tool numbers follow the first-run sequence: 1 model/optics/example, 2 material, 3 orientation, 4 Jones states, 5 display, 6 calculate, 7 export; 8 validation, 9 comparisons and 10 benchmark are optional. The visible initial controls select Si, Oh, (500), VV and the SI_500 example.",
     "workflow": [
       "Import ipywidgets and define reusable control constructors.",
       "Create independent tensor-model, optical-method and explicit-example selectors.",
@@ -37,129 +37,129 @@
       },
       {
         "start_line": 24,
-        "end_line": 49,
+        "end_line": 50,
         "title": "Separate model, optics and example selection",
         "explanation": "model_pick selects a full 3D crystal tensor or the original effective 2D optical source. optics_pick uses GENERAL_PROFILES. example_pick only selects a named configuration; load_example_button explicitly applies it.",
         "why": "Changing a report/example label must not silently select a different experiment. Tensor dimensionality and optical states are distinct physical choices.",
         "check": "Selecting an example in the dropdown does not load it until the button is pressed."
       },
       {
-        "start_line": 50,
-        "end_line": 61,
+        "start_line": 51,
+        "end_line": 62,
         "title": "Record a case label and input note",
         "explanation": "case_label identifies a run; input_note records assumptions such as illustrative lattice ratios or coefficients. Both fields are exported with the configuration.",
         "why": "A curve needs a reproducible description of its input assumptions, especially when comparing different surfaces or publications.",
         "check": "Editing either field invalidates the displayed result when observers are connected in Cell 22."
       },
       {
-        "start_line": 62,
-        "end_line": 94,
+        "start_line": 63,
+        "end_line": 95,
         "title": "Declare material, symmetry, branch and coefficient controls",
         "explanation": "material_pick reads the material library; group_pick exposes the 21 implemented point groups plus a custom Cartesian tensor. mode_pick selects phonon branches. coef_accordion later holds each branch coefficient magnitude and phase. ag_relation permits explicit D2h diagonal equalities, and custom_tensor accepts a 3-by-3 numerical JSON matrix.",
         "why": "The tensor form follows symmetry, while its numerical coefficients remain branch-specific inputs. Equality relations are optional constraints, not automatic fitting assumptions.",
         "check": "Named material presets lock their declared point group; choose the General material to select a different group or a custom tensor."
       },
       {
-        "start_line": 95,
-        "end_line": 107,
+        "start_line": 96,
+        "end_line": 108,
         "title": "Declare surface indices, an in-plane reference and frame rotation",
         "explanation": "surface_options extends the basic presets with (500) through (550). hkl_fields describe a reciprocal-lattice surface normal; uvw_fields describe a direct-lattice in-plane direction. auto_x enables a projected Cartesian reference, normal_pick selects the normal side, and \u03c8 is the frame angle.",
         "why": "A surface alone does not determine the in-plane zero angle. The normal side and frame angle complete the measurement frame used by T.",
         "check": "For an explicit in-plane direction, h*u+k*v+l*w must equal zero. The frame angle \u03c8 is not the optical scan angle."
       },
       {
-        "start_line": 108,
-        "end_line": 121,
+        "start_line": 109,
+        "end_line": 122,
         "title": "Provide the lattice metric",
         "explanation": "Six fields hold a0, b0, c0 and the three cell angles. The example starts with a unity orthogonal metric.",
         "why": "The physical normal is proportional to L^(-T)(h,k,l), so noncubic length ratios affect tilted-surface geometry. Tensor components remain Cartesian.",
         "check": "Lengths must use one common unit; replace illustrative noncubic ratios with values for the sample."
       },
       {
-        "start_line": 122,
-        "end_line": 133,
+        "start_line": 123,
+        "end_line": 134,
         "title": "Provide direct Jones states and angular zeros",
         "explanation": "direct_widgets contains the incident mixing angle and phase, the detector mixing-angle zero and phase. theta_zero shifts a co-rotating linear scan; analyzer_zero shifts the direct linear detection scan.",
         "why": "Explicit states and angle origins make comparisons reproducible. A fixed profile ignores inactive direct-state controls instead of borrowing their values.",
         "check": "The direct-state convention is (cos(\u03b8), exp(i*\u03b2)*sin(\u03b8)); all field angles here are in degrees."
       },
       {
-        "start_line": 134,
-        "end_line": 149,
+        "start_line": 135,
+        "end_line": 150,
         "title": "Keep the original effective source inputs explicit",
         "explanation": "source_widgets declares real a and A and the phase angles \u03b4 and \u03c6. source_box states that the original 2D source has no crystal-orientation parameter.",
         "why": "This reference model can be checked faithfully without treating its antisymmetric entries as a material tensor.",
         "check": "In the original 2D model, changing hkl must not change the calculated source curve."
       },
       {
-        "start_line": 150,
-        "end_line": 169,
+        "start_line": 151,
+        "end_line": 170,
         "title": "Separate circular-state selection from conditional rule inputs",
         "explanation": "circular_spin selects a fixed laboratory circular basis label. N, incident OAM, phonon charges, optional absorption charge and the thin-2D assumption checkbox belong to the separate rule check. optical_preview will display the actual incident and effective detector vectors.",
         "why": "A necessary angular-momentum congruence does not provide a quantitative vortex-beam intensity. The plane-wave Jones calculation and the conditional rule must remain distinguishable.",
         "check": "The OAM field is labelled rule only. Changing it must not secretly mask or reshape a Jones intensity curve."
       },
       {
-        "start_line": 170,
-        "end_line": 170,
+        "start_line": 171,
+        "end_line": 171,
         "title": "Optical-profile guide and source correspondence",
         "explanation": "The guide records preparation, return optics, sample detector, scan, amplitude, intensity and source scope for the selectable optical profiles. The common-tensor example is computed through optical_chain and the same Jones contraction; no curve is aligned or rescaled to resemble another method.",
         "why": "Different optical states are different experiments. Their explicit states distinguish a continuous analyzer scan from a fixed circular channel or an effective reference-state parameterization.",
         "check": "Compare states with optical_chain. Exact symbolic tests must reproduce the p/q identities, custom-Jones matches and constant fixed circular channels. Source-specific statements identify their reference; other identities are program derivations."
       },
       {
-        "start_line": 171,
-        "end_line": 185,
+        "start_line": 172,
+        "end_line": 186,
         "title": "Declare display and sampling options",
         "explanation": "normalize uses one common maximum for every displayed contribution of one mode, including paired VV/VH channels. Cartesian plots, the 3D frame and the full steps are display choices. points includes both 0 and 360 degrees for the selected angular spacing.",
         "why": "Common normalization preserves relative component strength. Sampling determines the exported grid, while analytic harmonics determine continuous extrema.",
         "check": "721 samples means 0.5-degree spacing over the inclusive 0\u2013360-degree interval."
       },
       {
-        "start_line": 186,
-        "end_line": 216,
+        "start_line": 187,
+        "end_line": 217,
         "title": "Create actions and comparison controls",
         "explanation": "The Calculate button initiates physics; export and symbolic-LaTeX buttons start disabled. Comparison controls choose a saved channel and normalization. status reports the current result state, and style_note names the actual installed font.",
         "why": "An export should be enabled only after a successful calculation, and the requested font should not be confused with a fallback font actually used.",
         "check": "The export button cannot create a valid result from an uncalculated form."
       },
       {
-        "start_line": 217,
-        "end_line": 230,
+        "start_line": 218,
+        "end_line": 231,
         "title": "Allocate independent result containers",
         "explanation": "Eleven Output widgets receive the mathematical trace, figures, table, frame, audits, validation, LaTeX, downloads, comparisons, tensor library and source links. A separate output belongs to the cubic benchmark.",
         "why": "Dedicated containers let callbacks replace one view without mixing it into another or leaving previous output above a new result.",
         "check": "The output widgets hold rendered views; the state dictionary holds the underlying scientific snapshot."
       },
       {
-        "start_line": 231,
-        "end_line": 269,
+        "start_line": 232,
+        "end_line": 270,
         "title": "Declare the fixed silicon benchmark controls",
         "explanation": "The benchmark has one shared coefficient magnitude, angular spacing, six requested surfaces and three protocols. Calculate, inspect and export actions are separate; inspection loads one computed benchmark configuration into the main calculator.",
         "why": "The fixed reference study should remain a verifiable benchmark rather than silently turning into an arbitrary-material demonstration.",
         "check": "All 18 cases use the same common d scale and retain all three complete T2g partners."
       },
       {
-        "start_line": 270,
-        "end_line": 302,
+        "start_line": 271,
+        "end_line": 303,
         "title": "Map twelve result tabs to their containers",
         "explanation": "tab_names establishes the order; tab_index provides stable name-to-index lookup. The Tab children list uses the matching Output widgets and benchmark panel, then a loop applies each label.",
         "why": "Callbacks can select a tab by meaning rather than scattering unexplained numeric indices through the code.",
         "check": "The order of tab_names and children must remain synchronized."
       },
       {
-        "start_line": 303,
-        "end_line": 317,
+        "start_line": 304,
+        "end_line": 318,
         "title": "Initialize result state and UI bookkeeping",
         "explanation": "state starts with no run and contains the figures, derivation, archive, validation, error, comparison snapshots and benchmark objects. ui stores transaction status, coefficient widgets, definitions and the one-time wiring flag.",
         "why": "Calculated results should not be reconstructed by reading a partly edited form. Keeping UI flags separate from result data makes that boundary visible.",
         "check": "state[\"run\"] becomes the source for plots and exports only after Calculate succeeds."
       },
       {
-        "start_line": 319,
-        "end_line": 319,
+        "start_line": 320,
+        "end_line": 320,
         "title": "Confirm that this cell finished executing",
-        "explanation": "The final print statement reports the code-cell number, the phrase \u201cThis cell runs correctly.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
         "check": "Run Cells 1\u201317 in order and confirm the Cell 17/22 message. Model/source checks must be inspected separately in Validation."
       }
@@ -360,17 +360,17 @@
       },
       {
         "start_line": 373,
-        "end_line": 388,
+        "end_line": 390,
         "title": "Apply only the explicitly chosen example",
         "explanation": "The selected example name chooses the slide-frame, 3D QWP, original 2D source, complex-linear, circular-channel or silicon reference configuration. load_configuration() fills the form and a status message asks for calculation.",
         "why": "Examples deliberately change a complete configuration, whereas a material-only edit preserves the current optical experiment.",
-        "check": "The final else branch corresponds to the fixed silicon (530) VV example because those are the declared dropdown options."
+        "check": "The final else branch corresponds to the fixed silicon (500) VV example because those are the declared dropdown options."
       },
       {
-        "start_line": 390,
-        "end_line": 390,
+        "start_line": 392,
+        "end_line": 392,
         "title": "Confirm that this cell finished executing",
-        "explanation": "The final print statement reports the code-cell number, the phrase \u201cThis cell runs correctly.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
         "check": "Run Cells 1\u201318 in order and confirm the Cell 18/22 message. Model/source checks must be inspected separately in Validation."
       }
@@ -534,7 +534,7 @@
         "start_line": 355,
         "end_line": 355,
         "title": "Confirm that this cell finished executing",
-        "explanation": "The final print statement reports the code-cell number, the phrase \u201cThis cell runs correctly.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
         "check": "Run Cells 1\u201319 in order and confirm the Cell 19/22 message. Model/source checks must be inspected separately in Validation."
       }
@@ -633,7 +633,7 @@
         "start_line": 589,
         "end_line": 589,
         "title": "Confirm that this cell finished executing",
-        "explanation": "The final print statement reports the code-cell number, the phrase \u201cThis cell runs correctly.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
         "check": "Run Cells 1\u201320 in order and confirm the Cell 20/22 message. Model/source checks must be inspected separately in Validation."
       }
@@ -864,7 +864,7 @@
         "start_line": 1029,
         "end_line": 1029,
         "title": "Confirm that this cell finished executing",
-        "explanation": "The final print statement reports the code-cell number, the phrase \u201cThis cell runs correctly.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
         "check": "Run Cells 1\u201321 in order and confirm the Cell 21/22 message. Model/source checks must be inspected separately in Validation."
       }
@@ -878,14 +878,14 @@
   },
   {
     "cell": 22,
-    "overview": "Assemble the notebook controls and wire callbacks once. The first run loads silicon (530), checks the VV curve against its closed form and displays a standard PNG outside the widgets. Model validation runs before the calculator opens on Polar plots. The website keeps its existing starting example.",
+    "overview": "Load Silicon (500), VV, test all 721 angular values against sin\u00b2(2\u03b8), run model validation and display a polar PNG before the calculator. Every derivation equation includes symbol definitions and units.",
     "workflow": [
       "Arrange the existing crystal, orientation, Jones-state, display and comparison controls.",
       "Connect observers and button actions once; later redisplay does not reset edited inputs.",
-      "Load cubic_fig1_config(3, \"VV\"): Si (530), T2g, shared d=1, 721 points.",
-      "Compare the calculated curve with sin\u00b2(2\u03b8)+(225/289)cos\u2074\u03b8 to an absolute tolerance of 1e-10.",
+      "Load cubic_fig1_config(0, \"VV\"): Si (500), T2g, shared d=1, 721 points.",
+      "Compare the calculated curve with sin\u00b2(2\u03b8) to an absolute tolerance of 1e-10.",
       "Display the silicon polar PNG before the widget interface and select the Polar plots result tab.",
-      "Run after Cells 1\u201321. The first run loads silicon (530), Oh/T2g, d=1, VV, with 721 samples over 0\u00b0\u2013360\u00b0. It compares the full curve with the silicon reference, displays a PNG polar plot directly, runs model validation and opens the Polar plots tab. No external file or manual input is required. After editing inputs, press tool 6 and inspect the current application results; the startup image remains a record of the initial test. Tool 7 exports, 8 validates, 9 compares and 10 runs the separate 18-case silicon benchmark."
+      "Run after Cells 1\u201321. The first run loads silicon (500), Oh/T2g, d=1, VV, with 721 samples over 0\u00b0\u2013360\u00b0. It compares the full curve with the silicon reference, displays a PNG polar plot directly, runs model validation and opens the Polar plots tab. No external file or manual input is required. After editing inputs, press tool 6 and inspect the current application results; the startup image remains a record of the initial test. Tool 7 exports, 8 validates, 9 compares and 10 runs the separate 18-case silicon benchmark."
     ],
     "blocks": [
       {
@@ -910,7 +910,7 @@
         "title": "Group orientation and lattice controls",
         "explanation": "Arrange hkl, uvw, normal side, \u03c8 and the lattice metric with the zone-condition note.",
         "why": "Surface indices alone do not determine a measurement frame.",
-        "check": "For startup, hkl=(5,3,0), uvw=(3,-5,0), normal side +1 and \u03c8=0\u00b0."
+        "check": "For startup, hkl=(5,0,0), uvw=(0,-5,0), normal side +1 and \u03c8=0\u00b0."
       },
       {
         "start_line": 32,
@@ -972,9 +972,9 @@
         "start_line": 157,
         "end_line": 167,
         "title": "Calculate and test the silicon startup case",
-        "explanation": "Load the existing Si (530) VV preset through the normal form loader, calculate it, stop on failure and compare all 721 intensities with sin\u00b2(2\u03b8)+(225/289)cos\u2074\u03b8. Then execute the wider model/source validation suite.",
+        "explanation": "Load the existing Si (500) VV preset through the normal form loader, calculate it, stop on failure and compare all 721 intensities with sin\u00b2(2\u03b8). Then execute the wider model/source validation suite.",
         "why": "This gives newcomers a reproducible first calculation and a check independent of the tensor contraction.",
-        "check": "d=1, normalization off; the absolute tolerance is 1e-10. The sampled maximum is 1.2416755687678902."
+        "check": "d=1, normalization off; the absolute tolerance is 1e-10. The sampled maximum is 1.0."
       },
       {
         "start_line": 168,
@@ -982,7 +982,7 @@
         "title": "Show the silicon polar plot immediately",
         "explanation": "Select Polar plots, label the startup result and serialize its calculated figure as a PNG. Display the PNG outside all Output widgets.",
         "why": "The plot is visible directly below Cell 22 and in a static preview.",
-        "check": "The image metadata identifies Si, surface (530), CUBIC_VV and T2g. It is the same figure calculated by on_run()."
+        "check": "The image metadata identifies Si, surface (500), CUBIC_VV and T2g. It is the same figure calculated by on_run()."
       },
       {
         "start_line": 183,
@@ -1005,7 +1005,7 @@
       "Run Cells 1\u201321 before this cell; a fresh kernel and Run All rebuilds edited definitions.",
       "The inline PNG records the initial silicon test. Inspect application results after later calculations.",
       "The T2g curve sums the intensities of three orthogonal phonon partners; d=1 is a relative coefficient scale.",
-      "The Python startup is silicon (530), VV. The website retains its Ag (211) starting example."
+      "The initial notebook and website both use Silicon (500), VV; the other material examples remain selectable."
     ]
   }
 ]
