@@ -5,7 +5,7 @@ self.pythonProgress = message => self.postMessage({kind: 'progress', id: current
 
 async function initializePython() {
   const base = new URL('./vendor/pyodide/', self.location.href).href;
-  self.pythonProgress('Loading the scientific Python runtime. This is required only once per session…');
+  self.pythonProgress('Starting Python. The first run may take a moment…');
   importScripts(base + 'pyodide.js');
   const python = await loadPyodide({indexURL: base, stdout: () => {}, stderr: text => {
     if (!text.startsWith('findfont:')) self.postMessage({kind: 'log', message: text});
@@ -18,7 +18,7 @@ async function initializePython() {
     if (!response.ok) throw new Error(`Could not load ${path}: HTTP ${response.status}`);
     await python.runPythonAsync(await response.text());
   }
-  self.pythonProgress('Python engine ready.');
+  self.pythonProgress('Python ready.');
   return python;
 }
 
@@ -29,7 +29,7 @@ self.onmessage = async event => {
     if (!pythonReady) pythonReady = initializePython();
     const py = await pythonReady;
     let result, binary = false;
-    if (type === 'init') result = {ready: true, version: '3'};
+    if (type === 'init') result = {ready: true, version: '4'};
     else {
       py.globals.set('web_input_json', JSON.stringify(payload));
       const expressions = {

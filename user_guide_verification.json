@@ -1,9 +1,9 @@
 {
-  "version": "3",
+  "version": "4",
   "status": "passed",
-  "date": "2026-10-22",
-  "scope": "Desktop browser preview; live deployment smoke check is performed after publication.",
-  "checks": [
+  "date": "2026-10-23",
+  "scope": "Guide structure is retained. Static syntax, equation typesetting and release identity checks passed; current browser notation checks are recorded separately.",
+  "previous_behavior_checks": [
     "Home starts with the sidebar and Introduction submenu collapsed.",
     "Guide invitation is optional; close/skip leaves the workspace usable.",
     "The guide center lists 60 distinct tours, including all 22 Python cells and every Introduction/Physics topic.",
@@ -15,5 +15,5 @@
     "Orientation topic guide follows its actual lattice and frame subsections.",
     "Section-prompt preference survives a page reload and can be disabled."
   ],
-  "scientific_source": "All 22 code cells match the prior scientific source after release-identity and original-reference-label substitutions only."
+  "scientific_source": "Calculation expressions and symbolic identifiers are unchanged. Presentation text and the LaTeX formatter use the current notation."
 }

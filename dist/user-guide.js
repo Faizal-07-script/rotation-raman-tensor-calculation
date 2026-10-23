@@ -1,11 +1,11 @@
-/* Version 3: optional, contextual tours. Never calculate or change scientific inputs. */
+/* Version 4: optional, contextual tours. Never calculate or change scientific inputs. */
 (() => {
   'use strict';
   const q = (s, root = document) => root.querySelector(s);
   const qa = (s, root = document) => [...root.querySelectorAll(s)];
   const escape = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const host = () => window.RamanGuideHost;
-  const key = 'rotation-raman-guide-v3';
+  const key = 'rotation-raman-guide-v4';
   const defaults = () => ({welcomeDismissed:false,offerSections:false,visited:[],progress:{}});
   let prefs;
   try { prefs = {...defaults(), ...JSON.parse(localStorage.getItem(key) || '{}')}; }
@@ -32,8 +32,8 @@
     'display':'Choose an angular sampling grid and optional display normalization. Raw CSV keeps the original intensities. A display choice does not alter the tensor or optical states.',
     'results':'Read the input/result status before interpreting a plot. The tabs separate figures, mathematics, values, frame, checks, and exports. Recalculate after changing inputs.',
     'validation':'Use checks to assess algebra and implementation within their stated scope. Passing reference identities does not establish the calibration or microscopic correctness of experimental inputs.',
-    'comparisons':'Freeze actual calculated inputs as session snapshots, then compare compatible channels and declared scales. The optional normalized comparison answers a shape question.',
-    'benchmark':'The silicon benchmark computes six surfaces and three profiles using one coefficient scale. It reproduces the explicitly declared reference states, rather than all experimental optical chains.',
+    'comparisons':'Freeze calculated inputs as session snapshots, then compare compatible channels and declared scales. The optional normalized comparison answers a shape question.',
+    'benchmark':'The silicon benchmark computes six surfaces and three profiles using one coefficient scale. It reproduces the specified reference states, rather than all experimental optical chains.',
     'checking-procedures':'Each procedure records its purpose, expected identity, scope, status, and evidence. Source-specific checks and current-material generalizations must be interpreted separately.',
     'optical-comparison':'Follow preparation, Raman response, return optics, and detection. Distinct detector states can produce distinct curves for the same tensor; their physical configuration determines the reference.'
   };
@@ -103,7 +103,7 @@
       ['latex','LaTeX','Copy or download symbolic intensity and the complete mathematical derivation. These are calculated source equations, not a screenshot of a formula.'],
       ['validation','Validation','The full model suite runs only when you press Run full validation. It checks implementation identities within stated assumptions; it does not calibrate experimental optics.'],
       ['comparisons','Comparisons','Save at least two fresh calculated snapshots to compare results from frozen inputs. Changing a form later does not modify an existing snapshot.'],
-      ['benchmark','Silicon benchmark','Compute the six reference surfaces with VV, VH, and the declared sigma+alpha reference. All 18 cases use a shared coefficient scale and independent source identities.']
+      ['benchmark','Silicon benchmark','Compute the six reference surfaces with VV, VH, and the declared σ⁺α reference. All 18 cases use a shared coefficient scale and independent source identities.']
     ];
     return tour('calculator-results','Calculator: every result tab','#calculator',tabs.map(([tab,title,text])=>step(title,'#result-pane',text,{tab})), 'Figures, derivations, values, frame, checks, LaTeX, comparisons, and the benchmark.');
   }
@@ -133,7 +133,7 @@
       ],'Find source cells and understand the tutorial layout.');
       const c = ctx.cells.find(x=>x.number === number);
       return tour('page:'+r,'Python Cell '+number+': '+(c?.title || 'source'),r,[
-        step('Cell '+number+': '+(c?.title || 'source'),'.page-title-row','This page displays the exact current source of this code cell, followed by purpose and line-mapped explanations. Read the execution sequence before individual blocks.'),
+        step('Cell '+number+': '+(c?.title || 'source'),'.page-title-row','This page displays the current source of this code cell, followed by purpose and line-mapped explanations. Read the execution sequence before individual blocks.'),
         step('Execution sequence','.workflow-list','Follow what this cell defines, what it calls, and which objects later cells use. In Jupyter, execute prerequisite cells in the notebook order.'),
         step('Complete source and fingerprint','.full-source','Expand this panel to inspect or copy every source line and the cell SHA-256 fingerprint. The downloadable notebook is the recommended executable entry point.'),
         step('Read one code block','.walkthrough-block','Each block maps an actual source-line interval to an explanation. Expand a block to see its purpose, checking point, and matching code.'),
@@ -164,9 +164,9 @@
     return tour('page:'+r,'References & Python downloads',r,[
       step('Identify the primary sources','.page-title-row','References identify the physics papers, optical conventions, software documentation, and original implementation notebooks used by the project.'),
       step('Read what each source supports','.reference-item','Each reference includes authors, publication details, a link, and the particular calculation or convention it supports. An implementation reference is not a measured tensor assignment.'),
-      step('Download the current notebook','#downloads','The Version 3 notebook is the recommended Python entry point. Run all 22 code cells in order in a Jupyter or Colab environment with the listed requirements.'),
+      step('Download the current notebook','#downloads','The Version 4 notebook is the recommended Python entry point. Run all 22 code cells in order in a Jupyter or Colab environment with the listed requirements.'),
       step('Choose the right Python file','#downloads a[href="./downloads/All_Python_Programs.zip"]','The complete program archive includes the notebook, matching source, reusable engine, browser adapter, style, requirements, and preserved original references.'),
-      step('Original references stay attributable','#ref-kumar-original','The original uploaded implementation is retained as a source reference. Its own historical metadata is preserved; the application release is Version 3.'),
+      step('Original references stay attributable','#ref-kumar-original','The original uploaded implementation is retained as a source reference. Its own historical metadata is preserved; the application release is Version 4.'),
       step('Check source correspondence','#main-content > .card:last-child','The notebook fingerprint connects the live tutorial and scientific functions to their source. Guide settings and guide progress are separate from scientific data.')
     ],'Primary sources, notebook downloads, original references, and source correspondence.');
   }
@@ -202,7 +202,7 @@
       firstOfferMade = true;
       if (invite) invite.remove();
       invite = document.createElement('aside'); invite.className = 'guide-invite'; invite.setAttribute('aria-label','Optional user guide');
-      invite.innerHTML = '<h2>'+(!prefs.welcomeDismissed?'New to this workspace?':'Explore this page?')+'</h2><p>Take an optional guided tour. You can skip it, close it at any step, and reopen User guide whenever you need it.</p><div class="button-row"><button type="button" class="button small" data-guide-offer-start>'+(!prefs.welcomeDismissed?'Start workspace tour':'Guide this page')+'</button><button type="button" class="guide-dismiss" data-guide-offer-dismiss>Not now</button></div>';
+      invite.innerHTML = '<h2>'+(!prefs.welcomeDismissed?'Would you like a quick tour?':'Explore this page?')+'</h2><p>See where to find the inputs, results and Python code. You can reopen User guide from the header.</p><div class="button-row"><button type="button" class="button small" data-guide-offer-start>'+(!prefs.welcomeDismissed?'Start workspace tour':'Guide this page')+'</button><button type="button" class="guide-dismiss" data-guide-offer-dismiss>Not now</button></div>';
       invite.dataset.overview = String(!prefs.welcomeDismissed);
       document.body.append(invite);
     }
@@ -221,7 +221,7 @@
     hub?.remove(); hub = document.createElement('dialog'); hub.className = 'guide-hub'; hub.setAttribute('aria-labelledby','guide-hub-title');
     const current = sectionTour(route()), tours = allTours();
     const progress = tours.filter(t=>prefs.progress[t.id] && !prefs.progress[t.id].completed);
-    hub.innerHTML = '<div class="guide-hub-head"><div><span class="kicker">VERSION 3 · OPTIONAL USER GUIDE</span><h2 id="guide-hub-title">Learn at your own pace.</h2><p>Tour the workspace or get help with the page you are using. Tours never edit scientific inputs or start calculations.</p></div><button type="button" class="guide-close" data-guide-hub-close aria-label="Close user guide">×</button></div><div class="guide-hub-body"><h3>Start or continue</h3><div class="guide-tour-grid">'+option(overview())+option(current)+option(calculatorTour())+option(resultsTour())+'</div>'+(progress.length?'<h3>Resume a paused guide</h3><div class="guide-tour-grid">'+progress.map(t=>option(t,true)).join('')+'</div>':'')+'<h3>Guides for every section and Python cell</h3><div class="guide-tour-grid">'+tours.filter(t=>!['overview','calculator-inputs','calculator-results'].includes(t.id)).map(t=>option(t)).join('')+'</div><div class="guide-settings"><label class="guide-setting"><input type="checkbox" id="guide-offer-sections" '+(prefs.offerSections?'checked':'')+'><span>Offer a guide when I first visit a new page. Tours start only when I choose to use them.</span></label><p class="guide-storage-note">This browser stores only guide preferences, visited guide pages, and step progress. Scientific inputs and results are not saved by the guide. Storage may be unavailable in private browser modes.</p><button type="button" class="guide-reset" data-guide-reset>Reset guide progress and preferences</button></div></div>';
+    hub.innerHTML = '<div class="guide-hub-head"><div><span class="kicker">VERSION 4 · OPTIONAL USER GUIDE</span><h2 id="guide-hub-title">User guide</h2><p>Choose a tour or get help with the current page. You can close the guide at any time.</p></div><button type="button" class="guide-close" data-guide-hub-close aria-label="Close user guide">×</button></div><div class="guide-hub-body"><h3>Start or continue</h3><div class="guide-tour-grid">'+option(overview())+option(current)+option(calculatorTour())+option(resultsTour())+'</div>'+(progress.length?'<h3>Resume a paused guide</h3><div class="guide-tour-grid">'+progress.map(t=>option(t,true)).join('')+'</div>':'')+'<h3>Guides for every section and Python cell</h3><div class="guide-tour-grid">'+tours.filter(t=>!['overview','calculator-inputs','calculator-results'].includes(t.id)).map(t=>option(t)).join('')+'</div><div class="guide-settings"><label class="guide-setting"><input type="checkbox" id="guide-offer-sections" '+(prefs.offerSections?'checked':'')+'><span>Offer a guide when I first visit a new page. Tours start only when I choose to use them.</span></label><p class="guide-storage-note">This browser stores only guide preferences, visited guide pages, and step progress. Scientific inputs and results are not saved by the guide. Storage may be unavailable in private browser modes.</p><button type="button" class="guide-reset" data-guide-reset>Reset guide progress and preferences</button></div></div>';
     document.body.append(hub); hub.showModal();
     hub.addEventListener('click',event=>{if(event.target===hub)hub.close();});
     hub.addEventListener('close',()=>q('#user-guide-open')?.focus());

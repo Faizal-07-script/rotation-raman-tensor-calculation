@@ -1,6 +1,6 @@
 {
   "status": "passed",
-  "version": "3",
+  "version": "4",
   "checks": [
     "Published example input JSON runs unchanged and reproduces the documented reference output.",
     "Example SLIDE: 3 channels; JSON result, figures and calculated equations.",
@@ -24,6 +24,6 @@
     "Full result ZIP: 38 valid entries, including figures, data, mathematics and comparison inputs.",
     "Silicon benchmark: 18 calculated cases pass their independent identities and OriginLab export."
   ],
-  "elapsed_seconds": 29.04,
-  "engine_sha256": "99bfc17856870e09da9aec329c7ba19ba87b0e6d9fa43148ebb5b34590c55c42"
+  "elapsed_seconds": 30.16,
+  "engine_sha256": "f516658bb0aedfccfbad51f3d7212d5d722cc96cce898208502f010cd470c620"
 }

@@ -1,6 +1,6 @@
-# Saito-sensei feedback — Version 3 audit
+# Saito-sensei feedback — Version 4 audit
 
-Audit date: 2026-10-23. Baseline notebook: Version 3 before this update (GitHub main b670372fe576531d6c5bd1e11ae73adab2386e8e).
+Audit date: 2026-10-23. Baseline notebook: the preceding release before the feedback changes (GitHub main b670372fe576531d6c5bd1e11ae73adab2386e8e).
 
 | Recommendation | Present before this update | Current status / evidence |
 | --- | --- | --- |
@@ -27,4 +27,4 @@ The same main numbers are used in notebook controls and calculator input groups.
 
 ## Scope of the change
 
-No tensor forms, coordinate rotations, Jones contractions or intensity equations are changed. Notebook completion prints are omitted from the extracted browser engine; the underlying scientific functions remain identical. The source notebook, downloadable notebook, full Python source, website tutorial and program ZIP are regenerated together. A completion message establishes execution of that cell, not experimental validation or independent review.
+No tensor forms, coordinate rotations, Jones contractions or intensity equations are changed. Notebook completion prints are omitted from the extracted browser engine; the tensor and Jones calculations keep the same numerical behavior. Version 4 updates text and mathematical notation. The source notebook, downloadable notebook, full Python source, website tutorial and program ZIP are regenerated together. A completion message establishes execution of that cell, not experimental validation or independent review.

@@ -3,31 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="An integrated Raman tensor laboratory: crystal orientation, complex Jones optics, full mathematical derivations and a complete Python code tutorial.">
+  <meta name="description" content="Calculate Raman intensities from crystal orientation, tensor coefficients and polarization. Includes a Python notebook, equations and example data.">
   <meta name="theme-color" content="#561219">
   <title>Rotation Raman Tensor Calculation</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./vendor/katex.min.css">
-  <link rel="stylesheet" href="./styles.css?v=3-guide">
+  <link rel="stylesheet" href="./styles.css?v=4-guide">
   <script defer src="./vendor/katex.min.js"></script>
   <script defer src="./vendor/highlight.min.js"></script>
   <script defer src="./vendor/python.min.js"></script>
-  <script defer src="./content.js?v=3-guide"></script>
-  <script defer src="./optical-guide.js?v=3-guide"></script>
-  <script defer src="./app.js?v=3-guide"></script>
-  <link rel="stylesheet" href="./user-guide.css?v=3">
-  <script defer src="./user-guide.js?v=3"></script>
+  <script defer src="./content.js?v=4-guide"></script>
+  <script defer src="./optical-guide.js?v=4-guide"></script>
+  <script defer src="./app.js?v=4-guide"></script>
+  <link rel="stylesheet" href="./user-guide.css?v=4">
+  <script defer src="./user-guide.js?v=4"></script>
 </head>
 <body class="desktop-nav-hidden">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="topbar">
     <button id="menu-toggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <a class="brand" href="#home" aria-label="Raman Tensor Lab home"><svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 35 11.5v17L20 37 5 28.5v-17Z M5 11.5 20 20l15-8.5M20 20v17M20 3v17"/><circle cx="20" cy="20" r="6"/></svg><span><strong>RAMAN TENSOR LAB</strong><small>Rotation Raman Tensor Calculation</small></span></a>
-    <div class="header-actions"><button type="button" id="user-guide-open" class="guide-header-button" aria-haspopup="dialog"><span aria-hidden="true">?</span> User guide</button><span class="version-pill">VERSION 3</span><a class="header-calculator" href="#calculator">Open calculator <span aria-hidden="true">↗</span></a></div>
+    <div class="header-actions"><button type="button" id="user-guide-open" class="guide-header-button" aria-haspopup="dialog"><span aria-hidden="true">?</span> User guide</button><span class="version-pill">VERSION 4</span><a class="header-calculator" href="#calculator">Open calculator <span aria-hidden="true">↗</span></a></div>
   </header>
   <div id="nav-backdrop" class="nav-backdrop"></div>
   <aside id="sidebar" class="sidebar" aria-label="Site navigation">
-    <div class="sidebar-intro"><span class="eyebrow">RESEARCH WORKSPACE</span><p>Learn the model.<br>Inspect the calculation.</p></div>
+    <div class="sidebar-intro"><span class="eyebrow">RESEARCH WORKSPACE</span><p>Inputs, code and references</p></div>
     <div class="nav-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input id="site-search" type="search" placeholder="Search tools & code" aria-label="Search documentation"></div>
     <div id="search-results" class="search-results" hidden></div>
     <nav id="navigation"><a class="nav-link" href="#home">Home</a></nav>
@@ -35,8 +35,8 @@
   </aside>
   <div class="content-shell">
     <div class="breadcrumb-bar"><div id="breadcrumbs">Workspace <span>/</span> Home</div><div id="engine-indicator" class="engine-indicator"><span class="status-dot neutral"></span> Python on demand</div></div>
-    <main id="main-content" tabindex="-1"><div class="boot-screen"><div class="spinner"></div><p>Opening the Raman tensor workspace…</p></div></main>
-    <footer class="page-footer"><span>Rotation Raman Tensor Calculation</span><span>Explicit inputs. Calculated equations. Reproducible outputs.</span></footer>
+    <main id="main-content" tabindex="-1"><div class="boot-screen"><div class="spinner"></div><p>Loading…</p></div></main>
+    <footer class="page-footer"><span>Rotation Raman Tensor Calculation</span><span>Raman tensors · Jones polarization · Python</span></footer>
   </div>
   <div id="toast" role="status" aria-live="polite" hidden></div>
   <div id="download-ready" class="download-ready" role="status" aria-live="polite" hidden><div><strong>File ready</strong><small id="download-name"></small></div><a id="download-link" class="button small">Save file ↓</a><button id="dismiss-download" class="text-button" aria-label="Dismiss prepared download">×</button></div>

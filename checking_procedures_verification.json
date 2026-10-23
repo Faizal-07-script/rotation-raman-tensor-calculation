@@ -13,7 +13,7 @@
     "The separate Ag reference intensity arrays are unchanged."
   ],
   "source_sha256": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
-  "elapsed_seconds": 33.92,
+  "elapsed_seconds": 31.54,
   "reference": {
     "status": "passed",
     "kind": "QWP source reference validation",
@@ -26,7 +26,7 @@
       "notation": "R[out,in]: first index = detected circular label; second = incident label.",
       "scope": "The source is an effective complex 2x2 optical model. Its antisymmetric off-diagonal pair is not substituted for a D2h material tensor."
     },
-    "software_version": "3",
+    "software_version": "4",
     "rows": [
       {
         "id": "K01",
@@ -120,7 +120,7 @@
         "source": "Cell 5",
         "purpose": "Confirm the selected plate actually prepares the intended incident state.",
         "procedure": "Propagate x-polarized input and compare vectors including the unit global phase.",
-        "expected_latex": "Qe_x=e^{i\\pi/4}\\sigma_+",
+        "expected_latex": "Qe_x=e^{i\\pi/4}\\sigma^{+}",
         "scope": "QWP source reference model",
         "status": "passed",
         "evidence": {
@@ -186,7 +186,7 @@
         "source": "Cell 7",
         "purpose": "Ensure no circular amplitude is lost before return propagation.",
         "procedure": "Compare Cartesian scattering with its complete circular expansion.",
-        "expected_latex": "RQe_x=e^{i\\pi/4}(R_{++}\\sigma_++R_{-+}\\sigma_-)",
+        "expected_latex": "RQe_x=e^{i\\pi/4}(R_{++}\\sigma^{+}+R_{-+}\\sigma^{-})",
         "scope": "QWP source reference model",
         "status": "passed",
         "evidence": {
@@ -242,7 +242,7 @@
         "id": "K09",
         "title": "Analyzer endpoint calibration",
         "source": "Cell 9",
-        "purpose": "Establish what alpha=0 and alpha=90 degrees detect in this optical chain.",
+        "purpose": "Establish what \u03b1=0 and \u03b1=90 degrees detect in this optical chain.",
         "procedure": "Transmit each returned circular state through both calibrated analyzer endpoints.",
         "expected_latex": "\\mathcal T_{0,+}=1,\\quad\\mathcal T_{0,-}=0,\\quad\\mathcal T_{90,+}=0,\\quad\\mathcal T_{90,-}=1",
         "scope": "QWP source reference model",
@@ -375,7 +375,7 @@
         "title": "Old-tensor limit",
         "source": "Cell 12",
         "purpose": "Recover the earlier model when the new relative yy phase vanishes.",
-        "procedure": "Set phi=0 and compare the complete angular law, not only one angle.",
+        "procedure": "Set \u03c6=0 and compare the complete angular law, not only one angle.",
         "expected_latex": "I_{\\phi=0}=(a^2+A^2-2aA\\sin\\delta)\\cos^2\\alpha",
         "scope": "QWP source reference model",
         "status": "passed",
@@ -415,7 +415,7 @@
         "title": "Pure flipped-channel limit",
         "source": "Cell 12",
         "purpose": "Confirm extinction of the same-label channel in a known limiting tensor.",
-        "procedure": "Set A=0 and phi=pi.",
+        "procedure": "Set A=0 and \u03c6=\u03c0.",
         "expected_latex": "I=a^2\\sin^2\\alpha",
         "scope": "QWP source reference model",
         "status": "passed",
@@ -512,7 +512,7 @@
         "title": "Zero-contrast limits",
         "source": "Cell 15, part 3",
         "purpose": "Detect a spurious circular-input difference in limiting cases where it must vanish.",
-        "procedure": "Substitute A=0, phi=pi and delta=phi/2 separately into the computed difference.",
+        "procedure": "Substitute A=0, \u03c6=\u03c0 and \u03b4=\u03c6/2 separately into the computed difference.",
         "expected_latex": "\\Delta I_{A=0}=\\Delta I_{\\phi=\\pi}=\\Delta I_{\\delta=\\phi/2}=0",
         "scope": "QWP source reference model",
         "status": "passed",
@@ -536,7 +536,7 @@
         "title": "Alternative-convention mirror check",
         "source": "Appendix",
         "purpose": "Identify a documented change of optical convention without forcing different experiments to share one curve.",
-        "procedure": "Use the appendix return plate and lab-x analyzer, then compare with the main source law at -alpha.",
+        "procedure": "Use the appendix return plate and lab-x analyzer, then compare with the main source law at -\u03b1.",
         "expected_latex": "I_{\\rm appendix}(\\alpha)=I_{\\rm main}(-\\alpha)\\quad\\text{for the declared source tensor}",
         "scope": "QWP source reference model",
         "status": "passed",
@@ -556,7 +556,7 @@
         "title": "Angular periodicity",
         "source": "Cell 13; added explicit check",
         "purpose": "Ensure that the plotted first-harmonic amplitude gives a 180-degree intensity period.",
-        "procedure": "Translate the source scan by pi and reduce the difference symbolically.",
+        "procedure": "Translate the source scan by \u03c0 and reduce the difference symbolically.",
         "expected_latex": "I(\\alpha+\\pi)=I(\\alpha)",
         "scope": "QWP source reference model",
         "status": "passed",
@@ -641,6 +641,6 @@
     "passed": 25,
     "total": 25,
     "scope": "Reference identities and implementation checks. Passing does not certify material coefficients, experimental propagation or chirality.",
-    "notation_note": "Cells 6-11 intermittently call <sigma-|R|sigma+> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel."
+    "notation_note": "Cells 6-11 intermittently call <\u03c3\u207b|R|\u03c3\u207a> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel."
   }
 }

@@ -1,0 +1,40 @@
+{
+  "version": "4",
+  "status": "passed",
+  "date": "2026-10-23",
+  "executed_notebook_cells": 22,
+  "cell_completion_messages": 22,
+  "typeset_equations": 412,
+  "math_calculation_structure_unchanged": true,
+  "symbolic_identifiers_unchanged": true,
+  "identical_example_intensities": 2163,
+  "notation": {
+    "circular": "σ⁺α",
+    "angles": [
+      "α",
+      "θ",
+      "ψ"
+    ],
+    "phases": [
+      "β",
+      "β′",
+      "βᵢ",
+      "βₛ",
+      "δ",
+      "φ"
+    ],
+    "uppercase": [
+      "Γ",
+      "Δ"
+    ],
+    "summation": "∑"
+  },
+  "browser_checks": [
+    "Header shows Version 4 and shorter page instructions.",
+    "Direct Jones fields θᵢ=33°, βᵢ=70°, θₛ₀=12°, βₛ=15° calculate successfully: 3 channels, 262 equations, result download enabled, zero KaTeX errors.",
+    "Effective-source fields a/A and δ/φ remain distinct; δ=30°, φ=90° calculate successfully: 1 channel, 53 equations.",
+    "Calculator tour opens at 1.1, adapts to the effective-source model and closes without clearing the result."
+  ],
+  "editorial_changes": "Shortened Home, Introduction, calculator, guide and progress text; retained input instructions, physical assumptions and references.",
+  "original_reference_notebook": "Unmodified; SHA-256 661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7"
+}

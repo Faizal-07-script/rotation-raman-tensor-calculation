@@ -11,7 +11,7 @@ import nbformat
 from IPython.core.interactiveshell import InteractiveShell
 from IPython.utils.capture import capture_output
 from ipywidgets.embed import dependency_state,embed_data
-P=Path(__file__).resolve().parent/'sources/notebook_v3.ipynb'
+P=Path(__file__).resolve().parent/'sources/notebook_v4.ipynb'
 book=nbformat.read(P,as_version=4);shell=InteractiveShell.instance();started=time.time()
 for cell in book.cells:
     if cell.cell_type!='code':continue
@@ -45,7 +45,7 @@ for name,figure in ns['state']['figures']:
     if name.startswith('polar_'):
         b=io.BytesIO();figure.savefig(b,format='png',dpi=110,bbox_inches='tight',transparent=False,facecolor='white')
         last.outputs.append(nbformat.v4.new_output('display_data',data={'image/png':base64.b64encode(b.getvalue()).decode()},metadata={}))
-record=dict(status='passed',version='3',checks=ns['state']['validation']['checks'],
+record=dict(status='passed',version='4',checks=ns['state']['validation']['checks'],
     cell_completion_messages=22,
     example_input='Built-in slide_component_config(): no user edits or external input file required.',
     optical_reference=ns['state']['validation']['optical_reference'],

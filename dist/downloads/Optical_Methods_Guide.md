@@ -6,29 +6,29 @@ All choices use the same complex-amplitude law. Changing a preparation, detector
 
 |---|---|---|
 
-| VV: parallel linear states, scan theta | theta: common incident/detector angle | Linear analyzer parallel to the input |
+| VV: parallel linear states, scan θ | θ: common incident/detector angle | Linear analyzer parallel to the input |
 
-| VH: crossed linear states, scan theta | theta: common incident/detector angle | Linear analyzer perpendicular to the input |
+| VH: crossed linear states, scan θ | θ: common incident/detector angle | Linear analyzer perpendicular to the input |
 
-| VV and VH together, one coefficient set | theta: one common angle for both channels | Calculate parallel and perpendicular analyzers separately |
+| VV and VH together, one coefficient set | θ: one common angle for both channels | Calculate parallel and perpendicular analyzers separately |
 
-| Circular input / direct linear analyzer, scan alpha | alpha: linear-analyzer angle only | v(alpha+alpha0), with a calibrated analyzer zero |
+| Circular input / direct linear analyzer, scan α | α: linear-analyzer angle only | v(α+α₀), with a calibrated analyzer zero |
 
-| sigma+alpha reference: elliptical detection-state scan | alpha: effective detection-state parameter | j(pi/4+alpha, pi/2), elliptical except at special angles |
+| σ⁺α reference: elliptical detection-state scan | α: effective detection-state parameter | j(π/4+α, π/2), elliptical except at special angles |
 
-| Input QWP / Raman tensor / return QWP / linear analyzer | alpha: physical linear analyzer after the return plate | Linear analyzer (-sin alpha, cos alpha) after B; effective detector B.H times analyzer |
+| Input QWP / Raman tensor / return QWP / linear analyzer | α: physical linear analyzer after the return plate | Linear analyzer (-sin α, cos α) after B; effective detector B.H times analyzer |
 
-| Same fixed circular basis label | None: both sample states are fixed | Fixed sigma_s detector |
+| Same fixed circular basis label | None: both sample states are fixed | Fixed σₛ detector |
 
-| Opposite fixed circular basis label | None: both sample states are fixed | Fixed sigma_-s detector |
+| Opposite fixed circular basis label | None: both sample states are fixed | Fixed σ₋ₛ detector |
 
-| Custom direct Jones input and detection states | alpha: theta_s0+alpha; input and phase controls fixed | j(theta_s0+alpha,beta_s) |
+| Custom direct Jones input and detection states | α: θₛ₀+α; input and phase controls fixed | j(θₛ₀+α,βₛ) |
 
 
 
 ### Same tensor, different interference
 
-$$p=\sigma_+^\dagger R_\perp\sigma_+,\quad q=\sigma_-^\dagger R_\perp\sigma_+$$
+$$p=(\sigma^{+})^\dagger R_\perp\sigma^{+},\quad q=(\sigma^{-})^\dagger R_\perp\sigma^{+}$$
 
 $$I_E=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha-2\mathrm{Re}(p q^*)\sin\alpha\cos\alpha$$
 
@@ -46,19 +46,19 @@ Use the elliptical reference for the cubic paper Fig. 1(c) and the declared slid
 
 $$\mathbf k_i=-k_i\hat Z,\quad\mathbf k_s=+k_s\hat Z,\quad S_3=2\mathrm{Im}(E_X^*E_Y),\quad h_i=-S_3(E_i),\quad h_s=S_3(e_s)$$
 
-The physical sign above uses exp[i(k.r-omega t)] and fixed laboratory XY components. Reference papers can attach conserved/changing names to different beam-coordinate conventions. Match those conventions before comparing names. Fixed circular states give constant intensity when the sample is not rotated.
+The physical sign above uses exp[i(k.r-ω t)] and fixed laboratory XY components. Reference papers can attach conserved/changing names to different beam-coordinate conventions. Match those conventions before comparing names. Fixed circular states give constant intensity when the sample is not rotated.
 
 ### Ag presentation
 
 Ag(xx), Ag(yy) and Ag(zz) remain separate contribution powers in the main plots. A complete single-phonon intensity is the squared sum of its component amplitudes; orthogonal unresolved phonon partners instead contribute a sum of powers. These are separate choices from the optical profile.
 
-### VV: parallel linear states, scan theta
+### VV: parallel linear states, scan θ
 
 **Family:** Co-rotating linear states
 
-**Scan:** theta: common incident/detector angle
+**Scan:** θ: common incident/detector angle
 
-**Preparation:** Linear input v(t), t=theta+theta0
+**Preparation:** Linear input v(t), t=θ+θ₀
 
 **Return optics:** Identity: no extra return plate
 
@@ -66,7 +66,7 @@ Ag(xx), Ag(yy) and Ag(zz) remain separate contribution powers in the main plots.
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
 $$v(t)=(\cos t,\sin t)^T$$
 
@@ -88,13 +88,13 @@ $$I_{VV}=|r_{xx}\cos^2t+(r_{xy}+r_{yx})\sin t\cos t+r_{yy}\sin^2t|^2$$
 
 The actual current angles and Jones matrices are shown in the optical-state preview and calculated mathematical steps. A guide identity is not an experimental calibration.
 
-### VH: crossed linear states, scan theta
+### VH: crossed linear states, scan θ
 
 **Family:** Co-rotating linear states
 
-**Scan:** theta: common incident/detector angle
+**Scan:** θ: common incident/detector angle
 
-**Preparation:** Linear input v(t), t=theta+theta0
+**Preparation:** Linear input v(t), t=θ+θ₀
 
 **Return optics:** Identity: no extra return plate
 
@@ -102,7 +102,7 @@ The actual current angles and Jones matrices are shown in the optical-state prev
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
 $$v(t)=(\cos t,\sin t)^T$$
 
@@ -130,7 +130,7 @@ The actual current angles and Jones matrices are shown in the optical-state prev
 
 **Family:** Co-rotating linear states
 
-**Scan:** theta: one common angle for both channels
+**Scan:** θ: one common angle for both channels
 
 **Preparation:** One linear input and one shared coefficient set
 
@@ -140,7 +140,7 @@ The actual current angles and Jones matrices are shown in the optical-state prev
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
 $$v(t)=(\cos t,\sin t)^T$$
 
@@ -164,21 +164,21 @@ $$I_{VV}=|\mathcal A_{VV}|^2,\quad I_{VH}=|\mathcal A_{VH}|^2$$
 
 The actual current angles and Jones matrices are shown in the optical-state preview and calculated mathematical steps. A guide identity is not an experimental calibration.
 
-### Circular input / direct linear analyzer, scan alpha
+### Circular input / direct linear analyzer, scan α
 
 **Family:** Circular input / linear detector
 
-**Scan:** alpha: linear-analyzer angle only
+**Scan:** α: linear-analyzer angle only
 
-**Preparation:** Fixed circular input sigma_s
+**Preparation:** Fixed circular input σₛ
 
 **Return optics:** Identity: the detector state at the sample is linear
 
-**Detection:** v(alpha+alpha0), with a calibrated analyzer zero
+**Detection:** v(α+α₀), with a calibrated analyzer zero
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
 $$\sigma_s=(1,is)^T/\sqrt{2},\quad s=\pm1$$
 
@@ -190,9 +190,9 @@ $$I_{CL}=\frac{|p|^2+|q|^2}{2}+\operatorname{Re}(p q^*e^{2it})$$
 
 **Use for:** Circular illumination with a linear effective detector at the sample.
 
-**Equality check:** For sigma+ input it equals custom Jones with theta_i=45, beta_i=90, theta_s0=alpha0 and beta_s=0 degrees.
+**Equality check:** For σ⁺ input it equals custom Jones with θᵢ=45, βᵢ=90, θₛ₀=α₀ and βₛ=0 degrees.
 
-**Physical distinction:** A bare linear-analyzer scan does not select pure sigma+ or sigma- endpoints. A return QWP changes the effective detector.
+**Physical distinction:** A bare linear-analyzer scan does not select pure σ⁺ or σ⁻ endpoints. A return QWP changes the effective detector.
 
 **Source scope:** Program Jones-calculus extension. The circular selection-rule paper does not prescribe this continuous scan or its quantitative intensity.
 
@@ -200,35 +200,35 @@ $$I_{CL}=\frac{|p|^2+|q|^2}{2}+\operatorname{Re}(p q^*e^{2it})$$
 
 The actual current angles and Jones matrices are shown in the optical-state preview and calculated mathematical steps. A guide identity is not an experimental calibration.
 
-### sigma+alpha reference: elliptical detection-state scan
+### σ⁺α reference: elliptical detection-state scan
 
 **Family:** Circular input / elliptical detector
 
-**Scan:** alpha: effective detection-state parameter
+**Scan:** α: effective detection-state parameter
 
-**Preparation:** Fixed sigma+ input
+**Preparation:** Fixed σ⁺ input
 
 **Return optics:** Identity in the effective-state representation
 
-**Detection:** j(pi/4+alpha, pi/2), elliptical except at special angles
+**Detection:** j(π/4+α, π/2), elliptical except at special angles
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
-$$E_i=\sigma_+,\quad e_s=(\cos(\pi/4+\alpha),i\sin(\pi/4+\alpha))^T$$
+$$E_i=\sigma^{+},\quad e_s=(\cos(\pi/4+\alpha),i\sin(\pi/4+\alpha))^T$$
 
-$$e_s=\cos\alpha\,\sigma_+-\sin\alpha\,\sigma_-$$
+$$e_s=\cos\alpha\,\sigma^{+}-\sin\alpha\,\sigma^{-}$$
 
 $$\mathcal A_E=p\cos\alpha-q\sin\alpha$$
 
 $$I_E=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha-2\operatorname{Re}(p q^*)\sin\alpha\cos\alpha$$
 
-**Use for:** The cubic paper sigma+alpha equations, its Fig. 1(c) benchmark and the declared slide-frame example.
+**Use for:** The cubic paper σ⁺α equations, its Fig. 1(c) benchmark and the declared slide-frame example.
 
-**Equality check:** It equals custom Jones at theta_i=45, beta_i=90, theta_s0=45, beta_s=90 degrees; source QWP endpoints agree up to phase, intermediate states generally differ.
+**Equality check:** It equals custom Jones at θᵢ=45, βᵢ=90, θₛ₀=45, βₛ=90 degrees; source QWP endpoints agree up to phase, intermediate states generally differ.
 
-**Physical distinction:** This implements Eq. (11) at theta=pi/4 and beta=beta'=pi/2. The paper calls alpha a polarizer angle, but its effective detector is not a bare linear state at the sample. An apparatus must be calibrated before identifying the two.
+**Physical distinction:** This implements Eq. (11) at θ=π/4 and β=β'=π/2. The paper calls α a polarizer angle, but its effective detector is not a bare linear state at the sample. An apparatus must be calibrated before identifying the two.
 
 **Source scope:** Cited effective Jones parameterization; the p/q expansion is derived here from that state.
 
@@ -240,23 +240,23 @@ The actual current angles and Jones matrices are shown in the optical-state prev
 
 **Family:** Circular input / explicit return optics
 
-**Scan:** alpha: physical linear analyzer after the return plate
+**Scan:** α: physical linear analyzer after the return plate
 
-**Preparation:** Lab-X input through Q=Rot(-pi/4) diag(1,i) Rot(-pi/4)^T
+**Preparation:** Lab-X input through Q=Rot(-π/4) diag(1,i) Rot(-π/4)^T
 
 **Return optics:** B=Q.T in the uploaded source basis convention
 
-**Detection:** Linear analyzer (-sin alpha, cos alpha) after B; effective detector B.H times analyzer
+**Detection:** Linear analyzer (-sin α, cos α) after B; effective detector B.H times analyzer
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
-$$Q=\frac12\begin{pmatrix}1+i&-1+i\\-1+i&1+i\end{pmatrix},\quad E_i=Qe_X=e^{i\pi/4}\sigma_+$$
+$$Q=\frac12\begin{pmatrix}1+i&-1+i\\-1+i&1+i\end{pmatrix},\quad E_i=Qe_X=e^{i\pi/4}\sigma^{+}$$
 
 $$e_{an}=(-\sin\alpha,\cos\alpha)^T,\quad B=Q^T,\quad e_s=B^\dagger e_{an}$$
 
-$$e_s\sim\cos\alpha\,\sigma_+-i\sin\alpha\,\sigma_-$$
+$$e_s\sim\cos\alpha\,\sigma^{+}-i\sin\alpha\,\sigma^{-}$$
 
 $$\mathcal A_Q\sim p\cos\alpha+i q\sin\alpha$$
 
@@ -264,7 +264,7 @@ $$I_Q=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha+2\operatorname{Im}(p q^*)\sin\alpha\co
 
 **Use for:** The uploaded QWP optical sequence, after its axes, return-path convention and analyzer zero are verified.
 
-**Equality check:** At alpha=0 and pi/2 the circular endpoints equal the elliptical reference in power; intermediate intensities generally need not match.
+**Equality check:** At α=0 and π/2 the circular endpoints equal the elliptical reference in power; intermediate intensities generally need not match.
 
 **Physical distinction:** Q.T is a declared source convention, not a universal reverse-path rule. Keep either the explicit B or its effective detector, never both. The crystal tensor remains 3x3 before transverse restriction.
 
@@ -280,15 +280,15 @@ The actual current angles and Jones matrices are shown in the optical-state prev
 
 **Scan:** None: both sample states are fixed
 
-**Preparation:** Fixed sigma_s input
+**Preparation:** Fixed σₛ input
 
 **Return optics:** Identity in the effective-state representation
 
-**Detection:** Fixed sigma_s detector
+**Detection:** Fixed σₛ detector
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
 $$\sigma_s=(1,is)^T/\sqrt{2},\quad s=\pm1$$
 
@@ -316,15 +316,15 @@ The actual current angles and Jones matrices are shown in the optical-state prev
 
 **Scan:** None: both sample states are fixed
 
-**Preparation:** Fixed sigma_s input
+**Preparation:** Fixed σₛ input
 
 **Return optics:** Identity in the effective-state representation
 
-**Detection:** Fixed sigma_-s detector
+**Detection:** Fixed σ₋ₛ detector
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
 $$\sigma_s=(1,is)^T/\sqrt{2},\quad s=\pm1$$
 
@@ -336,7 +336,7 @@ $$I_{opposite}=|\sigma_{-s}^\dagger R_\perp\sigma_s|^2$$
 
 **Use for:** A fixed opposite-basis circular channel, with an explicit propagation convention.
 
-**Equality check:** The curve is constant under this fixed experiment. Its power is the opposite-basis circular channel, not an alpha sweep.
+**Equality check:** The curve is constant under this fixed experiment. Its power is the opposite-basis circular channel, not an α sweep.
 
 **Physical distinction:** Opposite fixed XY circular labels can represent conserved physical helicity for counterpropagating beams. Match the reference's basis before assigning conserved/changing names.
 
@@ -350,17 +350,17 @@ The actual current angles and Jones matrices are shown in the optical-state prev
 
 **Family:** Custom effective states
 
-**Scan:** alpha: theta_s0+alpha; input and phase controls fixed
+**Scan:** α: θₛ₀+α; input and phase controls fixed
 
-**Preparation:** j(theta_i,beta_i), selected by the user
+**Preparation:** j(θᵢ,βᵢ), selected by the user
 
 **Return optics:** Identity: any return optics must already be included in e_s
 
-**Detection:** j(theta_s0+alpha,beta_s)
+**Detection:** j(θₛ₀+α,βₛ)
 
 $$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
 
-$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$
+$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
 
 $$j(t,\beta)=(\cos t,e^{i\beta}\sin t)^T$$
 
@@ -372,9 +372,9 @@ $$I_J=|\mathcal A_J|^2$$
 
 **Use for:** Calibrated effective states or exact checks of the matching preset parameters.
 
-**Equality check:** It reproduces a preset only when both effective states and their scan laws agree up to global phase; an arbitrary waveplate path need not fit this restricted constant-beta scan.
+**Equality check:** It reproduces a preset only when both effective states and their scan laws agree up to global phase; an arbitrary waveplate path need not fit this restricted constant-β scan.
 
-**Physical distinction:** Changing beta_s changes relative phase and interference. This custom profile keeps the input fixed, so it does not in general reproduce co-rotating VV/VH scans.
+**Physical distinction:** Changing βₛ changes relative phase and interference. This custom profile keeps the input fixed, so it does not in general reproduce co-rotating VV/VH scans.
 
 **Source scope:** User-defined specialization of the common contraction, not a separate material law.
 

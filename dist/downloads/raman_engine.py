@@ -1,4 +1,4 @@
-# Generated from the scientific cells of notebook version 3.
+# Generated from the scientific cells of notebook version 4.
 # Rich notebook display imports are omitted; scientific functions are unchanged.
 import os
 os.environ['MPLBACKEND']='Agg'
@@ -32,7 +32,7 @@ from matplotlib.ticker import MaxNLocator
 sp.init_printing()
 plt.rcParams.update({"figure.dpi": 115, "font.size": 10})
 
-# alpha is the detection scan angle. psi, introduced by the geometry input,
+# α is the detection scan angle. ψ, introduced by the geometry input,
 # rotates the in-plane measurement frame and is a different operation.
 alpha = sp.symbols("alpha", real=True)
 a, b, c, d, e, f = sp.symbols("a b c d e f", complex=True)
@@ -210,6 +210,15 @@ def apply_scientific_style():
 
 PLOT_STYLE_STATUS = apply_scientific_style()
 
+def raman_latex(expression, **settings):
+    """Print notation such as β′ while preserving the symbolic variable names."""
+    names = dict(settings.pop("symbol_names", {}))
+    for symbol in getattr(expression, "free_symbols", set()):
+        if symbol.name == "beta_prime":
+            names[symbol] = r"\beta^{\prime}"
+    return sp.latex(expression, symbol_names=names, **settings)
+
+
 
 
 
@@ -230,7 +239,7 @@ def lattice_matrix(parameters):
     """Return L=(a,b,c) in an orthonormal Cartesian crystal coordinate system.
 
     The first direct-lattice vector lies along Cartesian x, and the second
-    lies in the xy plane. The six inputs are a0,b0,c0,alpha,beta,gamma.
+    lies in the xy plane. The six inputs are a0,b0,c0,α,β,γ.
     Tensor components always refer to Cartesian axes, even for a skew cell.
     """
     if len(parameters) != 6:
@@ -293,7 +302,7 @@ def validate_frame(matrix):
 def build_orientation(config):
     """Return the frame T with v_crystal = T v_lab and R_lab = T.T R_crystal T.
 
-    Positive psi rotates the measurement axes X toward Y around Z.
+    Positive ψ rotates the measurement axes X toward Y around Z.
     It is a frame-angle convention; an active sample rotation has the
     opposite sign when the laboratory optics are kept fixed.
     """
@@ -305,7 +314,7 @@ def build_orientation(config):
         return dict(
             L=lattice,
             T=frame,
-            notes=["A manual proper frame was used; hkl, uvw and psi were not reapplied."],
+            notes=["A manual proper frame was used; hkl, uvw and ψ were not reapplied."],
         )
     if config.get("orientation", "hkl") != "hkl":
         raise ValueError("Orientation must be 'hkl' or 'matrix'.")
@@ -336,7 +345,7 @@ def build_orientation(config):
             raise ValueError("[uvw] must lie in (hkl): h*u+k*v+l*w must equal zero.")
     x_initial = unit(tangent)
     y_initial = sp.simplify(normal.cross(x_initial))
-    real_number(config["azimuth_deg"], "In-plane frame angle psi")
+    real_number(config["azimuth_deg"], "In-plane frame angle ψ")
     sine, cosine = trig_deg(config["azimuth_deg"])
     x_axis = sp.simplify(cosine * x_initial + sine * y_initial)
     y_axis = sp.simplify(-sine * x_initial + cosine * y_initial)
@@ -521,7 +530,7 @@ SOURCES = {
     "tis2": dict(
         title="Breit-Wigner-Fano Raman characteristics in semimetallic 1T-Ti1.03S2, Phys. Rev. B 114, 165426 (2026)",
         url="https://doi.org/10.1103/tdg3-1yg2",
-        role="First-order Eg and A1g modes; the shoulder is not treated as a single Gamma-point phonon",
+        role="First-order Eg and A1g modes; the shoulder is not treated as a single Γ-point phonon",
     ),
     "tis2_parent": dict(
         title="Thickness-Dependent Characterization of Chemically Exfoliated TiS2 Nanosheets (2018)",
@@ -558,7 +567,7 @@ MATERIALS = {
         modes={"A1g": "A1g", "Eg": "Eg"},
         lattice=(1, 1, 1, 90, 90, 120),
         surface="(001)",
-        note="D3d represents the parent 1T structure; excess Ti may require a lower local-symmetry model. A first-order Gamma-point tensor does not calculate shoulder, two-phonon or BWF line shapes. The c/a ratio is illustrative.",
+        note="D3d represents the parent 1T structure; excess Ti may require a lower local-symmetry model. A first-order Γ-point tensor does not calculate shoulder, two-phonon or BWF line shapes. The c/a ratio is illustrative.",
         sources=["tis2", "tis2_parent", "tensor_reference"],
     ),
     "2H-NbSe2": dict(
@@ -578,7 +587,7 @@ MATERIALS = {
         modes={"A1g": "A1g", "Eg": "Eg"},
         lattice=(1, 1, 1, 90, 90, 120),
         surface="(001)",
-        note="Only first-order Gamma-point modes of the parent phase are included. The feature near 250 cm⁻¹ is not automatically assigned to Eg; the cited study discuss two-phonon combinations. The c/a ratio is illustrative.",
+        note="Only first-order Γ-point modes of the parent phase are included. The feature near 250 cm⁻¹ is not automatically assigned to Eg; the cited study discuss two-phonon combinations. The c/a ratio is illustrative.",
         sources=["tmd", "tensor_reference"],
     ),
     "GENERAL": dict(
@@ -717,7 +726,7 @@ RULE_LABELS = {
     "DEGENERATE_PARTNER_SUM": "Unresolved phonon partner-intensity sum",
     "SINGLE_TENSOR": "Single coherent tensor",
 }
-AUDIT_VERSION = "3"
+AUDIT_VERSION = "4"
 QWP_SOURCE = {
     "filename": "Dr_Kumar_Original.ipynb",
     "sha256": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
@@ -726,7 +735,7 @@ QWP_SOURCE = {
     "appendix_policy": "The alternative appendix convention is not substituted for the Quarter-wave-plate main calculation.",
 }
 SOURCES["birefringence"] = dict(
-    title="Raman tensor elements of beta-Ga2O3, Scientific Reports 6, 35964 (2016)",
+    title="Raman tensor elements of β-Ga2O3, Scientific Reports 6, 35964 (2016)",
     url="https://doi.org/10.1038/srep35964",
     role="Demonstrates that anisotropic internal propagation can require a modified Raman formalism.",
 )
@@ -763,13 +772,13 @@ QWP_RETURN_QWP = QWP_QWP.T
 
 
 def jones(theta, beta):
-    """Return a normalized Jones state; theta and beta are real angles in radians."""
+    """Return a normalized Jones state; θ and β are real angles in radians."""
     return sp.Matrix([sp.cos(theta), sp.exp(sp.I * beta) * sp.sin(theta)])
 
 
 OPTICS_LABELS = {
     "QWP": "Quarter-wave-plate: input QWP, Raman tensor, return QWP, analyzer",
-    "COMPONENT_SIGMA_ALPHA": "REFERENCE sigma+alpha: theta=45°, beta=beta'=90°",
+    "COMPONENT_SIGMA_ALPHA": "REFERENCE σ⁺α: θ=45°, β=β′=90°",
     "DIRECT_JONES": "Direct Jones input and detection states",
     "CIRCULAR_LINEAR": "Circular-channel model: circular input, direct linear-angle scan (Jones extension)",
     "CIRCULAR_SAME": "Circular-channel model: same circular basis label",
@@ -777,16 +786,16 @@ OPTICS_LABELS = {
     "LINEAR_PARALLEL": "Complex linear model: co-rotating parallel linear states",
     "LINEAR_CROSSED": "Complex linear model: co-rotating crossed linear states",
     "LINEAR_PAIR": "Complex linear model: parallel and crossed linear scans",
-    "CUBIC_VV": "Cubic reference Section 2.2: VV, sample-angle parameter theta",
-    "CUBIC_VH": "Cubic reference Section 2.2: VH, sample-angle parameter theta",
-    "CUBIC_SIGMA": "Cubic reference Section 2.2: sigma+alpha, theta=45 degrees, beta=beta'=90 degrees",
+    "CUBIC_VV": "Cubic reference Section 2.2: VV, sample-angle parameter θ",
+    "CUBIC_VH": "Cubic reference Section 2.2: VH, sample-angle parameter θ",
+    "CUBIC_SIGMA": "Cubic reference Section 2.2: σ⁺α, θ=45 degrees, β=β′=90 degrees",
 }
 
 
 def optical_chain(kind, direct=None, paper=None):
     """Build the actual incident field, return optics, and detection vector.
 
-    The Quarter-wave-plate profile adopts Q_back=Q.T and the alpha=0 reference from
+    The Quarter-wave-plate profile adopts Q_back=Q.T and the α=0 reference from
     the uploaded notebook. The REFERENCE profile specifies effective Jones states;
     it is not assumed identical to a rotating linear analyzer after a QWP.
     Fixed profiles report their actual parameters instead of reading disabled
@@ -801,7 +810,7 @@ def optical_chain(kind, direct=None, paper=None):
         parameters = {
             "theta_i_deg": 45,
             "beta_i_deg": 90,
-            "analyzer_reference": "+Y at alpha=0; -X at alpha=90°, after return QWP",
+            "analyzer_reference": "+Y at α=0; -X at α=90°, after return QWP",
         }
     elif kind in ["COMPONENT_SIGMA_ALPHA", "CUBIC_SIGMA"]:
         incident = sig_p
@@ -811,7 +820,7 @@ def optical_chain(kind, direct=None, paper=None):
     elif kind == "DIRECT_JONES":
         required = ["theta_i_deg", "beta_i_deg", "theta_s0_deg", "beta_s_deg"]
         if direct is None or any(key not in direct for key in required):
-            raise ValueError("Direct Jones input requires theta_i, beta_i, theta_s0 and beta_s.")
+            raise ValueError("Direct Jones input requires θᵢ, βᵢ, θₛ₀ and βₛ.")
         parameters = {key: sp.sympify(direct[key]) for key in required}
         for value in parameters.values():
             real_number(value, "Jones angle")
@@ -902,23 +911,23 @@ def optical_method_catalog():
         "do not also rotate the tensor by the same scan angle."
     )
     data = {
-        "CUBIC_VV": dict(family="Co-rotating linear states", scan="theta: common incident/detector angle",
-            preparation="Linear input v(t), t=theta+theta0", return_path="Identity: no extra return plate",
+        "CUBIC_VV": dict(family="Co-rotating linear states", scan="θ: common incident/detector angle",
+            preparation="Linear input v(t), t=θ+θ₀", return_path="Identity: no extra return plate",
             detection="Linear analyzer parallel to the input", states=[v, r"E_i=v(t),\quad e_s=v(t),\quad B=I_2"],
             amplitude=r"\mathcal A_{VV}=v(t)^\dagger R_\perp v(t)",
             intensity=r"I_{VV}=|r_{xx}\cos^2t+(r_{xy}+r_{yx})\sin t\cos t+r_{yy}\sin^2t|^2",
             invariant="The paired VV/VH choice must reproduce this VV channel with identical inputs.",
             use_for="Parallel linear measurements and the VV member of the cubic benchmark.",
             caution=linear_note, sources=["complex", "cubic"], provenance="Direct specialization of the cited contraction and linear states."),
-        "CUBIC_VH": dict(family="Co-rotating linear states", scan="theta: common incident/detector angle",
-            preparation="Linear input v(t), t=theta+theta0", return_path="Identity: no extra return plate",
+        "CUBIC_VH": dict(family="Co-rotating linear states", scan="θ: common incident/detector angle",
+            preparation="Linear input v(t), t=θ+θ₀", return_path="Identity: no extra return plate",
             detection="Linear analyzer perpendicular to the input", states=[v, w, r"E_i=v(t),\quad e_s=w(t),\quad B=I_2"],
             amplitude=r"\mathcal A_{VH}=w(t)^\dagger R_\perp v(t)",
             intensity=r"I_{VH}=|r_{yx}\cos^2t-r_{xy}\sin^2t+(r_{yy}-r_{xx})\sin t\cos t|^2",
             invariant="The paired VV/VH choice must reproduce this VH channel with identical inputs.",
             use_for="Crossed linear measurements and the VH member of the cubic benchmark.",
             caution=linear_note, sources=["complex", "cubic"], provenance="Direct specialization of the cited contraction and crossed states."),
-        "LINEAR_PAIR": dict(family="Co-rotating linear states", scan="theta: one common angle for both channels",
+        "LINEAR_PAIR": dict(family="Co-rotating linear states", scan="θ: one common angle for both channels",
             preparation="One linear input and one shared coefficient set", return_path="Identity for both channels",
             detection="Calculate parallel and perpendicular analyzers separately", states=[v, w, r"E_i=v(t),\quad e_s^{VV}=v(t),\quad e_s^{VH}=w(t)"],
             amplitude=r"\mathcal A_{VV}=v^\dagger R_\perp v,\quad\mathcal A_{VH}=w^\dagger R_\perp v",
@@ -926,39 +935,39 @@ def optical_method_catalog():
             invariant="This is a paired output, not a third polarization law. Each raw curve equals its standalone channel.",
             use_for="Comparing VV and VH for the same phonon coefficients, surface and angular zero.",
             caution=linear_note, sources=["complex", "cubic"], provenance="Two instances of the same Jones engine; powers are not added to define a new channel."),
-        "CIRCULAR_LINEAR": dict(family="Circular input / linear detector", scan="alpha: linear-analyzer angle only",
-            preparation="Fixed circular input sigma_s", return_path="Identity: the detector state at the sample is linear",
-            detection="v(alpha+alpha0), with a calibrated analyzer zero", states=[sigma, r"E_i=\sigma_s,\quad e_s=v(\alpha+\alpha_0),\quad B=I_2"],
+        "CIRCULAR_LINEAR": dict(family="Circular input / linear detector", scan="α: linear-analyzer angle only",
+            preparation="Fixed circular input σₛ", return_path="Identity: the detector state at the sample is linear",
+            detection="v(α+α₀), with a calibrated analyzer zero", states=[sigma, r"E_i=\sigma_s,\quad e_s=v(\alpha+\alpha_0),\quad B=I_2"],
             amplitude=r"\mathcal A_{CL}=\frac{p e^{it}+q e^{-it}}{\sqrt{2}},\quad t=\alpha+\alpha_0",
             intensity=r"I_{CL}=\frac{|p|^2+|q|^2}{2}+\operatorname{Re}(p q^*e^{2it})",
-            invariant="For sigma+ input it equals custom Jones with theta_i=45, beta_i=90, theta_s0=alpha0 and beta_s=0 degrees.",
+            invariant="For σ⁺ input it equals custom Jones with θᵢ=45, βᵢ=90, θₛ₀=α₀ and βₛ=0 degrees.",
             use_for="Circular illumination with a linear effective detector at the sample.",
-            caution="A bare linear-analyzer scan does not select pure sigma+ or sigma- endpoints. A return QWP changes the effective detector.",
+            caution="A bare linear-analyzer scan does not select pure σ⁺ or σ⁻ endpoints. A return QWP changes the effective detector.",
             sources=["jones", "circular"], provenance="Program Jones-calculus extension. The circular selection-rule paper does not prescribe this continuous scan or its quantitative intensity."),
-        "CUBIC_SIGMA": dict(family="Circular input / elliptical detector", scan="alpha: effective detection-state parameter",
-            preparation="Fixed sigma+ input", return_path="Identity in the effective-state representation",
-            detection="j(pi/4+alpha, pi/2), elliptical except at special angles",
-            states=[r"E_i=\sigma_+,\quad e_s=(\cos(\pi/4+\alpha),i\sin(\pi/4+\alpha))^T", r"e_s=\cos\alpha\,\sigma_+-\sin\alpha\,\sigma_-"],
+        "CUBIC_SIGMA": dict(family="Circular input / elliptical detector", scan="α: effective detection-state parameter",
+            preparation="Fixed σ⁺ input", return_path="Identity in the effective-state representation",
+            detection="j(π/4+α, π/2), elliptical except at special angles",
+            states=[r"E_i=\sigma^{+},\quad e_s=(\cos(\pi/4+\alpha),i\sin(\pi/4+\alpha))^T", r"e_s=\cos\alpha\,\sigma^{+}-\sin\alpha\,\sigma^{-}"],
             amplitude=r"\mathcal A_E=p\cos\alpha-q\sin\alpha",
             intensity=r"I_E=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha-2\operatorname{Re}(p q^*)\sin\alpha\cos\alpha",
-            invariant="It equals custom Jones at theta_i=45, beta_i=90, theta_s0=45, beta_s=90 degrees; source QWP endpoints agree up to phase, intermediate states generally differ.",
-            use_for="The cubic paper sigma+alpha equations, its Fig. 1(c) benchmark and the declared slide-frame example.",
-            caution="This implements Eq. (11) at theta=pi/4 and beta=beta'=pi/2. The paper calls alpha a polarizer angle, but its effective detector is not a bare linear state at the sample. An apparatus must be calibrated before identifying the two.",
+            invariant="It equals custom Jones at θᵢ=45, βᵢ=90, θₛ₀=45, βₛ=90 degrees; source QWP endpoints agree up to phase, intermediate states generally differ.",
+            use_for="The cubic paper σ⁺α equations, its Fig. 1(c) benchmark and the declared slide-frame example.",
+            caution="This implements Eq. (11) at θ=π/4 and β=β'=π/2. The paper calls α a polarizer angle, but its effective detector is not a bare linear state at the sample. An apparatus must be calibrated before identifying the two.",
             sources=["cubic", "jones"], provenance="Cited effective Jones parameterization; the p/q expansion is derived here from that state."),
-        "QWP": dict(family="Circular input / explicit return optics", scan="alpha: physical linear analyzer after the return plate",
-            preparation="Lab-X input through Q=Rot(-pi/4) diag(1,i) Rot(-pi/4)^T",
+        "QWP": dict(family="Circular input / explicit return optics", scan="α: physical linear analyzer after the return plate",
+            preparation="Lab-X input through Q=Rot(-π/4) diag(1,i) Rot(-π/4)^T",
             return_path="B=Q.T in the uploaded source basis convention",
-            detection="Linear analyzer (-sin alpha, cos alpha) after B; effective detector B.H times analyzer",
-            states=[r"Q=\frac12\begin{pmatrix}1+i&-1+i\\-1+i&1+i\end{pmatrix},\quad E_i=Qe_X=e^{i\pi/4}\sigma_+", r"e_{an}=(-\sin\alpha,\cos\alpha)^T,\quad B=Q^T,\quad e_s=B^\dagger e_{an}", r"e_s\sim\cos\alpha\,\sigma_+-i\sin\alpha\,\sigma_-"],
+            detection="Linear analyzer (-sin α, cos α) after B; effective detector B.H times analyzer",
+            states=[r"Q=\frac12\begin{pmatrix}1+i&-1+i\\-1+i&1+i\end{pmatrix},\quad E_i=Qe_X=e^{i\pi/4}\sigma^{+}", r"e_{an}=(-\sin\alpha,\cos\alpha)^T,\quad B=Q^T,\quad e_s=B^\dagger e_{an}", r"e_s\sim\cos\alpha\,\sigma^{+}-i\sin\alpha\,\sigma^{-}"],
             amplitude=r"\mathcal A_Q\sim p\cos\alpha+i q\sin\alpha",
             intensity=r"I_Q=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha+2\operatorname{Im}(p q^*)\sin\alpha\cos\alpha",
-            invariant="At alpha=0 and pi/2 the circular endpoints equal the elliptical reference in power; intermediate intensities generally need not match.",
+            invariant="At α=0 and π/2 the circular endpoints equal the elliptical reference in power; intermediate intensities generally need not match.",
             use_for="The uploaded QWP optical sequence, after its axes, return-path convention and analyzer zero are verified.",
             caution="Q.T is a declared source convention, not a universal reverse-path rule. Keep either the explicit B or its effective detector, never both. The crystal tensor remains 3x3 before transverse restriction.",
             sources=["kumar-original", "jones"], provenance="Exact uploaded optical chain plus a program-derived p/q identity valid for any supplied R_perp under that chain."),
         "CIRCULAR_SAME": dict(family="Fixed circular channels", scan="None: both sample states are fixed",
-            preparation="Fixed sigma_s input", return_path="Identity in the effective-state representation",
-            detection="Fixed sigma_s detector", states=[sigma, r"E_i=\sigma_s,\quad e_s=\sigma_s"],
+            preparation="Fixed σₛ input", return_path="Identity in the effective-state representation",
+            detection="Fixed σₛ detector", states=[sigma, r"E_i=\sigma_s,\quad e_s=\sigma_s"],
             amplitude=r"\mathcal A_{same}=\sigma_s^\dagger R_\perp\sigma_s",
             intensity=r"I_{same}=|\sigma_s^\dagger R_\perp\sigma_s|^2",
             invariant="The curve is constant when tensor, orientation and optical states remain fixed; a polar circle is a display of that constant.",
@@ -966,22 +975,22 @@ def optical_method_catalog():
             caution="Same fixed XY circular label is not automatically conserved propagation-relative helicity in backscattering. This profile does not rotate the sample.",
             sources=["circular", "jones"], provenance="Fixed-state tensor contraction; the separate angular-momentum rule is conditional and does not set curve heights."),
         "CIRCULAR_OPPOSITE": dict(family="Fixed circular channels", scan="None: both sample states are fixed",
-            preparation="Fixed sigma_s input", return_path="Identity in the effective-state representation",
-            detection="Fixed sigma_-s detector", states=[sigma, r"E_i=\sigma_s,\quad e_s=\sigma_{-s}"],
+            preparation="Fixed σₛ input", return_path="Identity in the effective-state representation",
+            detection="Fixed σ₋ₛ detector", states=[sigma, r"E_i=\sigma_s,\quad e_s=\sigma_{-s}"],
             amplitude=r"\mathcal A_{opposite}=\sigma_{-s}^\dagger R_\perp\sigma_s",
             intensity=r"I_{opposite}=|\sigma_{-s}^\dagger R_\perp\sigma_s|^2",
-            invariant="The curve is constant under this fixed experiment. Its power is the opposite-basis circular channel, not an alpha sweep.",
+            invariant="The curve is constant under this fixed experiment. Its power is the opposite-basis circular channel, not an α sweep.",
             use_for="A fixed opposite-basis circular channel, with an explicit propagation convention.",
             caution="Opposite fixed XY circular labels can represent conserved physical helicity for counterpropagating beams. Match the reference's basis before assigning conserved/changing names.",
             sources=["circular", "jones"], provenance="Fixed-state tensor contraction, distinct from a spatial vortex-intensity calculation."),
-        "DIRECT_JONES": dict(family="Custom effective states", scan="alpha: theta_s0+alpha; input and phase controls fixed",
-            preparation="j(theta_i,beta_i), selected by the user", return_path="Identity: any return optics must already be included in e_s",
-            detection="j(theta_s0+alpha,beta_s)", states=[r"j(t,\beta)=(\cos t,e^{i\beta}\sin t)^T", r"E_i=j(\theta_i,\beta_i),\quad e_s=j(\theta_{s0}+\alpha,\beta_s),\quad B=I_2"],
+        "DIRECT_JONES": dict(family="Custom effective states", scan="α: θₛ₀+α; input and phase controls fixed",
+            preparation="j(θᵢ,βᵢ), selected by the user", return_path="Identity: any return optics must already be included in e_s",
+            detection="j(θₛ₀+α,βₛ)", states=[r"j(t,\beta)=(\cos t,e^{i\beta}\sin t)^T", r"E_i=j(\theta_i,\beta_i),\quad e_s=j(\theta_{s0}+\alpha,\beta_s),\quad B=I_2"],
             amplitude=r"\mathcal A_J=j(\theta_{s0}+\alpha,\beta_s)^\dagger R_\perp j(\theta_i,\beta_i)",
             intensity=r"I_J=|\mathcal A_J|^2",
-            invariant="It reproduces a preset only when both effective states and their scan laws agree up to global phase; an arbitrary waveplate path need not fit this restricted constant-beta scan.",
+            invariant="It reproduces a preset only when both effective states and their scan laws agree up to global phase; an arbitrary waveplate path need not fit this restricted constant-β scan.",
             use_for="Calibrated effective states or exact checks of the matching preset parameters.",
-            caution="Changing beta_s changes relative phase and interference. This custom profile keeps the input fixed, so it does not in general reproduce co-rotating VV/VH scans.",
+            caution="Changing βₛ changes relative phase and interference. This custom profile keeps the input fixed, so it does not in general reproduce co-rotating VV/VH scans.",
             sources=["jones", "complex"], provenance="User-defined specialization of the common contraction, not a separate material law."),
     }
     return {key: dict(key=key, label=GENERAL_PROFILES[key], **value) for key, value in data.items()}
@@ -994,7 +1003,7 @@ def optical_method_markdown(kind):
         "**Scan:** " + guide["scan"], "**Preparation:** " + guide["preparation"],
         "**Return optics:** " + guide["return_path"], "**Detection:** " + guide["detection"],
         r"$$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$",
-        r"$$p=\sigma_+^\dagger R_\perp E_i,\quad q=\sigma_-^\dagger R_\perp E_i$$"]
+        r"$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$"]
     lines += ["$$" + equation + "$$" for equation in guide["states"] + [guide["amplitude"], guide["intensity"]]]
     lines += ["**Use for:** " + guide["use_for"], "**Equality check:** " + guide["invariant"],
         "**Physical distinction:** " + guide["caution"], "**Source scope:** " + guide["provenance"],
@@ -1012,7 +1021,7 @@ def optical_methods_overview_markdown():
         "| Profile | Scanned quantity | Detection at the sample |", "|---|---|---|"]
     lines += ["| " + g["label"] + " | " + g["scan"] + " | " + g["detection"] + " |" for g in optical_method_catalog().values()]
     lines += ["", "### Same tensor, different interference",
-        r"$$p=\sigma_+^\dagger R_\perp\sigma_+,\quad q=\sigma_-^\dagger R_\perp\sigma_+$$",
+        r"$$p=(\sigma^{+})^\dagger R_\perp\sigma^{+},\quad q=(\sigma^{-})^\dagger R_\perp\sigma^{+}$$",
         r"$$I_E=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha-2\mathrm{Re}(p q^*)\sin\alpha\cos\alpha$$",
         r"$$I_Q=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha+2\mathrm{Im}(p q^*)\sin\alpha\cos\alpha$$",
         r"$$I_{CL}=\tfrac12(|p|^2+|q|^2)+\mathrm{Re}(p q^*e^{2i(\alpha+\alpha_0)})$$",
@@ -1021,7 +1030,7 @@ def optical_methods_overview_markdown():
         "Use the elliptical reference for the cubic paper Fig. 1(c) and the declared slide-frame example; use the explicit QWP chain for the uploaded optical notebook; use VV/VH for the corresponding linear measurements. A CaNb2O6 material label alone does not determine a detector state. Keep lattice metric, surface axes, coefficients, angle zeros and Ag component/coherent-mode policy identical when comparing results.",
         "### Fixed labels and physical helicity",
         r"$$\mathbf k_i=-k_i\hat Z,\quad\mathbf k_s=+k_s\hat Z,\quad S_3=2\mathrm{Im}(E_X^*E_Y),\quad h_i=-S_3(E_i),\quad h_s=S_3(e_s)$$",
-        "The physical sign above uses exp[i(k.r-omega t)] and fixed laboratory XY components. Reference papers can attach conserved/changing names to different beam-coordinate conventions. Match those conventions before comparing names. Fixed circular states give constant intensity when the sample is not rotated.",
+        "The physical sign above uses exp[i(k.r-ω t)] and fixed laboratory XY components. Reference papers can attach conserved/changing names to different beam-coordinate conventions. Match those conventions before comparing names. Fixed circular states give constant intensity when the sample is not rotated.",
         "### Ag presentation",
         "Ag(xx), Ag(yy) and Ag(zz) remain separate contribution powers in the main plots. A complete single-phonon intensity is the squared sum of its component amplitudes; orthogonal unresolved phonon partners instead contribute a sum of powers. These are separate choices from the optical profile."]
     return "\n\n".join(lines)
@@ -1042,7 +1051,7 @@ def optical_profile_example():
         result[kind] = dict(intensity=intensity, curve=curve,
             at_45_degrees=sp.simplify(intensity.subs(alpha, sp.pi / 4)))
     return dict(tensor=tensor, angles=grid, profiles=result,
-        scope="Illustrative R_perp=diag(1,2), one coherent tensor, sigma+ input, common raw units; no material is assigned.")
+        scope="Illustrative R_perp=diag(1,2), one coherent tensor, σ⁺ input, common raw units; no material is assigned.")
 
 
 def optical_profile_comparison_figure():
@@ -1600,7 +1609,7 @@ def circular_mos2_reference_config():
     config = paper_demo_config("CIRCULAR", "MoS2-1L")
     config.update(
         case_label="Circular-channel model: monolayer MoS2, ell_i=0",
-        input_note="D3h plane-wave Jones tensors and circular channels; the alpha scan is a direct Jones extension. Intensities use illustrative coefficients, not a prediction of the vortex paper.",
+        input_note="D3h plane-wave Jones tensors and circular channels; the α scan is a direct Jones extension. Intensities use illustrative coefficients, not a prediction of the vortex paper.",
     )
     config["paper_parameters"].update(N=3, m_ph=[0, 2, -2], thin_2d_assumptions=True)
     return config
@@ -1665,7 +1674,7 @@ def circular_diagnostics(run):
         "parameters": copy.deepcopy(parameters),
         "rule_checks": [],
         "channels": {},
-        "intensity_scope": "Plane-wave Jones intensity (ell=0). Requested vortex charge enters the separate Eq. 24 check only.",
+        "intensity_scope": "Plane-wave Jones intensity (ℓ=0). Requested vortex charge enters the separate Eq. 24 check only.",
         "scope": (
             "Conditional 2D rule"
             if parameters["thin_2d_assumptions"]
@@ -1807,7 +1816,7 @@ def normalized_stokes(vector):
     """Describe one nonzero Jones state, using S3=2 Im(Ex* Ey)/S0.
 
     This sign is defined here; it is not an unqualified LCP/RCP name.
-    Under exp[i(k.r-omega.t)], propagation-relative helicity of a pure
+    Under exp[i(k.r-ω.t)], propagation-relative helicity of a pure
     circular transverse state is sign(k_z)*S3 in this laboratory frame.
     """
     vector = np.asarray(vector, dtype=complex).reshape(2)
@@ -1845,7 +1854,7 @@ def optical_state_audit(optical):
         effective_detection=optical["effective_analyzer"],
         return_optics=optical["B"],
         rows=rows,
-        convention="Fixed laboratory XY; time dependence exp[i(k.r-omega.t)]; ki=-Z, ks=+Z.",
+        convention="Fixed laboratory XY; time dependence exp[i(k.r-ω.t)]; ki=-Z, ks=+Z.",
         helicity_note="h is an expectation for an elliptical state and a +/-1 eigenvalue only for a circular state. These h values are not substituted for the paper's s labels in Eq. 24.",
     )
 
@@ -1961,7 +1970,7 @@ def physics_audit_markdown(run):
         lines += [
             "### " + OPTICS_LABELS[name],
             r"$$e_{s,\mathrm{sample}}=B^\dagger e_{\mathrm{analyzer}}="
-            + sp.latex(profile["effective_detection"].subs(alpha, variable))
+            + raman_latex(profile["effective_detection"].subs(alpha, variable))
             + "$$",
         ]
         table = [
@@ -1974,9 +1983,9 @@ def physics_audit_markdown(run):
             )
         lines.append("\n".join(table))
     lines += [
-        "S3=2 Im(Ex* Ey)/S0 refers to one fixed laboratory XY basis. With exp[i(k.r-omega.t)], ki=-Z and ks=+Z, propagation-relative circular helicity is hi=-S3i and hs=+S3s. Thus equal laboratory circular labels are not automatically equal propagation-relative helicities. The paper's Eq. 11 labels are retained explicitly in the separate Eq. 24 checker.",
+        "S3=2 Im(Ex* Ey)/S0 refers to one fixed laboratory XY basis. With exp[i(k.r-ω.t)], ki=-Z and ks=+Z, propagation-relative circular helicity is hi=-S3i and hs=+S3s. Thus equal laboratory circular labels are not automatically equal propagation-relative helicities. The paper's Eq. 11 labels are retained explicitly in the separate Eq. 24 checker.",
         r"$$I_{\mathrm{coherent}}=\sum_\nu\left|\sum_j A_{\nu j}\right|^2=\sum_{\nu,j}|A_{\nu j}|^2+2\operatorname{Re}\sum_\nu\sum_{j<k}A_{\nu j}A_{\nu k}^*.$$",
-        "Here nu labels orthogonal unresolved phonon partners, while j labels tensor-entry contributions within one partner. Negative cross terms describe destructive interference; they are not negative measured intensities.",
+        "Here ν labels orthogonal unresolved phonon partners, while j labels tensor-entry contributions within one partner. Negative cross terms describe destructive interference; they are not negative measured intensities.",
     ]
     table = [
         "| Mode / channel | Angle (degrees) | Entry self-powers | Interference | Complete coherent I | Selected curve I |",
@@ -2026,18 +2035,18 @@ def validate_lattice_for_group(config):
     system = POINT_GROUPS[config["point_group"]]["system"]
     close = lambda actual, expected: np.allclose(actual, expected, rtol=0, atol=1e-9)
     if system in ["orthorhombic", "tetragonal", "cubic"] and not close(lattice[3:], 90):
-        raise ValueError("This conventional tensor setting requires alpha=beta=gamma=90°.")
+        raise ValueError("This conventional tensor setting requires α=β=γ=90°.")
     if system in ["trigonal", "hexagonal"]:
         if not close(lattice[3:], [90, 90, 120]) or not close(lattice[0], lattice[1]):
             raise ValueError(
-                "Use the conventional hexagonal setting: a0=b0, alpha=beta=90°, gamma=120°."
+                "Use the conventional hexagonal setting: a0=b0, α=β=90°, γ=120°."
             )
     if system in ["tetragonal", "cubic"] and not close(lattice[0], lattice[1]):
         raise ValueError("This symmetry requires a0=b0 in the selected setting.")
     if system == "cubic" and not close(lattice[1], lattice[2]):
         raise ValueError("Cubic symmetry requires a0=b0=c0.")
     if system == "monoclinic" and not close(lattice[[3, 5]], 90):
-        raise ValueError("The unique-y setting requires alpha=gamma=90°; beta may differ.")
+        raise ValueError("The unique-y setting requires α=γ=90°; β may differ.")
 
 
 def demonstration_config(material="CaNb2O6", optics="QWP"):
@@ -2118,7 +2127,7 @@ def qwp_source_config():
         tensor_model="QWP_SOURCE_2D",
         source_parameters=dict(a=1, A=0.4, delta_deg=60, phi_deg=60),
         case_label="Original Quarter-wave-plate source model",
-        input_note="Main calculation of the supplied Quarter-wave-plate notebook; a=1, A=0.4, delta=phi=60 degrees is an illustrative source example.",
+        input_note="Main calculation of the supplied Quarter-wave-plate notebook; a=1, A=0.4, δ=φ=60 degrees is an illustrative source example.",
         material=None,
         point_group=None,
         optics="QWP",
@@ -2310,7 +2319,7 @@ def calculate_qwp_source(config):
         lambda tensor, selected_optical: transverse_amplitude_record(tensor, selected_optical),
         [
             "Original Quarter-wave-plate main-source tensor and optical convention; the alternative appendix convention is not selected.",
-            "a and A are real amplitudes; delta and phi are real phases. Input phases use degrees.",
+            "a and A are real amplitudes; δ and φ are real phases. Input phases use degrees.",
             "This effective 2×2 source model has no surface-orientation parameter.",
         ],
     )
@@ -2403,14 +2412,14 @@ def calculate_experiment(configuration):
         assumptions.extend(
             [
                 "The supplied Circular-channel model paper gives conditional angular-momentum selection rules; it does not calculate vortex Raman intensities.",
-                "Displayed intensities are ell=0 plane-wave Jones calculations. The separate vortex congruence check never masks or rescales those curves.",
+                "Displayed intensities are ℓ=0 plane-wave Jones calculations. The separate vortex congruence check never masks or rescales those curves.",
                 "The rule checker uses user-declared phonon charges; they are not assigned automatically to all selected modes.",
             ]
         )
     elif config["calculation_method"] == "CUBIC_REF":
         assumptions.extend(
             [
-                "Cubic reference Section 2.2 states; the sigma+alpha detector is an effective elliptical-state scan, with no extra Quarter-wave-plate return QWP.",
+                "Cubic reference Section 2.2 states; the σ⁺α detector is an effective elliptical-state scan, with no extra Quarter-wave-plate return QWP.",
                 "For Si, sum complete-tensor intensities over the three orthogonal T2g partners (Eq. 9). This is not a sum over Cartesian entries within one phonon.",
                 "The Fig. 1 benchmark locks the cubic paper axes and d across all six surfaces. Other materials/orientations are a Jones/tensor extension, not a claimed paper benchmark.",
             ]
@@ -2418,7 +2427,7 @@ def calculate_experiment(configuration):
     elif config["calculation_method"] == "LINEAR":
         assumptions.extend(
             [
-                "Incident and detected linear polarization rotate together; theta is not the sigma+alpha analyzer scan.",
+                "Incident and detected linear polarization rotate together; θ is not the σ⁺α analyzer scan.",
                 "One coefficient set is shared between parallel and crossed curves of each branch. The curves are calculations, not fits to supplied data.",
                 "A real rotation acts as T.T*R*T even when R is complex; R.T=R does not require R.H=R.",
             ]
@@ -2466,11 +2475,11 @@ def benchmark_config(material, base):
 """One physical-input contract and separate Cartesian Ag presentation channels."""
 
 GENERAL_PROFILES = {
-    "CUBIC_VV": "VV: parallel linear states, scan theta",
-    "CUBIC_VH": "VH: crossed linear states, scan theta",
+    "CUBIC_VV": "VV: parallel linear states, scan θ",
+    "CUBIC_VH": "VH: crossed linear states, scan θ",
     "LINEAR_PAIR": "VV and VH together, one coefficient set",
-    "CIRCULAR_LINEAR": "Circular input / direct linear analyzer, scan alpha",
-    "CUBIC_SIGMA": "sigma+alpha reference: elliptical detection-state scan",
+    "CIRCULAR_LINEAR": "Circular input / direct linear analyzer, scan α",
+    "CUBIC_SIGMA": "σ⁺α reference: elliptical detection-state scan",
     "QWP": "Input QWP / Raman tensor / return QWP / linear analyzer",
     "CIRCULAR_SAME": "Same fixed circular basis label",
     "CIRCULAR_OPPOSITE": "Opposite fixed circular basis label",
@@ -2849,15 +2858,15 @@ def component_ag_flow_markdown(run):
     if not component_reference_matches(run):
         return []
     data = component_ag_symbolics()
-    denominator_latex = sp.latex(data["denominator"])
+    denominator_latex = raman_latex(data["denominator"])
     lines = [
         "## Component reference: slides 12, 13 and 14",
         "The active frame and Jones states match this declared reference. The generic matrix calculation has already produced the curve; the following independent derivation checks it.",
-        "Transcription note: one intermediate z² line on slide 12 displays theta−alpha. The complete expressions on slides 12–13 and the slide-14 result use theta+alpha. This derivation follows that consistent completed sequence; the isolated sign is not copied into the engine.",
+        "Transcription note: one intermediate z² line on slide 12 displays θ−α. The complete expressions on slides 12–13 and the slide-14 result use θ+α. This derivation follows that consistent completed sequence; the isolated sign is not copied into the engine.",
         "### A. General component intensities (slide 12)",
     ]
     equation = lambda label, expression: lines.append(
-        "$$" + label + "=" + sp.latex(expression) + "$$"
+        "$$" + label + "=" + raman_latex(expression) + "$$"
     )
     equation(r"e_i(\theta,\beta)", jones(data["theta"], data["beta"]))
     equation(r"e_s(\theta+\alpha,\beta')", jones(data["theta"] + alpha, data["beta_prime"]))
@@ -2874,7 +2883,7 @@ def component_ag_flow_markdown(run):
         r"$$I_{Ag}=\frac{1}{"
         + denominator_latex
         + r"}\left["
-        + sp.latex(data["expanded_numerator"])
+        + raman_latex(data["expanded_numerator"])
         + r"\right].$$"
     )
     lines.append("### C. Apply the slide 14 conditions")
@@ -2886,7 +2895,7 @@ def component_ag_flow_markdown(run):
         r"$$\boxed{I_{Ag}(\alpha)=\frac{1}{"
         + denominator_latex
         + r"}\left["
-        + sp.latex(data["final_numerator"])
+        + raman_latex(data["final_numerator"])
         + r"\right]}.$$"
     )
     values = run["families"]["Ag"]["values"]
@@ -2932,7 +2941,7 @@ def final_intensity_context(run, name):
     geometry = (
         "original optical source model"
         if run["geometry"] is None
-        else f"hkl={config['hkl']}, [uvw]={config['uvw']}, normal={config['normal_sign']}, psi={config['azimuth_deg']} degrees"
+        else f"hkl={config['hkl']}, [uvw]={config['uvw']}, normal={config['normal_sign']}, ψ={config['azimuth_deg']} degrees"
     )
     return (
         "**Final intensity — "
@@ -2967,7 +2976,7 @@ def paper_steps_markdown(run):
         """Typeset a calculated equation using the actual scan-variable name."""
         if isinstance(expression, (sp.Basic, sp.MatrixBase)):
             expression = expression.subs(alpha, variable)
-        lines.append("$$" + label + "=" + sp.latex(expression) + "$$")
+        lines.append("$$" + label + "=" + raman_latex(expression) + "$$")
 
     for key in ["L", "g", "t", "T"]:
         if key in geometry:
@@ -2983,7 +2992,7 @@ def paper_steps_markdown(run):
             ]
         )
         lines.append(
-            "Theta is the polarization angle in the fixed measurement frame. A sample rotation at fixed laboratory optics requires the corresponding opposite frame-angle convention. The selected zero offset is "
+            "θ is the polarization angle in the fixed measurement frame. A sample rotation at fixed laboratory optics requires the corresponding opposite frame-angle convention. The selected zero offset is "
             + str(config["paper_parameters"]["theta0_deg"])
             + " degrees."
         )
@@ -2997,13 +3006,13 @@ def paper_steps_markdown(run):
         lines.extend(
             [
                 "### Circular basis and plane-wave Jones scan",
-                r"$$U=(\sigma_+\ \sigma_-),\quad R_{circ}=U^\dagger R_\perp U,\quad I_{s_s,s_i}=|(R_{circ})_{s_s,s_i}|^2.$$",
+                r"$$U=(\sigma^{+}\ \sigma^{-}),\quad R_{circ}=U^\dagger R_\perp U,\quad I_{s_s,s_i}=|(R_{circ})_{s_s,s_i}|^2.$$",
             ]
         )
         equation(r"E_i", optical["Ein"])
         equation(r"e_s(\alpha)", optical["analyzer"])
         lines.append(
-            "The polar curve is an ell=0 tensor/Jones calculation. A fixed circular analyzer gives a constant curve because no detection state changes during that scan. The linear-analyzer scan is an explicit extension for this program."
+            "The polar curve is an ℓ=0 tensor/Jones calculation. A fixed circular analyzer gives a constant curve because no detection state changes during that scan. The linear-analyzer scan is an explicit extension for this program."
         )
     for name, result in run["results"].items():
         item = run["families"][name]
@@ -3143,7 +3152,7 @@ class CalculationTrace:
 
     def latex(self, expression):
         value = sp.sympify(expression)
-        return sp.latex(value.subs(alpha, self.variable))
+        return raman_latex(value.subs(alpha, self.variable))
 
     def eq(self, lhs, expression):
         self.tex(lhs + "=" + self.latex(expression))
@@ -3227,7 +3236,7 @@ def trace_geometry(trace, run):
     )
     trace.tex(r"R_{lab}(\psi)=\Pi(\psi)^T\,T(0)^TR_cT(0)\,\Pi(\psi)")
     trace.note(
-        "The frame angle psi changes the crystal-to-measurement transformation. The optical scan angle changes the declared Jones states; these are separate inputs."
+        "The frame angle ψ changes the crystal-to-measurement transformation. The optical scan angle changes the declared Jones states; these are separate inputs."
     )
 
 
@@ -3240,7 +3249,7 @@ def trace_optics(trace, run):
         r"e(\vartheta,\beta)=\begin{pmatrix}\cos\vartheta\\e^{i\beta}\sin\vartheta\end{pmatrix},\quad e^\dagger=(\cos\vartheta,\ e^{-i\beta}\sin\vartheta)"
     )
     trace.tex(
-        r"\sigma_\pm=\frac{1}{\sqrt2}\begin{pmatrix}1\\\pm i\end{pmatrix},\quad E_i^\dagger E_i=e_s^\dagger e_s=1"
+        r"\sigma^{\pm}=\frac{1}{\sqrt2}\begin{pmatrix}1\\\pm i\end{pmatrix},\quad E_i^\dagger E_i=e_s^\dagger e_s=1"
     )
     trace.tex(
         r"\mathbf k_i=-k_i\hat{\mathbf Z},\quad\mathbf k_s=+k_s\hat{\mathbf Z},\quad\mathbf k\cdot\mathbf E=0,\quad P^TP=I_3-\hat{\mathbf Z}\hat{\mathbf Z}^T"
@@ -3355,7 +3364,7 @@ def trace_rank_one(trace, record, component, optical):
                 {ti: sp.pi / 4, ts: sp.pi / 4 + alpha, bi: sp.pi / 2, bs: sp.pi / 2}
             )
         )
-        trace.eq(r"I_{" + component + r"}^{\sigma_+\alpha}", sp.trigsimp(special))
+        trace.eq(r"I_{" + component + r"}^{\sigma^{+}\alpha}", sp.trigsimp(special))
 
 
 def trace_tensor_definition(trace, run):
@@ -3486,19 +3495,19 @@ def trace_final(trace, run, channel):
     labels = {"I0": "I_0", "Ic": "I_c", "Is": "I_s", "I4c": "I_{4c}", "I4s": "I_{4s}"}
     for key, value in summary.items():
         trace.eq(labels[key], value)
-    variable_tex = sp.latex(trace.variable)
+    variable_tex = raman_latex(trace.variable)
     trace.eq(r"I(" + variable_tex + r")_{symbolic}", symbolic)
     # Preserve exact symbolic coefficients in paper output. UI numerical input
     # values are substituted only in the subsequent equation, never earlier.
     for symbol, value in sorted(channel["values"].items(), key=lambda kv: str(kv[0])):
-        trace.eq(sp.latex(symbol), value)
+        trace.eq(raman_latex(symbol), value)
         trace.tex(
             r"|"
-            + sp.latex(symbol)
+            + raman_latex(symbol)
             + "|="
             + trace.latex(sp.Abs(value))
             + r",\quad\arg("
-            + sp.latex(symbol)
+            + raman_latex(symbol)
             + ")="
             + trace.latex(sp.arg(value))
         )
@@ -3555,9 +3564,9 @@ def detailed_calculation(run):
             + row["channel"].replace("_", r"\_")
             + "}"
             + ")="
-            + sp.latex(sp.Float(row["direct_error"], 5))
+            + raman_latex(sp.Float(row["direct_error"], 5))
             + r",\quad\epsilon_{circular}="
-            + sp.latex(sp.Float(row["circular_error"], 5))
+            + raman_latex(sp.Float(row["circular_error"], 5))
         )
     return dict(entries=trace.entries, markdown=trace.markdown(), finals=finals)
 
@@ -3593,14 +3602,14 @@ def paper_intensity_latex(run, derivation):
         ]
         symbolic.extend(
             common
-            + [dict(kind="equation", value="I(" + sp.latex(variable) + ")=" + sp.latex(expression))]
+            + [dict(kind="equation", value="I(" + raman_latex(variable) + ")=" + raman_latex(expression))]
         )
         substituted = sp.expand(sp.N(expression.subs(run["display_channels"][name]["values"]), 12))
         numerical.extend(
             common
             + [
                 dict(
-                    kind="equation", value="I(" + sp.latex(variable) + ")=" + sp.latex(substituted)
+                    kind="equation", value="I(" + raman_latex(variable) + ")=" + raman_latex(substituted)
                 )
             ]
         )
@@ -3624,7 +3633,7 @@ def run_description(run):
         return "Quarter-wave-plate — original 2×2 source model"
     method = METHOD_LABELS[config["calculation_method"]]
     suffix = " / 3D extension" if config["calculation_method"] == "QWP" else ""
-    scope = " | ell=0 Jones reference" if config["calculation_method"] == "CIRCULAR" else ""
+    scope = " | ℓ=0 Jones reference" if config["calculation_method"] == "CIRCULAR" else ""
     return f"{method}{suffix} | {config['material']} / {config['point_group']} | {config['hkl']}{scope}"
 
 
@@ -3644,39 +3653,39 @@ def qwp_source_steps_markdown(run):
 
     def equation(label, expression):
         """Append an exact or numerically substituted source equation."""
-        lines.append("$$" + label + "=" + sp.latex(expression) + "$$")
+        lines.append("$$" + label + "=" + raman_latex(expression) + "$$")
 
     lines.extend("- " + item for item in run["assumptions"])
     lines += [
         "### 1. Symbols",
-        "a,A are real source amplitudes; delta,phi and alpha are real. Phase controls use degrees; matrix calculations use radians.",
+        "a,A are real source amplitudes; δ,φ and α are real. Phase controls use degrees; matrix calculations use radians.",
         "Active source inputs: `" + json.dumps(serializable(config["source_parameters"])) + "`.",
         "### 2. Laboratory and circular bases",
     ]
     equation(r"\hat x", x_hat)
     equation(r"\hat y", y_hat)
-    equation(r"\sigma_+", sig_p)
-    equation(r"\sigma_-", sig_m)
+    equation(r"\sigma^{+}", sig_p)
+    equation(r"\sigma^{-}", sig_m)
     lines.append("### 3. Quarter-wave plate at −45°")
     equation("Q", QWP_QWP)
     equation(r"Q^\dagger Q", sp.simplify(QWP_QWP.H * QWP_QWP))
     lines.append("### 4. Incident field after the plate")
     equation(r"E_i=Q\hat x", optical["Ein"])
-    lines.append(r"$$E_i=e^{i\pi/4}\sigma_+.$$")
+    lines.append(r"$$E_i=e^{i\pi/4}\sigma^{+}.$$")
     lines.append("### 5. Complete complex source tensor")
     equation("R", QWP_SOURCE_TENSOR)
     equation(r"R_{\rm numerical}", sp.N(record["Rperp"].subs(values), 7))
     lines.append("### 6. Circular-basis tensor elements")
-    equation(r"R_{++}=\sigma_+^\dagger R\sigma_+", algebra["Rpp"])
-    equation(r"R_{-+}=\sigma_-^\dagger R\sigma_+", algebra["Rmp"])
+    equation(r"R_{++}=(\sigma^{+})^\dagger R\sigma^{+}", algebra["Rpp"])
+    equation(r"R_{-+}=(\sigma^{-})^\dagger R\sigma^{+}", algebra["Rmp"])
     lines.append("### 7. Raman-scattered field")
     equation(r"E_{sc}=R E_i", record["Esc"])
-    lines.append(r"$$E_{sc}=e^{i\pi/4}(R_{++}\sigma_++R_{-+}\sigma_-).$$")
+    lines.append(r"$$E_{sc}=e^{i\pi/4}(R_{++}\sigma^{+}+R_{-+}\sigma^{-}).$$")
     lines.append("### 8. Return plate and analyzer reference")
     equation(r"Q_{back}=Q^T", optical["B"])
     for label, key in [
-        (r"Q_{back}\sigma_+", "v_plus"),
-        (r"Q_{back}\sigma_-", "v_minus"),
+        (r"Q_{back}\sigma^{+}", "v_plus"),
+        (r"Q_{back}\sigma^{-}", "v_minus"),
         (r"\hat e_{ref}", "e_ref"),
         (r"\hat e_\perp", "e_perp"),
         ("p_1", "p1"),
@@ -3687,7 +3696,7 @@ def qwp_source_steps_markdown(run):
     lines.append("### 9. Linear analyzer axis")
     equation(r"e_\alpha", optical["analyzer"])
     lines.append(
-        "The analyzer passes +Y at alpha=0 and −X at alpha=90°, after the returning plate."
+        "The analyzer passes +Y at α=0 and −X at α=90°, after the returning plate."
     )
     lines.append("### 10. Returning field and detected amplitude")
     equation(r"E_{out}=Q_{back}E_{sc}", record["Eout"])
@@ -3750,15 +3759,15 @@ def steps_markdown(run):
         f"**Case:** {config.get('case_label', 'Untitled case')}",
         "**Calculation workflow:** " + run_description(run),
         f"**Material / point group:** {config['material']} / {config['point_group']}",
-        f"**Plane / in-plane direction:** {config['hkl']} / {config['uvw']}; normal-side sign={config['normal_sign']}; frame angle psi={config['azimuth_deg']}°.",
+        f"**Plane / in-plane direction:** {config['hkl']} / {config['uvw']}; normal-side sign={config['normal_sign']}; frame angle ψ={config['azimuth_deg']}°.",
         f"**Optical method:** {optical['label']}",
         "**Input note:** " + config.get("input_note", "User-supplied parameters."),
-        "The in-plane frame angle psi and detection scan angle alpha are distinct. No fitting or alignment to a target polar plot is performed.",
+        "The in-plane frame angle ψ and detection scan angle α are distinct. No fitting or alignment to a target polar plot is performed.",
     ]
 
     def equation(label, expression):
         """Append an equation computed from the current run."""
-        lines.append("$$" + label + "=" + sp.latex(expression) + "$$")
+        lines.append("$$" + label + "=" + raman_latex(expression) + "$$")
 
     lines.extend("- " + item for item in run["assumptions"])
     lines.append("## 2. Build the proper 3D measurement frame")
@@ -3770,7 +3779,7 @@ def steps_markdown(run):
     equation(r"\det T", sp.simplify(geometry["T"].det()))
     lines.extend(geometry["notes"])
     lines.append(
-        "Positive psi rotates the measurement X axis toward Y around Z. For an active sample rotation at fixed laboratory optics, the sign convention must be converted accordingly."
+        "Positive ψ rotates the measurement X axis toward Y around Z. For an active sample rotation at fixed laboratory optics, the sign convention must be converted accordingly."
     )
     lines.append("## 3. Propagate the Jones states")
     if config["optics"] == "QWP":
@@ -4158,7 +4167,7 @@ def publication_cubic_figure(study, individual=None):
         title = {
             "VV": r"VV: $\theta$",
             "VH": r"VH: $\theta$",
-            "SIGMA": r"$\sigma_+\alpha$: $\alpha$",
+            "SIGMA": r"$\sigma^{+}\alpha$: $\alpha$",
         }[protocol]
         axis.set_title(title, pad=24)
     handles, labels = axes[0, 0].get_legend_handles_labels()
@@ -4210,11 +4219,11 @@ SOURCES["cubic_2026"] = CUBIC_SOURCE
 CUBIC_PANELS = {
     "VV": ("CUBIC_VV", "Fig1a_VV.csv", "theta_deg", "(a) VV"),
     "VH": ("CUBIC_VH", "Fig1b_VH.csv", "theta_deg", "(b) VH"),
-    "SIGMA": ("CUBIC_SIGMA", "Fig1c_sigma_plus_alpha.csv", "alpha_deg", r"(c) $\sigma_+\alpha$"),
+    "SIGMA": ("CUBIC_SIGMA", "Fig1c_sigma_plus_alpha.csv", "alpha_deg", r"(c) $\sigma^{+}\alpha$"),
 }
 CUBIC_COLORS = ["#ff0000", "#ff8c00", "#20a928", "#1685c4", "#9362cf", "#916252"]
 
-CUBIC_READING_NOTES = "### Cubic benchmark reference\n\nDOI 10.1002/jrs.70113: the six-surface silicon benchmark uses the Eq. 4 frame, Eq. 11 Jones states and the complete T2g partner sum. VV and VH scan theta; sigma+alpha scans alpha with theta=45 degrees and beta=beta'=90 degrees. All curves use one shared coefficient scale. The companion guides provide the derivation and independent checks."
+CUBIC_READING_NOTES = "### Cubic benchmark reference\n\nDOI 10.1002/jrs.70113: the six-surface silicon benchmark uses the Eq. 4 frame, Eq. 11 Jones states and the complete T2g partner sum. VV and VH scan θ; σ⁺α scans α with θ=45 degrees and β=β′=90 degrees. All curves use one shared coefficient scale. The companion guides provide the derivation and independent checks."
 
 
 def cubic_frame(indices):
@@ -4279,14 +4288,14 @@ def cubic_steps_markdown(run):
 
     def equation(label, expression):
         """Show an expression calculated from the active matrices, with the correct scan label."""
-        lines.append("$$" + label + "=" + sp.latex(expression.subs(alpha, variable)) + "$$")
+        lines.append("$$" + label + "=" + raman_latex(expression.subs(alpha, variable)) + "$$")
 
     equation("T", run["geometry"]["T"])
     equation(r"T^{-1}=T^T", run["geometry"]["T"].T)
     equation(r"e_i", run["optical"]["Ein"])
     equation(r"e_s", run["optical"]["effective_analyzer"])
     lines.append(
-        "VV/VH use the paper's theta parameter; sigma+alpha fixes theta=45 degrees and scans alpha. For an active laboratory sample rotation the frame-angle sign must be converted consistently."
+        "VV/VH use the paper's θ parameter; σ⁺α fixes θ=45 degrees and scans α. For an active laboratory sample rotation the frame-angle sign must be converted consistently."
     )
     for name, result in run["results"].items():
         values = run["families"][name]["values"]
@@ -4372,7 +4381,7 @@ def cubic_fig1_figure(study, individual=None):
         axes.set_theta_direction(1)
         axes.set_ylim(0, {"VV": 1.5, "VH": 1.2, "SIGMA": 1.5}[key])
         axes.set_title(
-            CUBIC_PANELS[key][3] + (" — theta" if key != "SIGMA" else " — alpha"), pad=21
+            CUBIC_PANELS[key][3] + (" — θ" if key != "SIGMA" else " — α"), pad=21
         )
         axes.set_ylabel(r"$I/|d|^2$", labelpad=22)
         axes.grid(alpha=0.45)
@@ -4408,14 +4417,14 @@ import originpro as op
 
 COLORS = ["#ff0000", "#ff8c00", "#20a928", "#1685c4", "#9362cf", "#916252"]
 PANELS = [
-    ("Fig1a_VV.csv", "Fig. 1(a) VV", "theta", 1.5),
-    ("Fig1b_VH.csv", "Fig. 1(b) VH", "theta", 1.2),
-    ("Fig1c_sigma_plus_alpha.csv", "Fig. 1(c) sigma+alpha", "alpha", 1.5),
+    ("Fig1a_VV.csv", "Fig. 1(a) VV", "θ", 1.5),
+    ("Fig1b_VH.csv", "Fig. 1(b) VH", "θ", 1.2),
+    ("Fig1c_sigma_plus_alpha.csv", "Fig. 1(c) σ⁺α", "α", 1.5),
 ]
 
 
 def build_origin_fig1(data_directory=None):
-    """Create three six-surface theta(X)-radius(Y) plots with shared intensity units."""
+    """Create three six-surface θ(X)-radius(Y) plots with shared intensity units."""
     folder = Path(data_directory) if data_directory else Path(__file__).resolve().parent
     for filename, title, angle_name, radial_limit in PANELS:
         with (folder / filename).open(newline="", encoding="utf-8") as source:
@@ -4484,7 +4493,7 @@ The attached program computes Si T2g response for (500), (510), (520),
 
 If automated plotting is unavailable in your Origin version, import each
 CSV manually, set A=X and B:G=Y, select all seven columns and choose
-Polar theta(X) r(Y). X is already in degrees; do not convert to radians.
+Polar θ(X) r(Y). X is already in degrees; do not convert to radians.
 Select the six line colors in the order of the column labels.
 
 ## Files and angular meanings
@@ -4507,7 +4516,7 @@ raw intensities are identical. A polar radius represents intensity, not
 the square root of intensity.
 
 The limiting checks are VV maximum 1 at (500) and 4/3 at (550), VH
-maximum 1 for all surfaces, and sigma+alpha maximum at 90 degrees for
+maximum 1 for all surfaces, and σ⁺α maximum at 90 degrees for
 (500), tilting to 103.2825255885 degrees for (550).
 
 ## What has been run
@@ -4532,8 +4541,8 @@ def cubic_summary_markdown(study):
     """Summarize measured-from-model extrema without individual curve normalization."""
     lines = [
         "## Cubic benchmark: Si T2g, six (5,k,0) surfaces",
-        "All 18 curves are calculated from three rotated 3×3 tensors using Eq. 9 and Eq. 11. VV/VH scan theta; sigma+alpha scans alpha. One common |d|² scale is retained.",
-        "| Surface | VV maximum / |d|² | VH maximum / |d|² | Sigma maximum angle (degrees, 0..180) | Sigma maximum / |d|² |",
+        "All 18 curves are calculated from three rotated 3×3 tensors using Eq. 9 and Eq. 11. VV/VH scan θ; σ⁺α scans α. One common |d|² scale is retained.",
+        "| Surface | VV maximum / |d|² | VH maximum / |d|² | σ⁺α maximum angle (degrees, 0..180) | σ⁺α maximum / |d|² |",
         "|---|---:|---:|---:|---:|",
     ]
     for k in range(6):
@@ -4897,12 +4906,12 @@ def make_general_archive(run, figures, derivation, validation=None, comparisons=
         archive.writestr("sci.mplstyle", SCI_STYLE_TEXT)
         archive.writestr(
             "README.txt",
-            "ROTATION RAMAN TENSOR CALCULATION 2\n\n"
+            "ROTATION RAMAN TENSOR CALCULATION — VERSION 4\n\n"
             "intensity_raw.csv contains the actual plotted channels. Ag(xx), Ag(yy), Ag(zz) are separate Cartesian contributions, not independent phonon modes. They are not summed in this file or in the main plots.\n"
             "complete_modes_audit.csv retains the coherent complete-mode result for interference checks. Off-diagonal components of lower-symmetry Ag tensors are also retained.\n"
             "intensity_symbolic.tex contains I(angle) before numerical coefficient substitution. intensity_numerical.tex is the distinct numerical version. calculation_full.tex and calculation_steps.md contain all calculated mathematical steps.\n"
             "Figures use the supplied sci.mplstyle: requested Arial, 22-point base font, 2-point lines, 600-dpi export and transparent background. plot_style_status.json records the actual local font. Install Arial for exact font matching when a fallback is reported.\n"
-            "VV/VH scan theta; sigma input / analyzer-state protocols scan alpha. The QWP, elliptical detector and direct linear analyzer are different optical states and are not forced to have equal curves.\n"
+            "VV/VH scan θ; σ input / analyzer-state protocols scan α. The QWP, elliptical detector and direct linear analyzer are different optical states and are not forced to have equal curves.\n"
             "Material symmetry, tensor coefficients, lattice metric, surface and optical states all affect intensity. Example coefficients and unity metrics are illustrative.\n",
         )
         for name, figure in figures:
@@ -5101,7 +5110,7 @@ def validate_qwp_method():
             np.allclose(numeric_curve(dict(terms=[record]), {}, angles), reference, atol=1e-11),
             "The Quarter-wave-plate source intensity regression failed.",
         )
-    return "Quarter-wave-plate source: Q, Q.T, incident sigma+, analyzer reference and complex-tensor intensity match the uploaded notebook."
+    return "Quarter-wave-plate source: Q, Q.T, incident σ⁺, analyzer reference and complex-tensor intensity match the uploaded notebook."
 
 
 def validate_method_separation():
@@ -5397,7 +5406,7 @@ def validate_component_reference():
         np.isclose(run["summaries"]["Ag"]["Is"], -1 / 144),
         "The default REFERENCE angular coefficient is incorrect.",
     )
-    return "REFERENCE slides 12–14: general beta,beta' formula, five special coefficient cases and independently derived denominator agree; the production engine does not call the reference formula."
+    return "REFERENCE slides 12–14: general β,β′ formula, five special coefficient cases and independently derived denominator agree; the production engine does not call the reference formula."
 
 
 def validate_degeneracy_and_limits():
@@ -5442,7 +5451,7 @@ def validate_degeneracy_and_limits():
         np.allclose(
             numeric_curve(silicon(optical_chain("QWP")), {d: 1}, angles), np.sin(angles) ** 2
         ),
-        "Si (001) under the Quarter-wave-plate sequence should give sin²(alpha) for d=1.",
+        "Si (001) under the Quarter-wave-plate sequence should give sin²(α) for d=1.",
     )
     e1 = dict(
         terms=[
@@ -5495,7 +5504,7 @@ def validate_input_and_numerics():
     )
     check(
         run["config"]["effective_optical_parameters"]["beta_s_deg"] == 90,
-        "The fixed REFERENCE profile does not export its actual beta-prime.",
+        "The fixed REFERENCE profile does not export its actual β′.",
     )
     return "Zero/overflow handling, invalid geometry/reflection rejection, fixed-profile provenance and configuration immutability pass."
 
@@ -5725,7 +5734,7 @@ def validate_circular_channels_and_rules():
         ),
         "The conditional vortex rule silently masked a plane-wave intensity.",
     )
-    return "Circular-channel model: circular Jones channels, mixed Ag, fixed-channel constants, MoS2 Table 2 conditions, N=2 insufficiency, tilted-axis scope and unmodified ell=0 reference curves pass."
+    return "Circular-channel model: circular Jones channels, mixed Ag, fixed-channel constants, MoS2 Table 2 conditions, N=2 insufficiency, tilted-axis scope and unmodified ℓ=0 reference curves pass."
 
 
 def validate_resonance_utility():
@@ -5808,7 +5817,7 @@ def validate_polarization_and_interference():
             np.sin(opposite["angles"]) ** 2,
         )
         and np.allclose(opposite["curves"]["Ag"], 0.5),
-        "A relative pi phase was lost or incorrectly inserted into the REFERENCE prescription.",
+        "A relative π phase was lost or incorrectly inserted into the REFERENCE prescription.",
     )
     source = calculate_experiment(qwp_source_config())
     check(source["physics"]["uses_coherent_intensity"], "The original coherent source law changed.")
@@ -5904,7 +5913,7 @@ def validate_cubic_fig1(study):
                 expected_angle = 90 + np.rad2deg(np.arctan(g / 2)) / 2
                 check(
                     abs(summary["alpha_max"] - expected_angle) < 1e-8,
-                    "The sigma+alpha tilt does not match Eq. 11 / Eq. 18.",
+                    "The σ⁺α tilt does not match Eq. 11 / Eq. 18.",
                 )
             if k == 5:
                 check(
@@ -5928,7 +5937,7 @@ def validate_cubic_fig1(study):
         "All 18 curves: general 3D matrix engine matches independently derived closed forms; largest absolute error in I/|d|² = "
         + format(largest_error, ".3g"),
         "Eq. 4 proper frames, three complete Si partners, independent Eq. 8 phonon-basis invariance and (110) LO/Si distinction pass.",
-        "Continuous extrema, sigma tilt 90 to 103.2825255885 degrees, common d scaling and unobservable global phase pass.",
+        "Continuous extrema, σ tilt 90 to 103.2825255885 degrees, common d scaling and unobservable global phase pass.",
         "Origin plotting script compiles. Actual native Origin execution requires the user's Origin installation.",
     ]
 
@@ -6063,7 +6072,7 @@ def validate_general_upgrade():
             channel_count += len(rows)
         group_count += 1
     checks.append(
-        f"All {group_count} point groups pass direct and circular-basis reconstructions for VV, VH and sigma+alpha ({channel_count} displayed-channel checks)."
+        f"All {group_count} point groups pass direct and circular-basis reconstructions for VV, VH and σ⁺α ({channel_count} displayed-channel checks)."
     )
     dark = general_config("GENERAL", "CUBIC_VH")
     dark.update(
@@ -6189,7 +6198,7 @@ def checking_procedure_catalog():
         ("K04","Incident circular state","Cell 5",
          "Confirm the selected plate actually prepares the intended incident state.",
          "Propagate x-polarized input and compare vectors including the unit global phase.",
-         r"Qe_x=e^{i\pi/4}\sigma_+"),
+         r"Qe_x=e^{i\pi/4}\sigma^{+}"),
         ("K05","General circular amplitudes","Cell 6",
          "Check the output-input index order and the signs of all Cartesian entries.",
          "Contract a general complex 2x2 tensor and compare independent entry formulas.",
@@ -6201,13 +6210,13 @@ def checking_procedure_catalog():
         ("K07","Scattered-field reconstruction","Cell 7",
          "Ensure no circular amplitude is lost before return propagation.",
          "Compare Cartesian scattering with its complete circular expansion.",
-         r"RQe_x=e^{i\pi/4}(R_{++}\sigma_++R_{-+}\sigma_-)"),
+         r"RQe_x=e^{i\pi/4}(R_{++}\sigma^{+}+R_{-+}\sigma^{-})"),
         ("K08","Return plate and physical angle zero","Cell 8",
          "Detect a wrong return matrix or an arbitrary analyzer reference that would rotate or mirror a plot.",
          "Reconstruct the two returned circular states, their real axes and their relative phase.",
          r"Q_b=Q^T,\quad e_{\rm ref}=e_y,\quad e_\perp=-e_x,\quad p_2/p_1=i"),
         ("K09","Analyzer endpoint calibration","Cell 9",
-         "Establish what alpha=0 and alpha=90 degrees detect in this optical chain.",
+         "Establish what α=0 and α=90 degrees detect in this optical chain.",
          "Transmit each returned circular state through both calibrated analyzer endpoints.",
          r"\mathcal T_{0,+}=1,\quad\mathcal T_{0,-}=0,\quad\mathcal T_{90,+}=0,\quad\mathcal T_{90,-}=1"),
         ("K10","Matrix chain versus circular amplitude","Cell 10",
@@ -6232,7 +6241,7 @@ def checking_procedure_catalog():
          r"I=I_0+I_c\cos2\alpha+I_s\sin2\alpha,\quad I_0=(P_++P_-)/2,\quad I_c=(P_+-P_-)/2,\quad I_s=K"),
         ("K15","Old-tensor limit","Cell 12",
          "Recover the earlier model when the new relative yy phase vanishes.",
-         "Set phi=0 and compare the complete angular law, not only one angle.",
+         "Set φ=0 and compare the complete angular law, not only one angle.",
          r"I_{\phi=0}=(a^2+A^2-2aA\sin\delta)\cos^2\alpha"),
         ("K16","Diagonal-tensor phase limit","Cell 12",
          "Check that a relative diagonal phase shifts the analyzer pattern with the correct sign.",
@@ -6240,7 +6249,7 @@ def checking_procedure_catalog():
          r"I_{A=0}=a^2\cos^2(\alpha-\phi/2)"),
         ("K17","Pure flipped-channel limit","Cell 12",
          "Confirm extinction of the same-label channel in a known limiting tensor.",
-         "Set A=0 and phi=pi.",
+         "Set A=0 and φ=π.",
          r"I=a^2\sin^2\alpha"),
         ("K18","All four circular channels","Cell 15, part 1",
          "Check both input labels and prevent interchange of incident and detected indices.",
@@ -6256,15 +6265,15 @@ def checking_procedure_catalog():
          r"\Delta I=4aA\cos(\phi/2)\sin(\phi/2-\delta),\quad {\rm CID}=\Delta I/[2(a^2+A^2)]"),
         ("K21","Zero-contrast limits","Cell 15, part 3",
          "Detect a spurious circular-input difference in limiting cases where it must vanish.",
-         "Substitute A=0, phi=pi and delta=phi/2 separately into the computed difference.",
+         "Substitute A=0, φ=π and δ=φ/2 separately into the computed difference.",
          r"\Delta I_{A=0}=\Delta I_{\phi=\pi}=\Delta I_{\delta=\phi/2}=0"),
         ("K22","Alternative-convention mirror check","Appendix",
          "Identify a documented change of optical convention without forcing different experiments to share one curve.",
-         "Use the appendix return plate and lab-x analyzer, then compare with the main source law at -alpha.",
+         "Use the appendix return plate and lab-x analyzer, then compare with the main source law at -α.",
          r"I_{\rm appendix}(\alpha)=I_{\rm main}(-\alpha)\quad\text{for the declared source tensor}"),
         ("K23","Angular periodicity","Cell 13; added explicit check",
          "Ensure that the plotted first-harmonic amplitude gives a 180-degree intensity period.",
-         "Translate the source scan by pi and reduce the difference symbolically.",
+         "Translate the source scan by π and reduce the difference symbolically.",
          r"I(\alpha+\pi)=I(\alpha)"),
         ("K24","Dark source and undefined contrast","Extension of Cell 15",
          "Avoid reporting a finite dissymmetry for a completely dark source.",
@@ -6302,7 +6311,7 @@ def checking_symbolic_evidence(residuals):
     return dict(status="passed" if passed else "inconclusive",
                 evidence=dict(kind="symbolic",identities=len(reduced),
                               residuals=[str(z) for z in reduced],
-                              residual_latex=[sp.latex(z) for z in reduced]))
+                              residual_latex=[raman_latex(z) for z in reduced]))
 
 
 def circular_input_contrast(matrix):
@@ -6441,7 +6450,7 @@ def validate_optical_reference():
                 software_version=AUDIT_VERSION,
                 rows=rows,passed=sum(r["status"]=="passed" for r in rows),total=len(rows),
                 scope="Reference identities and implementation checks. Passing does not certify material coefficients, experimental propagation or chirality.",
-                notation_note="Cells 6-11 intermittently call <sigma-|R|sigma+> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel.")
+                notation_note="Cells 6-11 intermittently call <σ⁻|R|σ⁺> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel.")
 
 
 def checking_procedures_for_run(run):

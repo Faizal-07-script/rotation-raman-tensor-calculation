@@ -1,18 +1,17 @@
 {
   "status": "passed",
-  "version": "2",
-  "source_sha256": "18c0463c7ed1068cf702c9bbe5b5072080e9f148447add903168a646f1d7933c",
+  "version": "4",
+  "source_sha256": "92da65b432bac6aa2b5583129bf00cc317db6d85d1046c3674b4e1705b7242ea",
   "checks": [
-    "Notebook: all 22 cells execute with the overview, comparison figure, selected-profile panel and existing controls.",
-    "Exact guide tests pass for a general complex nonsymmetric 2x2 response: VV, VH, elliptical, QWP and direct-linear intensity identities.",
-    "Detector Stokes trajectories, preset/custom equality, fixed circular channels and a distinct same-tensor example pass.",
-    "Existing original-source and material checks, nine optical configurations and eighteen silicon benchmark cases pass.",
-    "Exported guide JSON matches the current optical profile and effective parameters; Markdown includes equations and primary DOI references.",
-    "Separate Ag reference CSV arrays are unchanged; source tensor, rotation, Jones-state and intensity functions are unchanged.",
-    "Browser: all nine Home guide choices and all nine calculator optical choices render without KaTeX errors.",
-    "Browser: current calculation yields three Ag plots; full validation includes 21 model checks and 25/25 source procedures.",
-    "Navigation and calculator section headings have no decorative number prefixes; code-cell and citation identifiers are retained."
+    "45 full 3D complex-tensor contractions match the Jones engine; proper-frame and isotropic tensor invariants pass.",
+    "Degenerate partner-basis invariance, Si optical-profile limits and basal D6h E1g extinction pass.",
+    "Circular-channel model: circular Jones channels, mixed Ag, fixed-channel constants, MoS2 Table 2 conditions, N=2 insufficiency, tilted-axis scope and unmodified \u2113=0 reference curves pass.",
+    "Physics audit: pure Jones/Stokes states, explicit beam-direction convention, distinct REFERENCE/Quarter-wave-plate detector paths, retained constructive/destructive interference, unchanged reference laws and scripted Circular input checks pass.",
+    "Historical crystal routes and the common engine agree on 15 complete-mode curves when tensors, frames, coefficients and optical states match.",
+    "The original 2D optical reference and its explicit general 3D embedding agree for identical tensors and optics.",
+    "Symbolic I(angle) before coefficient substitution matches plotted arrays for eight optical configurations, including paired linear and fixed circular channels.",
+    "Optical-profile guide: general-complex-tensor VV/VH and interference identities, detector Stokes trajectories, matching custom states, fixed circular limits and a distinct same-tensor example pass."
   ],
-  "scope": "Validates implemented optics and source correspondence; experimental optical calibration and material coefficients remain supplied physical inputs.",
-  "verification_limit": "The static Markdown guide exists and matches the program archive. The cloud-browser download callback did not complete within its 10-second harness deadline; this does not establish a failed download in a normal browser."
+  "rendered_equations": 412,
+  "scope": "Native notebook, optical-profile identities and website KaTeX typesetting. Experimental optics and coefficients remain supplied inputs."
 }

@@ -15,7 +15,7 @@ DIST=PROJECT/'dist'
 DATA=DIST/'data'
 DOWNLOADS=DIST/'downloads'
 DATA.mkdir(exist_ok=True);DOWNLOADS.mkdir(exist_ok=True)
-notebook_path=SOURCE/'notebook_v3.ipynb'
+notebook_path=SOURCE/'notebook_v4.ipynb'
 notebook=json.loads(notebook_path.read_text())
 cells=[c for c in notebook['cells'] if c['cell_type']=='code']
 assert len(cells)==22
@@ -42,10 +42,10 @@ for i,cell in enumerate(cells,1):
            for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef,ast.AsyncFunctionDef))]
     content.append(dict(number=i,title=titles[i-1],tag=cell['metadata']['tags'][0],source=source,
         lines=len(source.splitlines()),symbols=nodes,sha256=hashlib.sha256(source.encode()).hexdigest()))
-(DATA/'cells.json').write_text(json.dumps(dict(version='3',source_sha256=source_hash,cells=content)))
+(DATA/'cells.json').write_text(json.dumps(dict(version='4',source_sha256=source_hash,cells=content)))
 
 selected=[i for i in range(2,23) if i not in [17,18,19,22]]
-prefix='''# Generated from the scientific cells of notebook version 3.
+prefix='''# Generated from the scientific cells of notebook version 4.
 # Rich notebook display imports are omitted; scientific functions are unchanged.
 import os
 os.environ['MPLBACKEND']='Agg'
@@ -81,7 +81,7 @@ ns['plt'].close(guide_figure)
 (DOWNLOADS/'Optical_Methods_Guide.md').write_text(ns['optical_methods_overview_markdown']()+'\n\n'+'\n\n'.join(ns['optical_method_markdown'](key) for key in ns['GENERAL_PROFILES']))
 shutil.copy2(PROJECT/'QUICKSTART.md',DOWNLOADS/'QUICKSTART.md')
 shutil.copy2(PROJECT/'SAITO_FEEDBACK_AUDIT.md',DOWNLOADS/'SAITO_FEEDBACK_AUDIT.md')
-shutil.copy2(SOURCE/'example_input_v3.json',DOWNLOADS/'example_input_v3.json')
+shutil.copy2(SOURCE/'example_input_v4.json',DOWNLOADS/'example_input_v4.json')
 for name,figure in ns['WEB_STATE']['figures']:
     if name.startswith('polar_'):
         figure.savefig(DIST/(name+'.svg'),format='svg',bbox_inches='tight',transparent=True)
@@ -104,7 +104,7 @@ for item in annotations:
 (DATA/'tutorial.json').write_text(json.dumps(annotations))
 
 shutil.copy2(notebook_path,DOWNLOADS/'ROTATION_RAMAN_TENSOR_CALCULATION.ipynb')
-full_python='''"""Complete notebook source, version 3.
+full_python='''"""Complete notebook source, version 4.
 Run with an IPython/Jupyter kernel for the interactive widget application.
 The .ipynb notebook is the recommended entry point.
 """\n\n'''+ '\n\n'.join(f'# Code cell {item["number"]}: {item["title"]}\n'+item['source'] for item in content)
@@ -120,21 +120,21 @@ archive_paths={
 for name,path in archive_paths.items():shutil.copy2(path,DOWNLOADS/name)
 readme='''ROTATION RAMAN TENSOR CALCULATION — PYTHON DOWNLOADS
 
-Current version: 3. Run all 22 cells of the .ipynb in Jupyter or Colab.
+Current version: 4. Run all 22 cells of the .ipynb in Jupyter or Colab.
 The matching .py file contains the complete notebook source for an IPython kernel.
 raman_engine.py contains the same scientific functions without notebook-only
 display imports; web_bridge.py supplies validated JSON/browser interfaces.
 
-Version 3 adds optional interactive website guides and updates release identity.
-The guide is separate from the scientific Python engine.
-The scientific tensor, rotation and Jones intensity functions are preserved.
+Version 4 uses Greek symbols in the controls, guides and exports, and shorter
+instructions. The scientific calculations are unchanged. Optional website guides
+remain available from the User guide button.
 
 Newcomers: read QUICKSTART.md and use Restart kernel and Run All.
 Every code cell prints its number and "This cell runs correctly."
 Cell 22 already loads, calculates and validates the included (211) example.
 No external input or manual code edit is needed for that initial run.
 Tools are numbered 1-7 for the main workflow, with optional validation (8),
-comparisons (9), and the silicon benchmark (10). example_input_v3.json records
+comparisons (9), and the silicon benchmark (10). example_input_v4.json records
 the complete demonstration inputs. The guide gives expected numerical output.
 SAITO_FEEDBACK_AUDIT.md distinguishes implemented changes from the still-pending
 independent colleague review and documentation consultation with Kumar-san.
@@ -147,7 +147,7 @@ the same reports. Main Ag components and all existing intensity laws are unchang
 The uploaded original reference notebook is included as a separate, unmodified reference.
 
 The references folder contains the unmodified optical implementation sources.
-The live website tutorial displays the exact current Version 3 code.
+The live website tutorial displays the exact current Version 4 code.
 
 The site self-hosts its Python WebAssembly runtime and mathematical typesetting.
 Its first calculator start downloads the runtime into your browser. A web worker
@@ -161,7 +161,7 @@ in the main figures. A coherent full-mode audit is exported separately.
 '''
 (DOWNLOADS/'README.txt').write_text(readme)
 with zipfile.ZipFile(DOWNLOADS/'All_Python_Programs.zip','w',zipfile.ZIP_DEFLATED) as archive:
-    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v3.json']:
+    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v4.json']:
         archive.write(DOWNLOADS/name,name)
     for name in archive_paths:archive.write(DOWNLOADS/name,'references/'+name)
 print('Prepared 22 cells,',sum(len(x['blocks']) for x in annotations),'annotated code blocks and Python downloads.',flush=True)

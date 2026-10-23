@@ -1,18 +1,19 @@
-# Rotation Raman Tensor Calculation — Version 3
+# Rotation Raman Tensor Calculation — Version 4
 
 [**Open the live website on GitHub Pages**](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/)
 
 [Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/ROTATION_RAMAN_TENSOR_CALCULATION.ipynb)
 · [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/All_Python_Programs.zip)
 
-An English Raman tensor workspace with nested navigation, an exact 22-cell
-Python tutorial, the original scientific calculation engine, calculated
-derivations, polar plots and scientific exports.
+Calculate Raman intensity from a crystal tensor, measurement frame and Jones
+polarization states. The website includes a calculator, equations, a 22-cell
+Python notebook and example data. Version 4 uses Greek notation and shorter
+instructions.
 
 ## Structure
 
 - dist/: complete buildless static application.
-- sources/notebook_v3.ipynb: current notebook, including executed outputs.
+- sources/notebook_v4.ipynb: current notebook, including executed outputs.
 - sources/tutorial_*.json: explanations covering every nonblank source line.
 - sources/reference notebooks: unmodified implementation references.
 - prepare_content.py: extracts the tutorial, scientific functions and downloads.
@@ -29,7 +30,7 @@ Navigation and documentation work before Python starts.
 Install dist/downloads/requirements.txt in a Python environment before
 regenerating assets with python prepare_content.py. If dependencies are
 installed in a separate directory, set RAMAN_PYTHON_DEPENDENCY_PATH to it.
-Rebuilding preserves the original function source; only rich notebook display
+Rebuilding preserves the notebook function source; only rich notebook display
 imports and notebook-only cell completion messages are omitted in the browser engine.
 
 ## First run and numbered tools
@@ -43,7 +44,7 @@ units, expected values and what each of the last cells needs.
 Tools 1–5 set the model, tensors, orientation, Jones states and display;
 6 calculates and 7 exports. Tools 8–10 are optional validation, comparison
 and silicon benchmark actions. The same group numbers appear in the web calculator.
-The complete example input is in sources/example_input_v3.json and the program ZIP.
+The complete example input is in sources/example_input_v4.json and the program ZIP.
 See [SAITO_FEEDBACK_AUDIT.md](SAITO_FEEDBACK_AUDIT.md) for the five recommendations,
 their baseline status and the remaining independent review/consultation items.
 
@@ -129,7 +130,7 @@ starts a fresh worker. Downloaded results are independent files.
 
 ## GitHub Pages
 
-The `.github/workflows/pages.yml` workflow checks the Version 3 release and
+The `.github/workflows/pages.yml` workflow checks the Version 4 release and
 publishes `dist/` to GitHub Pages. See [GITHUB_PAGES.md](GITHUB_PAGES.md) for
 repository configuration. The scientific runtime and all assets use relative
 paths and support a repository subdirectory.

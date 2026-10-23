@@ -63,9 +63,9 @@
         "start_line": 95,
         "end_line": 107,
         "title": "Declare surface indices, an in-plane reference and frame rotation",
-        "explanation": "surface_options extends the basic presets with (500) through (550). hkl_fields describe a reciprocal-lattice surface normal; uvw_fields describe a direct-lattice in-plane direction. auto_x enables a projected Cartesian reference, normal_pick selects the normal side, and psi is the frame angle.",
+        "explanation": "surface_options extends the basic presets with (500) through (550). hkl_fields describe a reciprocal-lattice surface normal; uvw_fields describe a direct-lattice in-plane direction. auto_x enables a projected Cartesian reference, normal_pick selects the normal side, and ψ is the frame angle.",
         "why": "A surface alone does not determine the in-plane zero angle. The normal side and frame angle complete the measurement frame used by T.",
-        "check": "For an explicit in-plane direction, h*u+k*v+l*w must equal zero. The frame angle psi is not the optical scan angle."
+        "check": "For an explicit in-plane direction, h*u+k*v+l*w must equal zero. The frame angle ψ is not the optical scan angle."
       },
       {
         "start_line": 108,
@@ -81,13 +81,13 @@
         "title": "Provide direct Jones states and angular zeros",
         "explanation": "direct_widgets contains the incident mixing angle and phase, the detector mixing-angle zero and phase. theta_zero shifts a co-rotating linear scan; analyzer_zero shifts the direct linear detection scan.",
         "why": "Explicit states and angle origins make comparisons reproducible. A fixed profile ignores inactive direct-state controls instead of borrowing their values.",
-        "check": "The direct-state convention is (cos(theta), exp(i*beta)*sin(theta)); all field angles here are in degrees."
+        "check": "The direct-state convention is (cos(θ), exp(i*β)*sin(θ)); all field angles here are in degrees."
       },
       {
         "start_line": 134,
         "end_line": 149,
         "title": "Keep the original effective source inputs explicit",
-        "explanation": "source_widgets declares real a and A and the phase angles delta and phi. source_box states that the original 2D source has no crystal-orientation parameter.",
+        "explanation": "source_widgets declares real a and A and the phase angles δ and φ. source_box states that the original 2D source has no crystal-orientation parameter.",
         "why": "This reference model can be checked faithfully without treating its antisymmetric entries as a material tensor.",
         "check": "In the original 2D model, changing hkl must not change the calculated source curve."
       },
@@ -250,7 +250,7 @@
         "start_line": 133,
         "end_line": 135,
         "title": "Choose a conventional illustrative metric",
-        "explanation": "Trigonal and hexagonal groups receive the conventional hexagonal setting with gamma=120 degrees; other groups receive an orthogonal unity metric as a starting template.",
+        "explanation": "Trigonal and hexagonal groups receive the conventional hexagonal setting with γ=120 degrees; other groups receive an orthogonal unity metric as a starting template.",
         "why": "A point-group tensor setting must be paired with an appropriate indexing convention. These are illustrative ratios, not a lookup of measured material lattice constants.",
         "check": "A monoclinic or triclinic user may still need to enter the actual lengths and angles."
       },
@@ -314,7 +314,7 @@
         "start_line": 215,
         "end_line": 220,
         "title": "Active-profile guard: return before reading hidden circular fields",
-        "explanation": "The startswith(\"CIRCULAR_\") condition distinguishes the three active circular-channel profiles from the other optical protocols. A noncircular profile returns a fresh metadata dictionary expanded from default_paper_parameters(\"CIRCULAR\"), then overrides theta0_deg and analyzer_zero_deg from their active numerical fields.",
+        "explanation": "The startswith(\"CIRCULAR_\") condition distinguishes the three active circular-channel profiles from the other optical protocols. A noncircular profile returns a fresh metadata dictionary expanded from default_paper_parameters(\"CIRCULAR\"), then overrides θ0_deg and analyzer_zero_deg from their active numerical fields.",
         "why": "A user can leave an invalid value in a control that later becomes hidden. Ignoring that inactive control prevents an unrelated form state from changing whether the selected optical calculation can run.",
         "check": "The early return must occur before splitting circular_charges.value or parsing circular_dm.value."
       },
@@ -330,7 +330,7 @@
         "start_line": 241,
         "end_line": 276,
         "title": "Show relevant controls and the actual sample states",
-        "explanation": "The callback exposes only the controls appropriate to the selected profile, builds optical_chain() from the visible values and renders Ei and the effective detector es=B.H*e_an. SECOND scans are displayed with theta; other scans use alpha. The previous result is invalidated.",
+        "explanation": "The callback exposes only the controls appropriate to the selected profile, builds optical_chain() from the visible values and renders Ei and the effective detector es=B.H*e_an. SECOND scans are displayed with θ; other scans use α. The previous result is invalidated.",
         "why": "Looking at the analyzer after a return optic is not enough: the Raman contraction uses the effective detection state at the sample. This preview makes differences between QWP, elliptical and direct-linear scans inspectable.",
         "check": "Fixed circular states have CONSTANT scan basis. VV/VH have SECOND amplitude basis, while fixed-input detection scans normally have FIRST."
       },
@@ -712,7 +712,7 @@
         "start_line": 320,
         "end_line": 410,
         "title": "Validate all silicon surfaces with independent reductions",
-        "explanation": "For every protocol and each requested (5k0) surface, verify the frame and complete T2g triplet. Compare the calculated intensity divided by |d|² with independent closed forms. A separate 3D einsum includes phonon-basis projection, then analytic maxima and sigma-pattern tilt are checked. The (110) longitudinal extinction must not be mistaken for extinction of total silicon intensity. Scaling d and changing a global phase are tested, and the Origin plotting script is syntax-compiled.",
+        "explanation": "For every protocol and each requested (5k0) surface, verify the frame and complete T2g triplet. Compare the calculated intensity divided by |d|² with independent closed forms. A separate 3D einsum includes phonon-basis projection, then analytic maxima and σ⁻pattern tilt are checked. The (110) longitudinal extinction must not be mistaken for extinction of total silicon intensity. Scaling d and changing a global phase are tested, and the Origin plotting script is syntax-compiled.",
         "why": "The reference benchmark must retain complete phonon physics and a common normalization. A single phonon-polarization extinction cannot replace an unresolved silicon triplet.",
         "check": "Compiling the Origin script verifies Python syntax; it does not execute OriginLab natively."
       },
@@ -760,7 +760,7 @@
         "start_line": 506,
         "end_line": 544,
         "title": "General check 4: every implemented point group",
-        "explanation": "Construct the general material with each point group, all its template families and complex trial coefficients. Use an appropriate conventional principal metric and run VV, VH and sigma+alpha. matching_protocol_audit() compares direct and circular-basis representations for every displayed channel.",
+        "explanation": "Construct the general material with each point group, all its template families and complex trial coefficients. Use an appropriate conventional principal metric and run VV, VH and σ⁺α. matching_protocol_audit() compares direct and circular-basis representations for every displayed channel.",
         "why": "A common engine should operate on every library tensor form without a material-specific intensity formula or special coefficient fitting.",
         "check": "The check counts 21 groups and the actual displayed channels; this loop uses a principal (001) setting."
       },
@@ -785,7 +785,7 @@
         "end_line": 622,
         "title": "General check 7: preserve genuinely different detector scans",
         "explanation": "Require QWP, elliptical-reference and direct-linear detection projectors to be different over the scan. For QWP versus the reference, verify equal circular endpoints and a nonzero intermediate projector distance.",
-        "why": "Agreement at alpha=0 and 90 degrees does not establish equality at intermediate angles; relative phases between circular components matter.",
+        "why": "Agreement at α=0 and 90 degrees does not establish equality at intermediate angles; relative phases between circular components matter.",
         "check": "This is a polarization-state test. It neither shifts angular zeros nor rescales intensities to align curves."
       },
       {
@@ -910,7 +910,7 @@
         "title": "Assemble the orientation-input panel",
         "explanation": "Group the surface preset, hkl and uvw rows, automatic-X choice, normal side, frame angle and six lattice fields. An explicit note reminds the user of the zone condition and illustrative ratios.",
         "why": "A reproducible orientation requires a lattice metric and in-plane reference in addition to the Miller surface indices.",
-        "check": "Changing psi rotates the frame; selecting a new optical profile changes Jones states instead."
+        "check": "Changing ψ rotates the frame; selecting a new optical profile changes Jones states instead."
       },
       {
         "start_line": 30,

@@ -78,9 +78,9 @@
         "start_line": 22,
         "end_line": 30,
         "title": "Declare symbols and provisional display defaults",
-        "explanation": "sp.init_printing prepares symbolic display. The initial rcParams values are provisional and are superseded by apply_scientific_style at the end of this cell. alpha is explicitly real because it is an angle. The six coefficients a through f are explicitly complex so conjugation and relative phases remain available in every tensor calculation.",
-        "why": "Declaring all tensor coefficients real would erase phase-sensitive interference. The analyzer scan alpha must also remain separate from the frame angle psi introduced by the orientation inputs.",
-        "check": "sp.conjugate(alpha) simplifies to alpha, while sp.conjugate(a) remains a distinct conjugate symbol. The final style font size is 22, not the provisional value 10."
+        "explanation": "sp.init_printing prepares symbolic display. The initial rcParams values are provisional and are superseded by apply_scientific_style at the end of this cell. α is explicitly real because it is an angle. The six coefficients a through f are explicitly complex so conjugation and relative phases remain available in every tensor calculation.",
+        "why": "Declaring all tensor coefficients real would erase phase-sensitive interference. The analyzer scan α must also remain separate from the frame angle ψ introduced by the orientation inputs.",
+        "check": "sp.conjugate(α) simplifies to α, while sp.conjugate(a) remains a distinct conjugate symbol. The final style font size is 22, not the provisional value 10."
       },
       {
         "start_line": 31,
@@ -102,9 +102,9 @@
         "start_line": 48,
         "end_line": 52,
         "title": "deg: convert degrees to radians",
-        "explanation": "SymPy trigonometric functions use radians. Multiplication by pi/180 converts a user-facing degree value while retaining exact forms for special angles such as 45 degrees.",
+        "explanation": "SymPy trigonometric functions use radians. Multiplication by π/180 converts a user-facing degree value while retaining exact forms for special angles such as 45 degrees.",
         "why": "Mixing degree-valued UI controls with radian-valued sine and cosine would silently produce incorrect orientations and polarization vectors.",
-        "check": "deg(90) equals pi/2 and sin(deg(30)) equals 1/2."
+        "check": "deg(90) equals π/2 and sin(deg(30)) equals 1/2."
       },
       {
         "start_line": 53,
@@ -134,7 +134,7 @@
         "start_line": 70,
         "end_line": 78,
         "title": "complex_parameter: construct magnitude and phase",
-        "explanation": "Validate the coefficient magnitude and phase as real finite numbers, reject a negative magnitude and form rho*exp(I*phi*pi/180). Both entered numbers pass through exact before building the symbolic coefficient.",
+        "explanation": "Validate the coefficient magnitude and phase as real finite numbers, reject a negative magnitude and form ρ*exp(I*φ*π/180). Both entered numbers pass through exact before building the symbolic coefficient.",
         "why": "The magnitude/phase UI corresponds directly to the physical parameterization q=|q|exp(i arg(q)); a relative phase affects complete-mode interference.",
         "check": "A magnitude of 1 and phase of 90 degrees give I. A magnitude of zero gives a zero coefficient independently of phase."
       },
@@ -196,7 +196,15 @@
       },
       {
         "start_line": 203,
-        "end_line": 203,
+        "end_line": 211,
+        "title": "Print mathematical symbols",
+        "explanation": "raman_latex keeps internal variable names unchanged and prints beta_prime as β′ in equations.",
+        "why": "The same symbol should appear in the controls, equations and exported documents.",
+        "check": "A symbolic beta_prime must print as β′; numerical expressions remain unchanged."
+      },
+      {
+        "start_line": 212,
+        "end_line": 212,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
@@ -207,7 +215,7 @@
       "The initial rcParams font size 10 is overwritten by the supplied style before plotting.",
       "exact() preserves entered decimal numbers as rationals; custom tensor parsing accepts numerical strings rather than arbitrary SymPy formulas.",
       "Arial fallback changes typography, not the calculated polar pattern.",
-      "The complex coefficients belong to a phonon tensor. Their phases should not be confused with the optical Jones phase beta."
+      "The complex coefficients belong to a phonon tensor. Their phases should not be confused with the optical Jones phase β."
     ]
   },
   {
@@ -217,7 +225,7 @@
       "Build the direct-lattice Cartesian matrix L.",
       "Calculate the reciprocal surface normal L^(-T)*(h,k,l).",
       "Build a normalized in-plane X reference and Y=Z cross X.",
-      "Apply the independent frame angle psi and verify orthonormality and determinant +1."
+      "Apply the independent frame angle ψ and verify orthonormality and determinant +1."
     ],
     "blocks": [
       {
@@ -232,7 +240,7 @@
         "start_line": 13,
         "end_line": 27,
         "title": "lattice_matrix: validate six cell parameters",
-        "explanation": "Read the three lattice lengths and the three interaxial angles. Require six inputs, positive finite lengths and angles strictly between 0 and 180 degrees. Evaluate the angle cosines and the sine of gamma.",
+        "explanation": "Read the three lattice lengths and the three interaxial angles. Require six inputs, positive finite lengths and angles strictly between 0 and 180 degrees. Evaluate the angle cosines and the sine of γ.",
         "why": "The surface normal depends on the lattice metric. Invalid lengths or collapsed angles cannot define a physically usable reciprocal cell.",
         "check": "A cubic unit cell gives lengths (1,1,1) and angles (90,90,90). An angle of zero or a negative length raises a useful error."
       },
@@ -240,7 +248,7 @@
         "start_line": 28,
         "end_line": 44,
         "title": "lattice_matrix: derive the Cartesian lattice columns",
-        "explanation": "Set the first direct vector along Cartesian x and the second in the xy plane. The scaled third-vector y component is (cos(alpha)-cos(beta)*cos(gamma))/sin(gamma); its z component follows from unit norm. Reject a nonpositive volume factor, then assemble L with the three direct vectors as columns.",
+        "explanation": "Set the first direct vector along Cartesian x and the second in the xy plane. The scaled third-vector y component is (cos(α)-cos(β)*cos(γ))/sin(γ); its z component follows from unit norm. Reject a nonpositive volume factor, then assemble L with the three direct vectors as columns.",
         "why": "Miller indices and direction indices refer to a crystallographic lattice, whereas the tensor acts in orthonormal Cartesian coordinates. L bridges those coordinate descriptions, including skew cells.",
         "check": "For orthorhombic inputs, L is diag(a0,b0,c0). For a valid hexagonal setting, the second lattice vector contains the expected cos(120 degrees) and sin(120 degrees)."
       },
@@ -272,7 +280,7 @@
         "start_line": 77,
         "end_line": 98,
         "title": "build_orientation: choose an explicit orientation route",
-        "explanation": "Build L first. Reject a request to allow reflection. A manual-matrix route validates T_manual and returns that frame without applying hkl, uvw or psi again. Otherwise require the hkl route.",
+        "explanation": "Build L first. Reject a request to allow reflection. A manual-matrix route validates T_manual and returns that frame without applying hkl, uvw or ψ again. Otherwise require the hkl route.",
         "why": "A manually supplied complete frame must not be rotated a second time by inactive orientation fields. This prevents hidden geometry changes when switching input modes.",
         "check": "The returned notes identify a manual frame. On that route, changing hkl has no effect because the manual frame is the declared orientation."
       },
@@ -303,10 +311,10 @@
       {
         "start_line": 127,
         "end_line": 137,
-        "title": "Normalize the tangent, apply psi and assemble T",
-        "explanation": "Normalize t to X0, obtain Y0=Z cross X0 and validate psi. Form X=cos(psi)X0+sin(psi)Y0 and Y=-sin(psi)X0+cos(psi)Y0. Stack X,Y,Z as columns, validate the proper frame and return the intermediate vectors with T.",
-        "why": "The cross product fixes handedness and psi sets the in-plane frame orientation. Saving L,g,t,X0,Y0 and T lets later mathematical reports show each construction step.",
-        "check": "T.T*T is the identity and det(T)=+1. Positive psi rotates the measurement axes X toward Y; with fixed laboratory optics, an active sample rotation has the opposite sign."
+        "title": "Normalize the tangent, apply ψ and assemble T",
+        "explanation": "Normalize t to X0, obtain Y0=Z cross X0 and validate ψ. Form X=cos(ψ)X0+sin(ψ)Y0 and Y=-sin(ψ)X0+cos(ψ)Y0. Stack X,Y,Z as columns, validate the proper frame and return the intermediate vectors with T.",
+        "why": "The cross product fixes handedness and ψ sets the in-plane frame orientation. Saving L,g,t,X0,Y0 and T lets later mathematical reports show each construction step.",
+        "check": "T.T*T is the identity and det(T)=+1. Positive ψ rotates the measurement axes X toward Y; with fixed laboratory optics, an active sample rotation has the opposite sign."
       },
       {
         "start_line": 139,
@@ -319,7 +327,7 @@
     ],
     "pitfalls": [
       "Miller indices are not generally Cartesian normal components for a noncubic cell.",
-      "psi is the frame angle; alpha and theta are optical scan variables.",
+      "ψ is the frame angle; α and θ are optical scan variables.",
       "The negative normal in the slide reference preserves its displayed X and Y signs in a proper frame; it does not identify the outward face of a real sample.",
       "A manual frame bypasses hkl/uvw reconstruction, so reports must identify which input route was active."
     ]
@@ -451,7 +459,7 @@
         "end_line": 205,
         "title": "Excess-Ti TiS2 parent preset",
         "explanation": "Register D3d A1g and Eg as a parent 1T structure model. The note explicitly distinguishes this symmetry model from excess-Ti disorder, shoulder features, two-phonon processes and Breit-Wigner-Fano line shapes.",
-        "why": "A first-order Gamma-point tensor should not claim to calculate every feature of a nonstoichiometric material spectrum.",
+        "why": "A first-order Γ-point tensor should not claim to calculate every feature of a nonstoichiometric material spectrum.",
         "check": "Use a lower symmetry or a more detailed response model when the sample phase requires it; the listed c/a ratio is illustrative."
       },
       {
@@ -466,7 +474,7 @@
         "start_line": 216,
         "end_line": 225,
         "title": "1T-VSe2 parent preset",
-        "explanation": "Register D3d A1g and Eg for the parent phase. Its note limits the preset to first-order Gamma-point modes and distinguishes a reported high-frequency feature from an automatic Eg assignment.",
+        "explanation": "Register D3d A1g and Eg for the parent phase. Its note limits the preset to first-order Γ-point modes and distinguishes a reported high-frequency feature from an automatic Eg assignment.",
         "why": "A material name alone cannot convert a possible two-phonon feature into a symmetry-allowed single-phonon tensor.",
         "check": "The selected phase, metric and branch assignment must be established before interpreting a calculated curve as a measured mode."
       },
@@ -522,7 +530,7 @@
         "start_line": 357,
         "end_line": 369,
         "title": "Name rules and preserve optical-source provenance",
-        "explanation": "RULE_LABELS gives readable names for internal policies. AUDIT_VERSION identifies version 3. QWP_SOURCE stores the source notebook hash, adopted main optical chain, explicit 3D extension policy and the fact that the alternative source appendix is not silently selected.",
+        "explanation": "RULE_LABELS gives readable names for internal policies. AUDIT_VERSION identifies version 4. QWP_SOURCE stores the source notebook hash, adopted main optical chain, explicit 3D extension policy and the fact that the alternative source appendix is not silently selected.",
         "why": "A source model and a crystal extension should be traceable without implying that the source already contained a crystallographic rotation library.",
         "check": "The optical source SHA identifies the exact imported reference. The 3D extension supplies a symmetry-allowed projected crystal tensor to the same QWP sequence."
       },
@@ -575,30 +583,30 @@
         "title": "rot: two-dimensional active rotation",
         "explanation": "Return the real orthogonal matrix [[cos(t),-sin(t)],[sin(t),cos(t)]]. Positive t rotates the x direction toward y in the fixed laboratory plane.",
         "why": "An optical element whose axes are rotated needs a coordinate transformation into and out of its principal-axis basis.",
-        "check": "rot(t).T*rot(t) is the identity and rot(pi/2)*x_hat equals y_hat."
+        "check": "rot(t).T*rot(t) is the identity and rot(π/2)*x_hat equals y_hat."
       },
       {
         "start_line": 18,
         "end_line": 27,
         "title": "waveplate and the adopted QWP matrices",
-        "explanation": "waveplate constructs Rot(theta)*diag(1,exp(I*Gamma))*Rot(theta).T. The selected plate has axis -45 degrees and retardance pi/2. The adopted reverse-path matrix is the transpose of that plate, following the imported source convention.",
+        "explanation": "waveplate constructs Rot(θ)*diag(1,exp(I*γ))*Rot(θ).T. The selected plate has axis -45 degrees and retardance π/2. The adopted reverse-path matrix is the transpose of that plate, following the imported source convention.",
         "why": "A quarter-wave retardance changes relative phase rather than merely rotating a linear vector. The reverse-path convention must be declared with the chosen fixed coordinate bases.",
-        "check": "The chosen Q is unitary and symmetric and Q*x_hat is sigma+ up to a global phase. Q.T is not being asserted as a universal return matrix for every optical arrangement."
+        "check": "The chosen Q is unitary and symmetric and Q*x_hat is σ⁺ up to a global phase. Q.T is not being asserted as a universal return matrix for every optical arrangement."
       },
       {
         "start_line": 28,
         "end_line": 32,
         "title": "jones: normalized general polarization state",
-        "explanation": "Construct e(theta,beta)=(cos(theta),exp(I*beta)*sin(theta)). theta controls the component amplitudes and beta their relative phase. Both angles are in radians at this function boundary.",
+        "explanation": "Construct e(θ,β)=(cos(θ),exp(I*β)*sin(θ)). θ controls the component amplitudes and β their relative phase. Both angles are in radians at this function boundary.",
         "why": "One expression covers linear, circular and elliptical pure states without redefining the scattering law for each material.",
-        "check": "beta=0 yields a linear state. theta=pi/4,beta=pi/2 yields sigma+. A general beta or unequal amplitudes generally gives an ellipse."
+        "check": "β=0 yields a linear state. θ=π/4,β=π/2 yields σ⁺. A general β or unequal amplitudes generally gives an ellipse."
       },
       {
         "start_line": 33,
         "end_line": 48,
         "title": "Name the optical protocols",
         "explanation": "OPTICS_LABELS maps internal protocol identifiers to readable labels for QWP, direct Jones, circular, linear and cubic-reference configurations. These names do not themselves select coefficients or align plots.",
-        "why": "Readable labels must remain tied to explicit Jones definitions below. A common label such as sigma+alpha does not guarantee identical detector states in different conventions.",
+        "why": "Readable labels must remain tied to explicit Jones definitions below. A common label such as σ⁺α does not guarantee identical detector states in different conventions.",
         "check": "The cubic-reference labels identify Section 2.2. Use the explicit matrices below as the mathematical definition and the linked reference section for the surrounding tensor and intensity equations."
       },
       {
@@ -613,7 +621,7 @@
         "start_line": 60,
         "end_line": 68,
         "title": "QWP chain: sample input and analyzer after return optics",
-        "explanation": "Set E_i=Q*x_hat, B=Q.T and e_an=(-sin(alpha),cos(alpha)). The alpha=0 analyzer direction is +Y after the return plate; alpha=90 degrees is -X. Store this origin convention explicitly.",
+        "explanation": "Set E_i=Q*x_hat, B=Q.T and e_an=(-sin(α),cos(α)). The α=0 analyzer direction is +Y after the return plate; α=90 degrees is -X. Store this origin convention explicitly.",
         "why": "The measured amplitude is e_an.H*B*R_perp*E_i. Removing B while keeping the same analyzer vector would describe another experiment.",
         "check": "The effective sample detector is Q.conjugate()*e_an because B.H=(Q.T).H. Its projectors at intermediate angles differ from the elliptical-reference scan."
       },
@@ -621,31 +629,31 @@
         "start_line": 69,
         "end_line": 73,
         "title": "Elliptical reference scan",
-        "explanation": "Set E_i=sigma+, B=I and e_s=e_an=(cos(pi/4+alpha),I*sin(pi/4+alpha)). This directly specifies the detector state at the sample, with fixed relative phase pi/2.",
+        "explanation": "Set E_i=σ⁺, B=I and e_s=e_an=(cos(π/4+α),I*sin(π/4+α)). This directly specifies the detector state at the sample, with fixed relative phase π/2.",
         "why": "This reproduces the declared reference Jones states, including their continuous intermediate elliptical states. It is not inferred from a rotating linear analyzer after the adopted QWP.",
-        "check": "At alpha=0 the detector is sigma+; at alpha=pi/2 it is sigma- up to a global sign. At intermediate alpha its projector differs from the QWP branch."
+        "check": "At α=0 the detector is σ⁺; at α=π/2 it is σ⁻ up to a global sign. At intermediate α its projector differs from the QWP branch."
       },
       {
         "start_line": 74,
         "end_line": 83,
         "title": "Custom direct Jones states",
-        "explanation": "Require four angles: theta_i,beta_i,theta_s0,beta_s. Convert and validate them, then build the fixed input e(theta_i,beta_i), identity return matrix and scanned detector e(theta_s0+alpha,beta_s).",
-        "why": "Explicit custom states permit controlled equivalence tests: the reference scan is recovered with (45,90,45,90) degrees, while a direct linear detector uses beta_s=0.",
-        "check": "The custom branch represents this four-parameter direct-state family. It does not automatically reproduce an arbitrary return optic whose effective detector has a different alpha dependence."
+        "explanation": "Require four angles: θᵢ,βᵢ,θₛ₀,βₛ. Convert and validate them, then build the fixed input e(θᵢ,βᵢ), identity return matrix and scanned detector e(θₛ₀+α,βₛ).",
+        "why": "Explicit custom states permit controlled equivalence tests: the reference scan is recovered with (45,90,45,90) degrees, while a direct linear detector uses βₛ=0.",
+        "check": "The custom branch represents this four-parameter direct-state family. It does not automatically reproduce an arbitrary return optic whose effective detector has a different α dependence."
       },
       {
         "start_line": 84,
         "end_line": 104,
         "title": "Circular input with direct-linear or fixed-circular detection",
-        "explanation": "Validate s_in as +1 or -1 and choose the corresponding circular input. With CIRCULAR_LINEAR, scan a direct linear detector at alpha plus its declared zero offset. With CIRCULAR_SAME or CIRCULAR_OPPOSITE, choose a fixed circular detector and mark the amplitude CONSTANT. Record that the quantitative curve is the ell=0 plane-wave calculation.",
+        "explanation": "Validate s_in as +1 or -1 and choose the corresponding circular input. With CIRCULAR_LINEAR, scan a direct linear detector at α plus its declared zero offset. With CIRCULAR_SAME or CIRCULAR_OPPOSITE, choose a fixed circular detector and mark the amplitude CONSTANT. Record that the quantitative curve is the ℓ=0 plane-wave calculation.",
         "why": "A fixed circular channel is one projection, not a rotating-analyzer experiment. An OAM selection-rule input must not silently modify these plane-wave intensities.",
-        "check": "Fixed circular intensity is independent of alpha. Changing analyzer_zero_deg rotates the direct-linear scan origin but does not change the underlying tensor."
+        "check": "Fixed circular intensity is independent of α. Changing analyzer_zero_deg rotates the direct-linear scan origin but does not change the underlying tensor."
       },
       {
         "start_line": 105,
         "end_line": 124,
         "title": "Co-rotating linear VV/VH states",
-        "explanation": "Set angle=alpha+theta0. The incident state is (cos(angle),sin(angle)); the parallel detector is identical and the crossed detector is (-sin(angle),cos(angle)). Select the required detector, retain both for LINEAR_PAIR and mark the amplitude SECOND.",
+        "explanation": "Set angle=α+θ₀. The incident state is (cos(angle),sin(angle)); the parallel detector is identical and the crossed detector is (-sin(angle),cos(angle)). Select the required detector, retain both for LINEAR_PAIR and mark the amplitude SECOND.",
         "why": "Both input and detector rotate, so the amplitude contains constant and second angular harmonics and the intensity can contain fourth harmonics. VV and VH together must share one coefficient set.",
         "check": "The two detector vectors are orthogonal. A standalone VV curve must match the VV member of LINEAR_PAIR for identical input values and angle zero."
       },
@@ -768,14 +776,14 @@
         "end_line": 26,
         "title": "Keep fixed-channel amplitudes constant",
         "explanation": "For SECOND or CONSTANT profiles, explicitly contract e_an.H*E_out. If the profile is CONSTANT, return that scalar as K0 with the intermediate fields and no angular harmonics.",
-        "why": "A fixed circular detector should not acquire an artificial alpha dependence from the plotting grid.",
+        "why": "A fixed circular detector should not acquire an artificial α dependence from the plotting grid.",
         "check": "Its intensity curve is a circle of radius |K0|^2 on an intensity polar plot, or zero when K0 vanishes."
       },
       {
         "start_line": 27,
         "end_line": 43,
         "title": "Derive co-rotating linear amplitude coefficients",
-        "explanation": "The allowed amplitude form is K0+Kc*cos(2*alpha)+Ks*sin(2*alpha). Evaluate the matrix amplitude at 0 and pi/2 to obtain K0 and Kc; evaluate at pi/4 to obtain Ks. Store these coefficients and the reconstructed exact harmonic amplitude.",
+        "explanation": "The allowed amplitude form is K0+Kc*cos(2*α)+Ks*sin(2*α). Evaluate the matrix amplitude at 0 and π/2 to obtain K0 and Kc; evaluate at π/4 to obtain Ks. Store these coefficients and the reconstructed exact harmonic amplitude.",
         "why": "These evaluations extract coefficients of a known algebraic basis, rather than fitting a target curve. Squaring this amplitude later automatically retains second and fourth intensity harmonics.",
         "check": "The reconstructed amplitude should agree with the direct Jones matrix chain at independently chosen angles, including complex tensor coefficients."
       },
@@ -783,8 +791,8 @@
         "start_line": 44,
         "end_line": 56,
         "title": "Derive fixed-input analyzer coefficients",
-        "explanation": "For FIRST profiles, project the outgoing field on the analyzer at 0 and pi/2 to obtain C and D. Store A(alpha)=C*cos(alpha)+D*sin(alpha), its coefficients and the intermediate fields.",
-        "why": "The declared detector family is linear in cos(alpha),sin(alpha). Keeping its complex coefficients intact preserves interference between the two analyzer contributions.",
+        "explanation": "For FIRST profiles, project the outgoing field on the analyzer at 0 and π/2 to obtain C and D. Store A(α)=C*cos(α)+D*sin(α), its coefficients and the intermediate fields.",
+        "why": "The declared detector family is linear in cos(α),sin(α). Keeping its complex coefficients intact preserves interference between the two analyzer contributions.",
         "check": "A direct evaluation at an intermediate angle must equal the C,D reconstruction. C and D are generally complex even if some geometry entries are real."
       },
       {
@@ -807,7 +815,7 @@
         "start_line": 102,
         "end_line": 117,
         "title": "Derive all VV/VH intensity harmonics",
-        "explanation": "For A=K0+Kc*cos(2theta)+Ks*sin(2theta), calculate I0, Ic, Is, I4c and I4s using powers and conjugate cross products. Sum these terms across the declared orthogonal partners. Reject overflow and identify a numerically constant result using a relative harmonic threshold.",
+        "explanation": "For A=K0+Kc*cos(2θ)+Ks*sin(2θ), calculate I0, Ic, Is, I4c and I4s using powers and conjugate cross products. Sum these terms across the declared orthogonal partners. Reject overflow and identify a numerically constant result using a relative harmonic threshold.",
         "why": "Complex coefficient phases contribute through real parts of products such as K0*Kc.conjugate(). Keeping the fourth harmonics is necessary for general co-rotating linear scans.",
         "check": "The coefficients reconstruct the same nonnegative intensity as direct |A|^2. A constant channel has no unique maximum-angle label."
       },
@@ -815,7 +823,7 @@
         "start_line": 118,
         "end_line": 137,
         "title": "Solve the continuous stationary-angle equation",
-        "explanation": "Set z=exp(2i*theta), u1=(Ic-i*Is)/2 and u2=(I4c-i*I4s)/2. The derivative becomes a quartic with coefficients [2u2,u1,0,-u1*, -2u2*]. Remove leading zeros, find roots and retain unit-circle roots. Convert their phases to candidate angles modulo pi and evaluate the harmonic intensity at those angles.",
+        "explanation": "Set z=exp(2i*θ), u1=(Ic-i*Is)/2 and u2=(I4c-i*I4s)/2. The derivative becomes a quartic with coefficients [2u2,u1,0,-u1*, -2u2*]. Remove leading zeros, find roots and retain unit-circle roots. Convert their phases to candidate angles modulo π and evaluate the harmonic intensity at those angles.",
         "why": "A 0.5-degree display grid is not an accurate method for locating every maximum or minimum. The stationary polynomial uses the calculated intensity law itself.",
         "check": "Candidate roots must lie on the unit circle within the stated tolerance. Failure to resolve stationary angles raises an error rather than returning a guessed plot maximum."
       },
@@ -839,7 +847,7 @@
         "start_line": 169,
         "end_line": 179,
         "title": "intensity_expression: build the displayed harmonic law",
-        "explanation": "Construct I0+Ic*cos(2var)+Is*sin(2var), adding I4c*cos(4var)+I4s*sin(4var) when those coefficients exist. Missing fourth harmonics default to zero. The variable can be alpha or the displayed theta symbol.",
+        "explanation": "Construct I0+Ic*cos(2var)+Is*sin(2var), adding I4c*cos(4var)+I4s*sin(4var) when those coefficients exist. Missing fourth harmonics default to zero. The variable can be α or the displayed θ symbol.",
         "why": "Mathematical reports and exports must show every harmonic actually calculated, using the scan label associated with the optical configuration.",
         "check": "Substituting numerical summary values and angles must reproduce the corresponding intensity array to numerical precision."
       },
@@ -847,17 +855,17 @@
         "start_line": 180,
         "end_line": 196,
         "title": "summary_from_pairs: expand first-harmonic amplitudes",
-        "explanation": "For each C,D row, form |C|^2, |D|^2 and Re(C*D.conjugate()). Sum partner contributions and set I0=(|C|^2+|D|^2)/2, Ic=(|C|^2-|D|^2)/2 and Is=Re(CD*). Compute Delta=hypot(Ic,Is), then reject overflow or non-finite coefficients.",
-        "why": "The cross term follows from the complex squared modulus. Adding |C*cos(alpha)|^2 and |D*sin(alpha)|^2 alone would omit interference within the detected amplitude.",
+        "explanation": "For each C,D row, form |C|^2, |D|^2 and Re(C*D.conjugate()). Sum partner contributions and set I0=(|C|^2+|D|^2)/2, Ic=(|C|^2-|D|^2)/2 and Is=Re(CD*). Compute δ=hypot(Ic,Is), then reject overflow or non-finite coefficients.",
+        "why": "The cross term follows from the complex squared modulus. Adding |C*cos(α)|^2 and |D*sin(α)|^2 alone would omit interference within the detected amplitude.",
         "check": "A controlled relative phase can change Is while preserving |C| and |D|. This must change the polar pattern in the way predicted by the complex contraction."
       },
       {
         "start_line": 197,
         "end_line": 215,
         "title": "summary_from_pairs: analytic extrema and constant channels",
-        "explanation": "Use Imin=I0-Delta and Imax=I0+Delta, with a roundoff-aware nonnegativity test. A negligible Delta marks a constant channel. Otherwise obtain alpha_max=atan2(Is,Ic)/2 modulo 180 degrees and alpha_min=alpha_max+90 degrees modulo 180.",
+        "explanation": "Use Imin=I0-δ and Imax=I0+δ, with a roundoff-aware nonnegativity test. A negligible δ marks a constant channel. Otherwise obtain alpha_max=atan2(Is,Ic)/2 modulo 180 degrees and alpha_min=alpha_max+90 degrees modulo 180.",
         "why": "These are continuous-angle extrema of the exact two-harmonic intensity form, not maxima of a sampled data array.",
-        "check": "For I=1+sin(2alpha), the maximum is at 45 degrees. A constant intensity must not be assigned a fabricated unique peak angle."
+        "check": "For I=1+sin(2α), the maximum is at 45 degrees. A constant intensity must not be assigned a fabricated unique peak angle."
       },
       {
         "start_line": 216,
@@ -905,15 +913,15 @@
         "start_line": 1,
         "end_line": 26,
         "title": "Define the effective source tensor and workflow identifiers",
-        "explanation": "Declare separate real a,A,delta,phi symbols. Build R=[[a,A*exp(i*delta)],[-A*exp(i*delta),a*exp(i*phi)]], name the source mode and map internal workflow/model identifiers to readable labels. The off-diagonal signs are those of this imported effective model.",
+        "explanation": "Declare separate real a,A,δ,φ symbols. Build R=[[a,A*exp(i*δ)],[-A*exp(i*δ),a*exp(i*φ)]], name the source mode and map internal workflow/model identifiers to readable labels. The off-diagonal signs are those of this imported effective model.",
         "why": "Reusing the general complex a symbol would change the source algebra assumptions. The source antisymmetric off-diagonal pair also must not be silently imposed on a nonmagnetic symmetric D2h material tensor.",
-        "check": "At phi=0 the diagonal entries coincide. At A=0 the model becomes diagonal. This source model has no crystal-surface parameter."
+        "check": "At φ=0 the diagonal entries coincide. At A=0 the model becomes diagonal. This source model has no crystal-surface parameter."
       },
       {
         "start_line": 27,
         "end_line": 37,
         "title": "qwp_source_algebra: cache the fixed symbolic calculation",
-        "explanation": "lru_cache(maxsize=1) stores this parameter-independent symbolic result after its first evaluation. Build the QWP optical chain, call the same transverse amplitude engine and calculate R++=<sigma+|R|sigma+> and R-+=<sigma-|R|sigma+>.",
+        "explanation": "lru_cache(maxsize=1) stores this parameter-independent symbolic result after its first evaluation. Build the QWP optical chain, call the same transverse amplitude engine and calculate R++=<σ⁺|R|σ⁺> and R-+=<σ⁻|R|σ⁺>.",
         "why": "The symbolic source structure is fixed; repeatedly rebuilding it for every numerical slider value would waste time. Numerical coefficient values are substituted after retrieving this symbolic record.",
         "check": "The source record amplitude comes from the actual matrix chain. Cached expressions remain symbolic in the four real source parameters."
       },
@@ -921,9 +929,9 @@
         "start_line": 38,
         "end_line": 53,
         "title": "Reconstruct the source analyzer reference and relative phase",
-        "explanation": "Pass both circular basis states through the return QWP. Remove a global phase from the dominant sigma+ output component to construct a real reference axis, rotate that axis by +90 degrees, project the sigma- output onto the perpendicular axis and build the scanned analyzer. Check it against the optical_chain analyzer.",
-        "why": "The angle zero and phase ratio determine the interference sign. An analyzer measured from laboratory X is not automatically the same convention as an analyzer measured from the returned sigma+ axis.",
-        "check": "The source reference is +Y, its perpendicular direction is -X and the reconstructed analyzer equals (-sin(alpha),cos(alpha))."
+        "explanation": "Pass both circular basis states through the return QWP. Remove a global phase from the dominant σ⁺ output component to construct a real reference axis, rotate that axis by +90 degrees, project the σ⁻ output onto the perpendicular axis and build the scanned analyzer. Check it against the optical_chain analyzer.",
+        "why": "The angle zero and phase ratio determine the interference sign. An analyzer measured from laboratory X is not automatically the same convention as an analyzer measured from the returned σ⁺ axis.",
+        "check": "The source reference is +Y, its perpendicular direction is -X and the reconstructed analyzer equals (-sin(α),cos(α))."
       },
       {
         "start_line": 54,
@@ -937,9 +945,9 @@
         "start_line": 58,
         "end_line": 73,
         "title": "Build an independent closed-form source reference",
-        "explanation": "Construct reference_pp=a^2*cos(phi/2)^2+A^2+2aA*cos(phi/2)*sin(phi/2-delta), reference_mp=a^2*sin(phi/2)^2 and the corresponding cross coefficient. Form the source intensity as reference_pp*cos(alpha)^2+reference_mp*sin(alpha)^2+2*reference_cross*sin(alpha)*cos(alpha).",
+        "explanation": "Construct reference_pp=a^2*cos(φ/2)^2+A^2+2aA*cos(φ/2)*sin(φ/2-δ), reference_mp=a^2*sin(φ/2)^2 and the corresponding cross coefficient. Form the source intensity as reference_pp*cos(α)^2+reference_mp*sin(α)^2+2*reference_cross*sin(α)*cos(α).",
         "why": "A separately stated analytic law provides a useful regression target. It is retained for checks and reporting while the production amplitude still comes from matrix multiplication.",
-        "check": "With phi=0, R-+ vanishes. With A=0 the result reduces to a^2*cos(alpha-phi/2)^2 in the adopted convention."
+        "check": "With φ=0, R-+ vanishes. With A=0 the result reduces to a^2*cos(α-φ/2)^2 in the adopted convention."
       },
       {
         "start_line": 74,
@@ -955,7 +963,7 @@
         "title": "qwp_source_values: validate and substitute source parameters",
         "explanation": "Require a,A,delta_deg,phi_deg, validate each as a finite real number and convert the input decimals to rationals. Map the two amplitudes to their source symbols and convert phase degrees to radians.",
         "why": "The imported source makes the amplitudes real and locates complex character in explicit phases. Its substitution dictionary must use those same symbols and units.",
-        "check": "An incomplete parameter dictionary raises an error. A 90-degree delta substitutes pi/2, not the number 90 inside exp(i*delta)."
+        "check": "An incomplete parameter dictionary raises an error. A 90-degree δ substitutes π/2, not the number 90 inside exp(i*δ)."
       },
       {
         "start_line": 103,
@@ -988,7 +996,7 @@
         "start_line": 1,
         "end_line": 30,
         "title": "Identify the scan symbol and reference roles",
-        "explanation": "Declare theta as a real display symbol. PAPER_SOURCES records the two reference titles, DOIs, relevant equation ranges and documented scope, then merges them into SOURCES. The calculation still uses the explicit state and tensor definitions; citation metadata does not choose the optical method.",
+        "explanation": "Declare θ as a real display symbol. PAPER_SOURCES records the two reference titles, DOIs, relevant equation ranges and documented scope, then merges them into SOURCES. The calculation still uses the explicit state and tensor definitions; citation metadata does not choose the optical method.",
         "why": "A linear-polarization intensity formalism and an angular-momentum selection rule answer different questions. The program must not promote a necessary circular rule into a universal quantitative scattering law.",
         "check": "The circular source role points to DOI 10.1039/D1CP02209A, while complex-linear scans point to DOI 10.1039/D1CP03626B."
       },
@@ -1020,7 +1028,7 @@
         "start_line": 65,
         "end_line": 74,
         "title": "Extend the library with monoclinic 1T-prime MoTe2",
-        "explanation": "Add C2h Ag and Bg in the unique-y convention, using an illustrative monoclinic beta angle of 100 degrees. The note distinguishes the chosen inputs from measured fit parameters in the cited figure.",
+        "explanation": "Add C2h Ag and Bg in the unique-y convention, using an illustrative monoclinic β angle of 100 degrees. The note distinguishes the chosen inputs from measured fit parameters in the cited figure.",
         "why": "Nonorthogonal crystallographic axes require the lattice metric, while the tensor remains expressed in an orthonormal Cartesian frame.",
         "check": "The monoclinic Ag template contains an allowed xz entry; it is not forced into an orthorhombic diagonal tensor."
       },
@@ -1092,7 +1100,7 @@
         "start_line": 188,
         "end_line": 193,
         "title": "circular_basis_matrix: change the optical basis",
-        "explanation": "Build U with sigma+ and sigma- as columns and return U.H*R_perp*U. Rows correspond to the outgoing circular basis and columns to the incident circular basis.",
+        "explanation": "Build U with σ⁺ and σ⁻ as columns and return U.H*R_perp*U. Rows correspond to the outgoing circular basis and columns to the incident circular basis.",
         "why": "Changing basis is a representation change of the same tensor contraction, not a new material response or a different intensity prescription.",
         "check": "The circular-basis amplitude for transformed states must equal the original Cartesian-basis amplitude. The Hermitian transpose is required because U is complex unitary."
       },

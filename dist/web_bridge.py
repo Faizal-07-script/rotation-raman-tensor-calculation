@@ -1,4 +1,4 @@
-"""Browser adapter for the unchanged scientific functions in notebook version 3.
+"""Browser adapter for the unchanged scientific functions in notebook version 4.
 
 The notebook supplies all tensors, rotations, Jones states, amplitudes,
 mathematical traces, validation and scientific figures. This adapter validates
@@ -201,13 +201,13 @@ def web_result(run, derivation, figures):
 def web_calculate(input_json):
     data=json.loads(input_json)
     cfg=web_configuration(data)
-    web_progress('Rotating the full tensor and evaluating the selected Jones states…')
+    web_progress('Calculating the rotated tensor and intensity…')
     run=calculate_general(cfg)
-    web_progress('Checking the actual states, tensor rotation and independently propagated intensities…')
+    web_progress('Checking the result…')
     run["checking_procedures"]=checking_procedures_for_run(run)
-    web_progress('Expanding the calculated mathematical derivation…')
+    web_progress('Preparing the equations…')
     derivation=detailed_calculation(run)
-    web_progress('Rendering separate scientific figures…')
+    web_progress('Drawing the figures…')
     figures=publication_figures(run)
     if cfg.get('show_geometry'):
         frame=publication_orientation(run)

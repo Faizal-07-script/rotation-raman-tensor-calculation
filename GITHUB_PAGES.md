@@ -1,6 +1,6 @@
 # GitHub Pages
 
-The website and Python program use Version 3. The static website in `dist/`
+The website and Python program use Version 4. The static website in `dist/`
 runs its scientific Python engine in the browser. A separate Python server
 or ChatGPT login is not required by this application.
 
@@ -14,7 +14,7 @@ its self-hosted scientific dependencies. This supports a project site under
 a repository path as well as a site at the domain root. Navigation uses URL
 fragments, so tutorial and calculator links do not require server rewrites.
 
-To update a notebook calculation, modify `sources/notebook_v3.ipynb`, keep
+To update a notebook calculation, modify `sources/notebook_v4.ipynb`, keep
 the tutorial annotations in `sources/tutorial_*.json` aligned, install the
 notebook requirements, and run:
 

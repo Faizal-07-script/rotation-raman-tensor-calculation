@@ -1,20 +1,20 @@
 ROTATION RAMAN TENSOR CALCULATION — PYTHON DOWNLOADS
 
-Current version: 3. Run all 22 cells of the .ipynb in Jupyter or Colab.
+Current version: 4. Run all 22 cells of the .ipynb in Jupyter or Colab.
 The matching .py file contains the complete notebook source for an IPython kernel.
 raman_engine.py contains the same scientific functions without notebook-only
 display imports; web_bridge.py supplies validated JSON/browser interfaces.
 
-Version 3 adds optional interactive website guides and updates release identity.
-The guide is separate from the scientific Python engine.
-The scientific tensor, rotation and Jones intensity functions are preserved.
+Version 4 uses Greek symbols in the controls, guides and exports, and shorter
+instructions. The scientific calculations are unchanged. Optional website guides
+remain available from the User guide button.
 
 Newcomers: read QUICKSTART.md and use Restart kernel and Run All.
 Every code cell prints its number and "This cell runs correctly."
 Cell 22 already loads, calculates and validates the included (211) example.
 No external input or manual code edit is needed for that initial run.
 Tools are numbered 1-7 for the main workflow, with optional validation (8),
-comparisons (9), and the silicon benchmark (10). example_input_v3.json records
+comparisons (9), and the silicon benchmark (10). example_input_v4.json records
 the complete demonstration inputs. The guide gives expected numerical output.
 SAITO_FEEDBACK_AUDIT.md distinguishes implemented changes from the still-pending
 independent colleague review and documentation consultation with Kumar-san.
@@ -27,7 +27,7 @@ the same reports. Main Ag components and all existing intensity laws are unchang
 The uploaded original reference notebook is included as a separate, unmodified reference.
 
 The references folder contains the unmodified optical implementation sources.
-The live website tutorial displays the exact current Version 3 code.
+The live website tutorial displays the exact current Version 4 code.
 
 The site self-hosts its Python WebAssembly runtime and mathematical typesetting.
 Its first calculator start downloads the runtime into your browser. A web worker
