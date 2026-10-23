@@ -1,13 +1,14 @@
 [
   {
     "cell": 17,
-    "overview": "Create the notebook controls and result containers. This cell declares visible choices and state holders; it does not rotate a tensor or calculate a Raman intensity. The optical-profile guide explains physical differences without changing the intensity engine.",
+    "overview": "Create the notebook controls and result containers. This cell declares visible choices and state holders; it does not rotate a tensor or calculate a Raman intensity. The optical-profile guide explains physical differences without changing the intensity engine. Tool numbers follow the first-run sequence: 1 model/optics/example, 2 material, 3 orientation, 4 Jones states, 5 display, 6 calculate, 7 export; 8 validation, 9 comparisons and 10 benchmark are optional.",
     "workflow": [
       "Import ipywidgets and define reusable control constructors.",
       "Create independent tensor-model, optical-method and explicit-example selectors.",
       "Declare crystal, orientation, Jones-state, display and conditional-rule inputs.",
       "Create calculation/export/validation controls and the twelve output tabs.",
-      "Initialize computed-result state separately from the UI bookkeeping state."
+      "Initialize computed-result state separately from the UI bookkeeping state.",
+      "Run unchanged. This cell creates numbered widgets; it does not display the complete application or request keyboard input. The first-run inputs and tool-number table are at the top of this notebook. The controls are displayed in Cell 22."
     ],
     "blocks": [
       {
@@ -112,7 +113,7 @@
         "title": "Declare display and sampling options",
         "explanation": "normalize uses one common maximum for every displayed contribution of one mode, including paired VV/VH channels. Cartesian plots, the 3D frame and the full steps are display choices. points includes both 0 and 360 degrees for the selected angular spacing.",
         "why": "Common normalization preserves relative component strength. Sampling determines the exported grid, while analytic harmonics determine continuous extrema.",
-        "check": "721 samples means 0.5-degree spacing over the inclusive 0\u2013360-degree interval."
+        "check": "721 samples means 0.5-degree spacing over the inclusive 0–360-degree interval."
       },
       {
         "start_line": 186,
@@ -153,6 +154,14 @@
         "explanation": "state starts with no run and contains the figures, derivation, archive, validation, error, comparison snapshots and benchmark objects. ui stores transaction status, coefficient widgets, definitions and the one-time wiring flag.",
         "why": "Calculated results should not be reconstructed by reading a partly edited form. Keeping UI flags separate from result data makes that boundary visible.",
         "check": "state[\"run\"] becomes the source for plots and exports only after Calculate succeeds."
+      },
+      {
+        "start_line": 319,
+        "end_line": 319,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–17 in order and confirm the Cell 17/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -169,7 +178,8 @@
       "Build coefficient fields from the actual selected tensor definitions.",
       "Handle material, symmetry, surface and optical-state changes without mixing their responsibilities.",
       "Load an explicitly selected example into visible controls.",
-      "Clear stale calculated outputs so the next Calculate action uses the revised form."
+      "Clear stale calculated outputs so the next Calculate action uses the revised form.",
+      "Run unchanged. These handlers keep material, surface, complex coefficients and optical-state widgets consistent. Enter your data through the numbered controls in Cell 22, using integer indices, degree angles and the documented JSON/complex-number formats."
     ],
     "blocks": [
       {
@@ -355,6 +365,14 @@
         "explanation": "The selected example name chooses the slide-frame, 3D QWP, original 2D source, complex-linear, circular-channel or silicon reference configuration. load_configuration() fills the form and a status message asks for calculation.",
         "why": "Examples deliberately change a complete configuration, whereas a material-only edit preserves the current optical experiment.",
         "check": "The final else branch corresponds to the fixed silicon (530) VV example because those are the declared dropdown options."
+      },
+      {
+        "start_line": 390,
+        "end_line": 390,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–18 in order and confirm the Cell 18/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -372,7 +390,8 @@
       "Store those objects once and render every result tab from that snapshot.",
       "Export the stored snapshot or freeze it for comparison.",
       "Run scientific regressions and the separate silicon benchmark on explicit actions.",
-      "Calculate a current-run checking report and render its purpose/procedure/evidence; Run validation also executes the 25 source-reference procedures."
+      "Calculate a current-run checking report and render its purpose/procedure/evidence; Run validation also executes the 25 source-reference procedures.",
+      "Run unchanged. This cell defines the callbacks. In Cell 22, press tool 6 after editing or loading an example; tool 7 exports only a successful result; tool 8 runs validation; tool 9 saves calculated comparisons. There is no input() prompt in this cell."
     ],
     "blocks": [
       {
@@ -510,6 +529,14 @@
         "explanation": "When a study exists, make_cubic_origin_archive() packages the stored study and validation. The bytes are retained and linked in Downloads.",
         "why": "A native plotting handoff should contain calculated data and their provenance, not replace the scientific calculation with a plotting template.",
         "check": "The exported Origin script still requires an OriginLab installation to execute natively."
+      },
+      {
+        "start_line": 355,
+        "end_line": 355,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–19 in order and confirm the Cell 19/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -526,7 +553,8 @@
       "Check tensor-subspace covariance, dimensions and selected irrep characters.",
       "Compare optical and crystal calculations against independent matrix chains and analytic limits.",
       "Exercise input rejection, zero signals, overflow and caller immutability.",
-      "Provide a single function that invokes the complete core/model regression set."
+      "Provide a single function that invokes the complete core/model regression set.",
+      "Run unchanged. This defines the core test functions; the completion message confirms their definitions loaded. To execute the actual checks, finish Cell 22 or press tool 8. Inspect Validation for PASS/failure evidence."
     ],
     "blocks": [
       {
@@ -558,7 +586,7 @@
         "end_line": 340,
         "title": "Prevent reference policies from leaking into the source or crystal routes",
         "explanation": "Verify that the original source has no crystal geometry or exported hkl, and that its amplitude and return phase match its circular derivation. Exercise source special cases. Compare the preserved historical component prescription and the coherent complete tensor against independent contractions, then change a relative phase to show their different interference rules. Invalid hybrid configurations must raise. Finally temporarily replace foreign crystal/reference helpers with functions that fail, run the pure source route and restore the globals in finally.",
-        "why": "A calculation cannot be called a source reproduction if it silently imports another method\u2019s tensor split or optical chain. The forbidden-call tests prove separation of execution paths rather than merely comparing final numbers.",
+        "why": "A calculation cannot be called a source reproduction if it silently imports another method’s tensor split or optical chain. The forbidden-call tests prove separation of execution paths rather than merely comparing final numbers.",
         "check": "The preserved historical component-power sum is a regression target; the new main Ag figures remain separate xx/yy/zz contributions."
       },
       {
@@ -581,7 +609,7 @@
         "start_line": 472,
         "end_line": 526,
         "title": "Test phonon-basis invariance and optical limiting cases",
-        "explanation": "Randomly orthogonally mix the Eg, E2g and T2g partner tensors and verify that their unresolved summed powers remain unchanged. Compare silicon\u2019s direct-linear constant response with its different QWP sin-squared response. Verify basal-plane E1g extinction.",
+        "explanation": "Randomly orthogonally mix the Eg, E2g and T2g partner tensors and verify that their unresolved summed powers remain unchanged. Compare silicon’s direct-linear constant response with its different QWP sin-squared response. Verify basal-plane E1g extinction.",
         "why": "Orthogonal unresolved phonon partners require a power sum that is invariant under a change of partner basis. Different optical chains should retain their genuinely different limits.",
         "check": "Partner mixing is not the same operation as separating xx, yy and zz entries of one Ag phonon."
       },
@@ -600,6 +628,14 @@
         "explanation": "The return list calls each named validation function and gathers its human-readable result. It also invokes the additional linear, circular, resonance and interference checks defined in Cell 21.",
         "why": "A single entry point lets startup, a notebook button or another interface execute the same scientific regressions. Function lookup occurs at call time, so Cell 21 must have run before this is invoked.",
         "check": "Any raised assertion stops the suite. Reaching the returned list means each listed check completed successfully."
+      },
+      {
+        "start_line": 589,
+        "end_line": 589,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–20 in order and confirm the Cell 20/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -620,7 +656,8 @@
       "Describe K01-K25 before execution; a procedure catalog does not imply that any test passed.",
       "Evaluate symbolic differences and independent numeric matrix paths, special limits, four circular channels and deliberate mistakes.",
       "Apply the same checking pattern to the actual current tensor and optical states. Mark source-only identities not applicable for a different crystal tensor.",
-      "Return purpose, procedure, expected equation, status and measured evidence to both notebook and web views."
+      "Return purpose, procedure, expected equation, status and measured evidence to both notebook and web views.",
+      "Run unchanged. This defines general-model and source-reference procedures; it does not require experimental inputs. Cell 22/tool 8 runs these checks and records their scope. Passing these checks is separate from an independent colleague review."
     ],
     "blocks": [
       {
@@ -661,7 +698,7 @@
         "title": "Check a finite third-order response term",
         "explanation": "Compare resonance_element() with an independently written product of complex denominators over a laser-energy grid. Unwrap the phase to check its continuous branch, then multiply the numerator weight by i and verify the response acquires exactly that phase.",
         "why": "Discarding an imaginary numerator or using a one-quadrant phase would invalidate a complex Raman coefficient model.",
-        "check": "This tests an explicitly supplied finite sum. It does not derive a material\u2019s electronic bands or coefficients from its name."
+        "check": "This tests an explicitly supplied finite sum. It does not derive a material’s electronic bands or coefficients from its name."
       },
       {
         "start_line": 225,
@@ -675,7 +712,7 @@
         "start_line": 320,
         "end_line": 410,
         "title": "Validate all silicon surfaces with independent reductions",
-        "explanation": "For every protocol and each requested (5k0) surface, verify the frame and complete T2g triplet. Compare the calculated intensity divided by |d|\u00b2 with independent closed forms. A separate 3D einsum includes phonon-basis projection, then analytic maxima and sigma-pattern tilt are checked. The (110) longitudinal extinction must not be mistaken for extinction of total silicon intensity. Scaling d and changing a global phase are tested, and the Origin plotting script is syntax-compiled.",
+        "explanation": "For every protocol and each requested (5k0) surface, verify the frame and complete T2g triplet. Compare the calculated intensity divided by |d|² with independent closed forms. A separate 3D einsum includes phonon-basis projection, then analytic maxima and sigma-pattern tilt are checked. The (110) longitudinal extinction must not be mistaken for extinction of total silicon intensity. Scaling d and changing a global phase are tested, and the Origin plotting script is syntax-compiled.",
         "why": "The reference benchmark must retain complete phonon physics and a common normalization. A single phonon-polarization extinction cannot replace an unresolved silicon triplet.",
         "check": "Compiling the Origin script verifies Python syntax; it does not execute OriginLab natively."
       },
@@ -822,6 +859,14 @@
         "explanation": "Format each purpose, procedure, expected mathematical identity, status and evidence in Markdown for notebook display and result archives.",
         "why": "Human-readable reports and JSON records must describe the same checks.",
         "check": "Confirm report counts and residuals agree with the web report and exported JSON."
+      },
+      {
+        "start_line": 1029,
+        "end_line": 1029,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–21 in order and confirm the Cell 21/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -839,7 +884,8 @@
       "Build the application layout with the model, optical and example selectors at the top.",
       "Register observers and button actions exactly once.",
       "Display source links and the explicit default configuration.",
-      "Calculate the initial result and run the independent checks."
+      "Calculate the initial result and run the independent checks.",
+      "Run after Cells 1–21. On initial startup this displays the numbered interface, loads the supplied (211) demonstration, calculates three separate Ag component channels and runs validation. No external data file or manual input is required. Use the first-run input table above before replacing the example with your own data. Recalculate with tool 6 after later changes; use tool 7 to download. The expected demonstration has 721 samples per channel and maxima 0.05555555555555555, 0.13333333333333333 and 0.075. Optional tool 8 checks, 9 compares and 10 benchmarks silicon."
     ],
     "blocks": [
       {
@@ -892,7 +938,7 @@
       },
       {
         "start_line": 79,
-        "end_line": 158,
+        "end_line": 159,
         "title": "Wire once, display the app and initialize a verified example",
         "explanation": "The wired guard displays an existing view without registering callbacks twice. Ordinary input edits invalidate results; special selectors call their specific handlers. hkl and direct-state fields get dedicated observers. Buttons map to calculation, export, comparison and benchmark actions, while benchmark-control edits invalidate its separate state. After wiring, the function shows source links, loads the slide-frame example, calculates it and runs validation.",
         "why": "Duplicate observers can trigger repeated work and recursive updates when a cell is rerun. Wiring once and loading through the same public callbacks keeps startup behavior consistent with later user actions.",
@@ -924,19 +970,27 @@
       },
       {
         "start_line": 142,
-        "end_line": 158,
+        "end_line": 159,
         "title": "Startup phase 4: explain provenance and calculate the initial case",
         "explanation": "Source URLs and a note on material-dependent inputs are rendered. load_configuration(slide_component_config()) fills the default form, on_run() calculates its result, and on_validate() runs the independent checks.",
         "why": "A populated starting example lets the user inspect a complete calculation immediately, while provenance and model inputs remain visible.",
         "check": "Validation can take longer than drawing a curve because it executes independent regressions over many geometries and groups."
       },
       {
-        "start_line": 159,
-        "end_line": 161,
+        "start_line": 160,
+        "end_line": 162,
         "title": "Open the notebook application",
         "explanation": "The final start_application() call executes the initialization described above.",
         "why": "Earlier cells only define functions, models and controls; this call makes the assembled notebook usable.",
         "check": "Run all preceding code cells in order before running the final cell."
+      },
+      {
+        "start_line": 164,
+        "end_line": 164,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–22 in order and confirm the Cell 22/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [

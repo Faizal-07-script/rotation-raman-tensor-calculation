@@ -33,6 +33,16 @@ def run(config):
         assert min(channel["points"]) >= -1e-13
     return result
 
+sample = json.loads((ROOT / "dist/downloads/example_input_v3.json").read_text())
+sample_result = run(sample)
+expected_sample = json.loads((ROOT / "dist/data/reference-example.json").read_text())
+assert sample_result["equation_count"] == 271
+assert len(sample_result["angles"]) == 721
+for actual, expected in zip(sample_result["channels"], expected_sample["channels"]):
+    assert actual["name"] == expected["name"]
+    assert ns["np"].allclose(actual["points"], expected["points"], rtol=1e-12, atol=1e-13)
+checks.append("Published example input JSON runs unchanged and reproduces the documented reference output.")
+
 for name, example in catalog["examples"].items():
     result = run(example["config"])
     checks.append(f"Example {name}: {len(result['channels'])} channels; JSON result, figures and calculated equations.")

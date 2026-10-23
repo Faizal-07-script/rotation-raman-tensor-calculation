@@ -2,6 +2,7 @@
   "status": "passed",
   "version": "3",
   "checks": [
+    "Published example input JSON runs unchanged and reproduces the documented reference output.",
     "Example SLIDE: 3 channels; JSON result, figures and calculated equations.",
     "Example QWP_3D: 6 channels; JSON result, figures and calculated equations.",
     "Example QWP_2D: 1 channels; JSON result, figures and calculated equations.",
@@ -23,6 +24,6 @@
     "Full result ZIP: 38 valid entries, including figures, data, mathematics and comparison inputs.",
     "Silicon benchmark: 18 calculated cases pass their independent identities and OriginLab export."
   ],
-  "elapsed_seconds": 30.03,
-  "engine_sha256": "46e69e7d763955840e498a7ad566e3e6bdd59d39def097d04d473404c2ef906e"
+  "elapsed_seconds": 29.04,
+  "engine_sha256": "99bfc17856870e09da9aec329c7ba19ba87b0e6d9fa43148ebb5b34590c55c42"
 }

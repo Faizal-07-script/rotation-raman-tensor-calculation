@@ -17,12 +17,16 @@ for cell in book.cells:
     if cell.cell_type!='code':continue
     with capture_output() as captured:result=shell.run_cell(cell.source,store_history=True)
     assert result.success,(cell.metadata['code_cell_number'],captured.stdout,captured.stderr)
+    expected_message=f"Cell {cell.metadata['code_cell_number']:02d}/22 — This cell runs correctly."
+    assert expected_message in captured.stdout,(expected_message,captured.stdout)
     cell.execution_count=shell.execution_count-1;cell.outputs=[]
     for name,value in [('stdout',captured.stdout),('stderr',captured.stderr)]:
         if value:cell.outputs.append(nbformat.v4.new_output('stream',name=name,text=value))
     for output in captured.outputs:cell.outputs.append(nbformat.v4.new_output('display_data',data=output.data,metadata=output.metadata))
 ns=shell.user_ns
 assert ns['state']['validation']['status']=='passed', ns['state']['validation']
+assert len(ns['state']['run']['display_channels'])==3
+assert len(ns['state']['run']['angles'])==721
 with capture_output():
     ns['optics_pick'].value='CIRCULAR_SAME';ns['circular_charges'].value='';ns['on_run']()
 assert ns['state']['last_error'] is not None
@@ -42,6 +46,8 @@ for name,figure in ns['state']['figures']:
         b=io.BytesIO();figure.savefig(b,format='png',dpi=110,bbox_inches='tight',transparent=False,facecolor='white')
         last.outputs.append(nbformat.v4.new_output('display_data',data={'image/png':base64.b64encode(b.getvalue()).decode()},metadata={}))
 record=dict(status='passed',version='3',checks=ns['state']['validation']['checks'],
+    cell_completion_messages=22,
+    example_input='Built-in slide_component_config(): no user edits or external input file required.',
     optical_reference=ns['state']['validation']['optical_reference'],
     inactive_circular_rule_fields='Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.',
     elapsed_seconds=round(time.time()-started,2))

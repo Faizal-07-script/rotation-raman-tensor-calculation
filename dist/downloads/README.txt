@@ -9,6 +9,16 @@ Version 3 adds optional interactive website guides and updates release identity.
 The guide is separate from the scientific Python engine.
 The scientific tensor, rotation and Jones intensity functions are preserved.
 
+Newcomers: read QUICKSTART.md and use Restart kernel and Run All.
+Every code cell prints its number and "This cell runs correctly."
+Cell 22 already loads, calculates and validates the included (211) example.
+No external input or manual code edit is needed for that initial run.
+Tools are numbered 1-7 for the main workflow, with optional validation (8),
+comparisons (9), and the silicon benchmark (10). example_input_v3.json records
+the complete demonstration inputs. The guide gives expected numerical output.
+SAITO_FEEDBACK_AUDIT.md distinguishes implemented changes from the still-pending
+independent colleague review and documentation consultation with Kumar-san.
+
 The checking-procedures extension records purpose, procedure, expected equation,
 status, symbolic residuals or numerical tolerances. Cell 21 implements the
 25 source-reference procedures from QWP source reference and their generalization

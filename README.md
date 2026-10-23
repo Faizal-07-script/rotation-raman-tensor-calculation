@@ -30,7 +30,22 @@ Install dist/downloads/requirements.txt in a Python environment before
 regenerating assets with python prepare_content.py. If dependencies are
 installed in a separate directory, set RAMAN_PYTHON_DEPENDENCY_PATH to it.
 Rebuilding preserves the original function source; only rich notebook display
-imports are omitted in the browser engine.
+imports and notebook-only cell completion messages are omitted in the browser engine.
+
+## First run and numbered tools
+
+Start with [QUICKSTART.md](QUICKSTART.md), then restart the notebook kernel and
+run all 22 cells unchanged. Each cell prints its number and “This cell runs
+correctly.” Cell 22 displays the controls, loads the included (211) example,
+calculates it and runs the actual model checks. The guide lists input formats,
+units, expected values and what each of the last cells needs.
+
+Tools 1–5 set the model, tensors, orientation, Jones states and display;
+6 calculates and 7 exports. Tools 8–10 are optional validation, comparison
+and silicon benchmark actions. The same group numbers appear in the web calculator.
+The complete example input is in sources/example_input_v3.json and the program ZIP.
+See [SAITO_FEEDBACK_AUDIT.md](SAITO_FEEDBACK_AUDIT.md) for the five recommendations,
+their baseline status and the remaining independent review/consultation items.
 
 ## Optional interactive user guide
 

@@ -1,0 +1,55 @@
+{
+  "status": "passed",
+  "version": "3",
+  "date": "2026-10-23",
+  "executed_cells": 22,
+  "visible_completion_messages": 22,
+  "scientific_cells_ast_unchanged": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    19,
+    20,
+    21
+  ],
+  "source_notebook_sha256": "347168cbc8d1b09f11d43c7716c654c13c13965cf1afefe450af72981f8fa465",
+  "sample_input_matches_calculated_configuration": true,
+  "example_channels": [
+    {
+      "name": "Ag(xx)",
+      "samples": 721,
+      "maximum": 0.05555555555555555
+    },
+    {
+      "name": "Ag(yy)",
+      "samples": 721,
+      "maximum": 0.1333333333333333
+    },
+    {
+      "name": "Ag(zz)",
+      "samples": 721,
+      "maximum": 0.07499999999999998
+    }
+  ],
+  "equations": 271,
+  "browser_checks": [
+    "Numbered input groups 1\u20135 and field/action subnumbers rendered.",
+    "Tool 6 completed a fresh Python-worker calculation: 3 channels, 271 equations; result download enabled.",
+    "Optional calculator user guide opens at 1.1 Choose the tensor model and lists matching numbered steps."
+  ],
+  "independent_colleague_review": "pending; no other person was contacted",
+  "kumar_documentation_consultation": "pending; no message was sent"
+}

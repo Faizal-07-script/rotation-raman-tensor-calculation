@@ -25,6 +25,8 @@
     "Optical-profile guide: general-complex-tensor VV/VH and interference identities, detector Stokes trajectories, matching custom states, fixed circular limits and a distinct same-tensor example pass.",
     "QWP source reference: 25/25 checking procedures pass."
   ],
+  "cell_completion_messages": 22,
+  "example_input": "Built-in slide_component_config(): no user edits or external input file required.",
   "optical_reference": {
     "status": "passed",
     "kind": "QWP source reference validation",
@@ -655,5 +657,5 @@
     "notation_note": "Cells 6-11 intermittently call <sigma-|R|sigma+> R+-; this report consistently writes R-+. The contracted vector, not the ambiguous label, defines the channel."
   },
   "inactive_circular_rule_fields": "Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.",
-  "elapsed_seconds": 23.22
+  "elapsed_seconds": 20.88
 }

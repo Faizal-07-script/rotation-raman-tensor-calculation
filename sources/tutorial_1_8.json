@@ -40,6 +40,14 @@
         "explanation": "get_ipython().run_line_magic requests the inline Matplotlib backend. NameError or NotImplementedError is ignored when this command is unavailable, allowing the scientific definitions to be imported in another supported context.",
         "why": "This changes how figures are displayed in a notebook, not the tensor contraction or calculated intensity.",
         "check": "A later figure should appear inside a supported notebook. A browser-hosted calculator supplies its own figure display instead of requiring this IPython display setting."
+      },
+      {
+        "start_line": 21,
+        "end_line": 21,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–1 in order and confirm the Cell 01/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -185,6 +193,14 @@
         "explanation": "Return requested and actual fonts, fallback status, resolved font path, stylesheet path, export resolution and the documentation URL. PLOT_STYLE_STATUS=apply_scientific_style() executes the function once during cell execution and makes this provenance available to later reports and exports.",
         "why": "A shared scientific figure must be auditable: its stated font, dimensions and export settings should describe the settings actually used.",
         "check": "Later result exports should carry plot_style_status.json with this information. None of these paths is a material or tensor input."
+      },
+      {
+        "start_line": 203,
+        "end_line": 203,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–2 in order and confirm the Cell 02/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -291,6 +307,14 @@
         "explanation": "Normalize t to X0, obtain Y0=Z cross X0 and validate psi. Form X=cos(psi)X0+sin(psi)Y0 and Y=-sin(psi)X0+cos(psi)Y0. Stack X,Y,Z as columns, validate the proper frame and return the intermediate vectors with T.",
         "why": "The cross product fixes handedness and psi sets the in-plane frame orientation. Saving L,g,t,X0,Y0 and T lets later mathematical reports show each construction step.",
         "check": "T.T*T is the identity and det(T)=+1. Positive psi rotates the measurement axes X toward Y; with fixed laboratory optics, an active sample rotation has the opposite sign."
+      },
+      {
+        "start_line": 139,
+        "end_line": 139,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–3 in order and confirm the Cell 03/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -509,6 +533,14 @@
         "explanation": "Add a reference on anisotropic internal propagation and its role in a modified Raman formalism. This is a scope citation; the present ideal external Jones calculation does not add a dielectric-propagation solver.",
         "why": "A correct tensor/Jones contraction is not automatically a complete model for birefringent propagation through a real thick sample.",
         "check": "Do not interpret this citation as evidence that Fresnel transmission, depth-dependent interference or finite numerical aperture has been numerically included."
+      },
+      {
+        "start_line": 376,
+        "end_line": 376,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–4 in order and confirm the Cell 04/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -696,6 +728,14 @@
         "explanation": "A general complex, nonsymmetric 2x2 tensor tests the three independent p/q identities, preset/custom-state equality, fixed circular channels and the illustrative counterexample. The same check proves the VV/VH amplitudes and all three detector Stokes trajectories.",
         "why": "An explanatory formula must be checked against the same optical_chain used by calculated material curves. A demonstration with a special tensor alone cannot prove the general identity.",
         "check": "Every symbolic residual must vanish; matching state vectors must agree; the chosen example must differ at 30 degrees."
+      },
+      {
+        "start_line": 370,
+        "end_line": 370,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–5 in order and confirm the Cell 05/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -834,6 +874,14 @@
         "explanation": "numeric_curve returns the total intensity from evaluate_terms for an explicitly supplied angular array. numeric_summary returns continuous harmonic extrema directly from the substituted amplitude coefficients.",
         "why": "Tests and small scripted examples can reuse exactly the production definitions without depending on GUI widgets or a plotted figure.",
         "check": "Changing only the display grid should change the sampling density, not the analytic maximum angle returned by numeric_summary."
+      },
+      {
+        "start_line": 248,
+        "end_line": 248,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–6 in order and confirm the Cell 06/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -908,6 +956,14 @@
         "explanation": "Require a,A,delta_deg,phi_deg, validate each as a finite real number and convert the input decimals to rationals. Map the two amplitudes to their source symbols and convert phase degrees to radians.",
         "why": "The imported source makes the amplitudes real and locates complex character in explicit phases. Its substitution dictionary must use those same symbols and units.",
         "check": "An incomplete parameter dictionary raises an error. A 90-degree delta substitutes pi/2, not the number 90 inside exp(i*delta)."
+      },
+      {
+        "start_line": 103,
+        "end_line": 103,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–7 in order and confirm the Cell 07/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [
@@ -1095,6 +1151,14 @@
         "explanation": "For each supplied contribution, read the two transition energies, two positive damping values and a finite complex numerator weight. Add weight/[(E_L-Ecv+i*Gamma_c)*(E_L-Ephonon-Ecprime_v+i*Gamma_cprime)] to the result and return the complex array.",
         "why": "Finite damping regularizes resonance denominators and complex weights allow phase-sensitive interference between supplied terms. These values represent external microscopic input rather than a prediction from the tensor library.",
         "check": "The returned object is a complex response element versus excitation energy, not its squared intensity. Relative phase among contributions can change both its magnitude and argument."
+      },
+      {
+        "start_line": 312,
+        "end_line": 312,
+        "title": "Confirm that this cell finished executing",
+        "explanation": "The final print statement reports the code-cell number, the phrase “This cell runs correctly.” and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
+        "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
+        "check": "Run Cells 1–8 in order and confirm the Cell 08/22 message. Model/source checks must be inspected separately in Validation."
       }
     ],
     "pitfalls": [

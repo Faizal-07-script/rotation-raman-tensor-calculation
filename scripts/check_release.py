@@ -14,6 +14,13 @@ notebook_bytes = (ROOT / "sources/notebook_v3.ipynb").read_bytes()
 book = json.loads(notebook_bytes)
 code = ["".join(c["source"]) for c in book["cells"] if c["cell_type"] == "code"]
 assert len(code) == 22
+for i, source in enumerate(code, 1):
+    message = f"Cell {i:02d}/22 — This cell runs correctly."
+    assert message in source
+    stdout = "".join(o.get("text", "") if isinstance(o.get("text", ""), str) else "".join(o["text"])
+                     for o in [c for c in book["cells"] if c["cell_type"] == "code"][i-1].get("outputs", [])
+                     if o.get("output_type") == "stream" and o.get("name") == "stdout")
+    assert message in stdout, (i, "Missing executed cell confirmation")
 digest = hashlib.sha256("\n\n".join(code).encode()).hexdigest()
 cells = json.loads((DIST / "data/cells.json").read_text())
 assert cells["version"] == VERSION
@@ -39,6 +46,18 @@ with zipfile.ZipFile(DOWNLOADS / "All_Python_Programs.zip") as archive:
     assert archive.read("ROTATION_RAMAN_TENSOR_CALCULATION.ipynb") == notebook_bytes
     for name in ["ROTATION_RAMAN_TENSOR_CALCULATION.py", "raman_engine.py", "web_bridge.py"]:
         assert archive.read(name) == (DOWNLOADS / name).read_bytes()
+    for name in ["QUICKSTART.md", "SAITO_FEEDBACK_AUDIT.md", "example_input_v3.json"]:
+        assert archive.read(name) == (DOWNLOADS / name).read_bytes()
+
+assert (DOWNLOADS / "example_input_v3.json").read_bytes() == (ROOT / "sources/example_input_v3.json").read_bytes()
+sample = json.loads((DOWNLOADS / "example_input_v3.json").read_text())
+reference = json.loads((DIST / "data/reference-example.json").read_text())
+assert sample == reference["configuration"]
+assert len(reference["angles"]) == 721
+assert reference["equation_count"] == 271
+assert [c["name"] for c in reference["channels"]] == ["Ag(xx)", "Ag(yy)", "Ag(zz)"]
+for c, expected in zip(reference["channels"], [1/18, 2/15, 0.075]):
+    assert abs(max(c["points"]) - expected) < 1e-10
 
 for name in ["index.html", "app.js", "styles.css", "engine-worker.js", "user-guide.js", "user-guide.css"]:
     text = (DIST / name).read_text()

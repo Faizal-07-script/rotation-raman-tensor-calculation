@@ -1,0 +1,98 @@
+{
+  "calculation_method": "GENERAL",
+  "paper_parameters": {
+    "s_in": 1,
+    "N": 2,
+    "ell_i": 0,
+    "m_ph": [
+      0
+    ],
+    "absorption_delta_m": null,
+    "thin_2d_assumptions": false,
+    "theta0_deg": "0",
+    "analyzer_zero_deg": "45"
+  },
+  "tensor_model": "CRYSTAL_3D",
+  "source_parameters": null,
+  "case_label": "Ag components on the (211) reference frame",
+  "input_note": "Unity metric reproduces the slide XY convention. Enter actual lattice ratios for a physical tilted CaNb2O6 surface.",
+  "material": "CaNb2O6",
+  "point_group": "D2h",
+  "modes": [
+    "Ag"
+  ],
+  "mode_values": {
+    "Ag": {
+      "a": {
+        "magnitude": 1.0,
+        "phase": 0.0
+      },
+      "b": {
+        "magnitude": 0.8,
+        "phase": 0.0
+      },
+      "c": {
+        "magnitude": 0.6,
+        "phase": 0.0
+      }
+    }
+  },
+  "custom_tensor": null,
+  "lattice": [
+    1.0,
+    1.0,
+    1.0,
+    90.0,
+    90.0,
+    90.0
+  ],
+  "orientation": "hkl",
+  "hkl": [
+    2,
+    1,
+    1
+  ],
+  "uvw": [
+    0,
+    1,
+    -1
+  ],
+  "azimuth_deg": "0",
+  "normal_sign": -1,
+  "allow_reflection": false,
+  "T_manual": [
+    [
+      1.0,
+      0.0,
+      0.0
+    ],
+    [
+      0.0,
+      1.0,
+      0.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "optics": "CUBIC_SIGMA",
+  "direct_jones": null,
+  "ag_rule": "COHERENT_SINGLE_TENSOR",
+  "normalize": false,
+  "show_steps": true,
+  "show_components": true,
+  "show_geometry": true,
+  "plot_points": 721,
+  "split_ag_plots": true,
+  "cartesian_plots": false,
+  "include_complete_audit": false,
+  "report_view": "GENERAL",
+  "effective_optical_parameters": {
+    "theta_i_deg": 45,
+    "beta_i_deg": 90,
+    "theta_s0_deg": 45,
+    "beta_s_deg": 90
+  }
+}

@@ -24,6 +24,8 @@ try:
 except (NameError, NotImplementedError):
     pass
 
+print("Cell 01/22 — This cell runs correctly. Imports are ready.")
+
 
 # Code cell 2: Numerical helpers and figure style
 """Shared symbols and small numerical helpers. No material model is selected here."""
@@ -228,6 +230,8 @@ def apply_scientific_style():
 
 PLOT_STYLE_STATUS = apply_scientific_style()
 
+print("Cell 02/22 — This cell runs correctly. Numerical helpers and figure style are defined.")
+
 
 # Code cell 3: Crystal orientation
 """Build a proper 3D frame using the direct and reciprocal lattice metrics."""
@@ -367,6 +371,8 @@ def build_orientation(config):
         normal_sign=normal_sign,
         notes=notes,
     )
+
+print("Cell 03/22 — This cell runs correctly. Crystal-orientation functions are defined.")
 
 
 # Code cell 4: Tensor and material library
@@ -745,6 +751,8 @@ SOURCES["birefringence"] = dict(
     role="Demonstrates that anisotropic internal propagation can require a modified Raman formalism.",
 )
 
+print("Cell 04/22 — This cell runs correctly. Tensor and material libraries are defined.")
+
 
 # Code cell 5: Jones states and optical protocols
 """Jones states and the optical sequence adopted from the Quarter-wave-plate notebook."""
@@ -1116,6 +1124,8 @@ def validate_optical_method_guide():
     check(set(optical_method_catalog()) == set(GENERAL_PROFILES), "The optical guide does not cover every menu choice.")
     return ["Optical-profile guide: general-complex-tensor VV/VH and interference identities, detector Stokes trajectories, matching custom states, fixed circular limits and a distinct same-tensor example pass."]
 
+print("Cell 05/22 — This cell runs correctly. Jones states and optical protocols are defined.")
+
 
 # Code cell 6: Amplitude and intensity engine
 """One matrix-based scattering engine for every material and point group."""
@@ -1365,6 +1375,8 @@ def numeric_summary(result, values):
     """Return exact harmonic extrema after numerical coefficient substitution."""
     return summary_for_amplitudes(numeric_terms(result, values))
 
+print("Cell 06/22 — This cell runs correctly. Amplitude and intensity functions are defined.")
+
 
 # Code cell 7: Optical reference model
 """The Quarter-wave-plate main-source model, with no REFERENCE channel or intensity rules."""
@@ -1468,6 +1480,8 @@ def qwp_source_values(parameters):
         ref_delta: deg(values["delta_deg"]),
         ref_phi: deg(values["phi_deg"]),
     }
+
+print("Cell 07/22 — This cell runs correctly. The effective 2D source reference is defined.")
 
 
 # Code cell 8: Circular and complex-linear models
@@ -1782,6 +1796,8 @@ def resonance_element(excitation_ev, phonon_ev, contributions):
         )
     return result
 
+print("Cell 08/22 — This cell runs correctly. Circular and complex-linear models are defined.")
+
 
 # Code cell 9: Polarization and interference checks
 """Independent polarization-state and within-mode interference diagnostics.
@@ -2008,6 +2024,8 @@ def physics_audit_markdown(run):
         "The entry split is an algebraic explanation, not a decomposition into independent phonons. Only the complete intensity is invariant under a change of Cartesian basis. Raw angle-resolved audit data are included in the result ZIP."
     )
     return "\n\n".join(lines)
+
+print("Cell 09/22 — This cell runs correctly. Polarization and interference checks are defined.")
 
 
 # Code cell 10: Common calculation pipeline
@@ -2720,6 +2738,8 @@ def protocol_state_comparison():
             )
     return rows
 
+print("Cell 10/22 — This cell runs correctly. The common calculation pipeline is defined.")
+
 
 # Code cell 11: Slide reference algebra
 """A separate derivation/check of the user-provided component reference, not a plotting engine."""
@@ -2901,6 +2921,8 @@ def component_ag_flow_markdown(run):
         "For complex inputs, a²,b²,c² in this reference mean the corresponding squared magnitudes. The user-prescribed component-intensity sum is retained."
     )
     return lines
+
+print("Cell 11/22 — This cell runs correctly. Independent slide-reference algebra is defined.")
 
 
 # Code cell 12: Complete mathematical derivation
@@ -3608,6 +3630,8 @@ def paper_intensity_latex(run, derivation):
         full=latex_document(derivation["entries"], "Complete mathematical derivation"),
     )
 
+print("Cell 12/22 — This cell runs correctly. Mathematical-derivation functions are defined.")
+
 
 # Code cell 13: Scientific figures
 """Create readable calculation records and figures from already-computed results."""
@@ -4187,6 +4211,8 @@ def publication_comparison(runs, channel_name, normalized=True):
     axis.legend(loc="upper center", bbox_to_anchor=(0.5, -0.14))
     return figure
 
+print("Cell 13/22 — This cell runs correctly. Scientific-figure functions are defined.")
+
 
 # Code cell 14: Six-surface silicon benchmark
 """Cubic benchmark, computed by the existing 3D Jones engine."""
@@ -4382,6 +4408,8 @@ def cubic_steps_markdown(run):
 
 
 cubic_fig1_figure = publication_cubic_figure
+
+print("Cell 14/22 — This cell runs correctly. The silicon benchmark functions are defined.")
 
 
 # Code cell 15: OriginLab handoff
@@ -4636,6 +4664,8 @@ def make_cubic_origin_archive(study, validation=None):
                 )
             plt.close(figure)
     return buffer.getvalue()
+
+print("Cell 15/22 — This cell runs correctly. OriginLab export functions are defined.")
 
 
 # Code cell 16: Data, LaTeX and figure export
@@ -4915,6 +4945,8 @@ def make_general_archive(run, figures, derivation, validation=None, comparisons=
         archive.writestr("comparison_components.csv", rows.getvalue())
     return buffer.getvalue()
 
+print("Cell 16/22 — This cell runs correctly. Data, LaTeX and figure exports are defined.")
+
 
 # Code cell 17: Application controls
 """English controls for a common engine with independent optical inputs."""
@@ -4936,7 +4968,7 @@ def dropdown(options, value, description):
 
 def number(value, label):
     return widgets.FloatText(
-        value=float(value), description=label, style=STYLE, layout=widgets.Layout(width="235px")
+        value=float(value), description=label, style=STYLE, layout=widgets.Layout(width="280px")
     )
 
 
@@ -4946,10 +4978,10 @@ model_pick = dropdown(
         ("Original effective 2D optical reference", "QWP_SOURCE_2D"),
     ],
     "CRYSTAL_3D",
-    "Tensor model",
+    "1.1 Tensor model",
 )
 optics_pick = dropdown(
-    [(label, key) for key, label in GENERAL_PROFILES.items()], "CUBIC_SIGMA", "Optical method"
+    [(label, key) for key, label in GENERAL_PROFILES.items()], "CUBIC_SIGMA", "1.2 Optical method"
 )
 example_pick = dropdown(
     [
@@ -4961,33 +4993,33 @@ example_pick = dropdown(
         ("Silicon (530), VV reference frame", "SI_530"),
     ],
     "SLIDE",
-    "Example",
+    "1.3 Example",
 )
 load_example_button = widgets.Button(
-    description="Load selected example", layout=widgets.Layout(width="260px")
+    description="1.4 Load selected example", layout=widgets.Layout(width="260px")
 )
 case_label = widgets.Text(
     value="Ag components on the (211) reference frame",
-    description="Case label",
+    description="1.5 Case label",
     style=STYLE,
     layout=widgets.Layout(width="800px", max_width="100%"),
 )
 input_note = widgets.Textarea(
     value="",
-    description="Input note",
+    description="1.6 Input note",
     style=STYLE,
     layout=widgets.Layout(width="800px", height="58px", max_width="100%"),
 )
-material_pick = dropdown([(v["label"], k) for k, v in MATERIALS.items()], "CaNb2O6", "Material")
+material_pick = dropdown([(v["label"], k) for k, v in MATERIALS.items()], "CaNb2O6", "2.1 Material")
 group_pick = dropdown(
     [(k + " / " + v["symbol"], k) for k, v in POINT_GROUPS.items()]
     + [("Custom Cartesian 3x3 tensor", "CUSTOM")],
     "D2h",
-    "Point group",
+    "2.2 Point group",
 )
 material_note = widgets.HTML()
 mode_pick = widgets.SelectMultiple(
-    description="Mode / branch", style=STYLE, layout=widgets.Layout(width="370px", height="110px")
+    description="2.3 Mode / branch", style=STYLE, layout=widgets.Layout(width="370px", height="110px")
 )
 coef_accordion = widgets.Accordion()
 ag_relation = dropdown(
@@ -4999,11 +5031,11 @@ ag_relation = dropdown(
         ("a=c (copy a)", "ac"),
     ],
     "free",
-    "D2h Ag relation",
+    "2.4 D2h Ag relation",
 )
 custom_tensor = widgets.Textarea(
     value='[["1","0","0"],["0","0.8","0"],["0","0","0.6"]]',
-    description="3x3 tensor JSON",
+    description="2.6 Custom 3x3 tensor JSON",
     style=STYLE,
     layout=widgets.Layout(width="800px", height="85px", max_width="100%"),
 )
@@ -5012,28 +5044,28 @@ coef_note = widgets.HTML(
 )
 ag_locked = widgets.HTML()
 surface_options = {**SURFACES, **{f"(5{k}0)": ((5, k, 0), (k, -5, 0)) for k in range(6)}}
-surface_pick = dropdown(list(surface_options) + ["Custom hkl"], "(211)", "Surface preset")
+surface_pick = dropdown(list(surface_options) + ["Custom hkl"], "(211)", "3.2 Surface preset")
 hkl_fields = [
-    widgets.IntText(value=v, description=k, layout=widgets.Layout(width="130px"))
+    widgets.IntText(value=v, description="3.3 " + k, layout=widgets.Layout(width="130px"))
     for k, v in zip("hkl", (2, 1, 1))
 ]
 uvw_fields = [
-    widgets.IntText(value=v, description=k, layout=widgets.Layout(width="130px"))
+    widgets.IntText(value=v, description="3.4 " + k, layout=widgets.Layout(width="130px"))
     for k, v in zip("uvw", (0, 1, -1))
 ]
-auto_x = widgets.Checkbox(value=False, description="Automatic in-plane X reference")
-normal_pick = dropdown([("+ reciprocal normal", 1), ("- reciprocal normal", -1)], -1, "Normal side")
-psi = number(0, "Frame angle psi (degree)")
+auto_x = widgets.Checkbox(value=False, description="3.5 Automatic in-plane X reference")
+normal_pick = dropdown([("+ reciprocal normal", 1), ("- reciprocal normal", -1)], -1, "3.6 Normal side")
+psi = number(0, "3.7 Frame angle psi (degree)")
 lattice_fields = [
     number(v, k)
     for k, v in zip(
         [
-            "a0",
-            "b0",
-            "c0",
-            "Lattice alpha (degree)",
-            "Lattice beta (degree)",
-            "Lattice gamma (degree)",
+            "3.8 a0",
+            "3.8 b0",
+            "3.8 c0",
+            "3.9 Lattice alpha (degree)",
+            "3.9 Lattice beta (degree)",
+            "3.9 Lattice gamma (degree)",
         ],
         [1, 1, 1, 90, 90, 90],
     )
@@ -5041,22 +5073,22 @@ lattice_fields = [
 direct_widgets = {
     k: number(v, label)
     for k, v, label in [
-        ("theta_i_deg", 45, "Input theta_i (degree)"),
-        ("beta_i_deg", 90, "Input beta (degree)"),
-        ("theta_s0_deg", 45, "Detector theta_s0 (degree)"),
-        ("beta_s_deg", 0, "Detector beta-prime (degree)"),
+        ("theta_i_deg", 45, "4.1 Input theta_i (degree)"),
+        ("beta_i_deg", 90, "4.2 Input beta (degree)"),
+        ("theta_s0_deg", 45, "4.3 Detector theta_s0 (degree)"),
+        ("beta_s_deg", 0, "4.4 Detector beta-prime (degree)"),
     ]
 }
 direct_box = widgets.VBox(list(direct_widgets.values()))
-theta_zero = number(0, "Linear scan zero (degree)")
-analyzer_zero = number(45, "Direct analyzer zero (degree)")
+theta_zero = number(0, "4.5 Linear scan zero (degree)")
+analyzer_zero = number(45, "4.6 Direct analyzer zero (degree)")
 source_widgets = {
     k: number(v, label)
     for k, v, label in [
-        ("a", 1, "Real source a"),
-        ("A", 0.4, "Real source A"),
-        ("delta_deg", 60, "Source delta (degree)"),
-        ("phi_deg", 60, "Source phi (degree)"),
+        ("a", 1, "2.1 Real source a"),
+        ("A", 0.4, "2.2 Real source A"),
+        ("delta_deg", 60, "2.3 Source delta (degree)"),
+        ("phi_deg", 60, "2.4 Source phi (degree)"),
     ]
 }
 source_box = widgets.VBox(
@@ -5067,20 +5099,20 @@ source_box = widgets.VBox(
     ]
 )
 circular_spin = dropdown(
-    [("s_in=+1: (1,+i)/sqrt(2)", 1), ("s_in=-1: (1,-i)/sqrt(2)", -1)], 1, "Circular basis label"
+    [("s_in=+1: (1,+i)/sqrt(2)", 1), ("s_in=-1: (1,-i)/sqrt(2)", -1)], 1, "4.7 Circular basis label"
 )
-circular_N = dropdown([(str(v), v) for v in [2, 3, 4, 6]], 2, "Cyclic order N")
-circular_ell = widgets.IntText(value=0, description="Incident OAM (rule only)", style=STYLE)
+circular_N = dropdown([(str(v), v) for v in [2, 3, 4, 6]], 2, "4.8 Cyclic order N")
+circular_ell = widgets.IntText(value=0, description="4.9 Incident OAM (rule only)", style=STYLE)
 circular_charges = widgets.Text(
     value="0",
-    description="Phonon charges (comma-separated)",
+    description="4.10 Phonon charges (comma-separated)",
     style=STYLE,
     layout=widgets.Layout(width="700px", max_width="100%"),
 )
-circular_dm = widgets.Text(value="", description="Absorption charge (optional)", style=STYLE)
+circular_dm = widgets.Text(value="", description="4.11 Absorption charge (optional)", style=STYLE)
 circular_scope = widgets.Checkbox(
     value=False,
-    description="Declare the thin-2D / electronic-state assumptions for the separate rule check",
+    description="4.12 Declare the thin-2D / electronic-state assumptions for the separate rule check",
 )
 circular_controls = widgets.VBox(
     [circular_spin, circular_N, circular_ell, circular_charges, circular_dm, circular_scope]
@@ -5089,43 +5121,43 @@ optical_preview = widgets.Output()
 optical_guide_out = widgets.Output()
 normalize = widgets.Checkbox(
     value=False,
-    description="Normalize with one common scale per mode, including its components and VV/VH pair",
+    description="5.2 Normalize with one common scale per mode, including its components and VV/VH pair",
 )
 cartesian_plots = widgets.Checkbox(
-    value=False, description="Also generate Cartesian intensity-versus-angle plots"
+    value=False, description="5.3 Also generate Cartesian intensity-versus-angle plots"
 )
-show_geometry = widgets.Checkbox(value=True, description="Show the 3D measurement frame")
-show_steps = widgets.Checkbox(value=True, description="Display all mathematical steps")
+show_geometry = widgets.Checkbox(value=True, description="5.4 Show the 3D measurement frame")
+show_steps = widgets.Checkbox(value=True, description="5.5 Display all mathematical steps")
 points = widgets.Dropdown(
     options=[("0.5 degree", 721), ("1 degree", 361), ("0.1 degree", 3601)],
     value=721,
-    description="Angular grid",
+    description="5.1 Angular grid",
     style=STYLE,
 )
 run_button = widgets.Button(
-    description="CALCULATE ROTATION + RAMAN",
+    description="6. CALCULATE ROTATION + RAMAN",
     button_style="success",
     icon="play",
-    layout=widgets.Layout(width="310px"),
+    layout=widgets.Layout(width="360px"),
 )
 export_button = widgets.Button(
-    description="Download data + LaTeX + figures",
+    description="7.1 Download data + LaTeX + figures",
     button_style="info",
     icon="download",
     disabled=True,
-    layout=widgets.Layout(width="310px"),
+    layout=widgets.Layout(width="360px"),
 )
 latex_button = widgets.Button(
-    description="Download symbolic I(angle).tex",
+    description="7.2 Download symbolic I(angle).tex",
     disabled=True,
-    layout=widgets.Layout(width="310px"),
+    layout=widgets.Layout(width="360px"),
 )
-validate_button = widgets.Button(description="Run validation", icon="check")
-compare_add = widgets.Button(description="Save current comparison", disabled=True)
-compare_clear = widgets.Button(description="Clear comparisons")
-compare_channel = dropdown([], None, "Comparison channel")
+validate_button = widgets.Button(description="8. Run validation", icon="check", layout=widgets.Layout(width="220px"))
+compare_add = widgets.Button(description="9.1 Save current comparison", disabled=True, layout=widgets.Layout(width="250px"))
+compare_clear = widgets.Button(description="9.2 Clear comparisons", layout=widgets.Layout(width="210px"))
+compare_channel = dropdown([], None, "9.3 Comparison channel")
 compare_normalized = widgets.Checkbox(
-    value=True, description="Compare with a common per-mode normalization"
+    value=True, description="9.4 Compare with a common per-mode normalization"
 )
 status = widgets.HTML()
 style_note = widgets.HTML(
@@ -5147,31 +5179,31 @@ style_note = widgets.HTML(
     sources_out,
 ) = [widgets.Output() for _ in range(11)]
 cubic_out = widgets.Output()
-cubic_d = number(1, "Shared |d|")
+cubic_d = number(1, "10.1 Shared |d|")
 cubic_points = widgets.Dropdown(
     options=[("0.5 degree", 721), ("1 degree", 361), ("0.1 degree", 3601)],
     value=721,
-    description="Angular grid",
+    description="10.2 Angular grid",
     style=STYLE,
 )
-cubic_surface = dropdown([(f"(5{k}0)", k) for k in range(6)], 3, "Inspect surface")
+cubic_surface = dropdown([(f"(5{k}0)", k) for k in range(6)], 3, "10.5 Inspect surface")
 cubic_protocol = dropdown(
-    [("VV", "VV"), ("VH", "VH"), ("sigma+alpha reference", "SIGMA")], "VV", "Inspect protocol"
+    [("VV", "VV"), ("VH", "VH"), ("sigma+alpha reference", "SIGMA")], "VV", "10.6 Inspect protocol"
 )
 cubic_button = widgets.Button(
-    description="Calculate all 18 silicon cases",
+    description="10.3 Calculate all 18 silicon cases",
     button_style="success",
-    layout=widgets.Layout(width="310px"),
+    layout=widgets.Layout(width="360px"),
 )
 cubic_export = widgets.Button(
-    description="Download silicon OriginLab ZIP",
+    description="10.4 Download silicon OriginLab ZIP",
     disabled=True,
-    layout=widgets.Layout(width="310px"),
+    layout=widgets.Layout(width="360px"),
 )
 cubic_inspect = widgets.Button(
-    description="Inspect selected mathematical steps",
+    description="10.7 Inspect selected mathematical steps",
     disabled=True,
-    layout=widgets.Layout(width="310px"),
+    layout=widgets.Layout(width="360px"),
 )
 cubic_status = widgets.HTML()
 cubic_panel = widgets.VBox(
@@ -5234,6 +5266,8 @@ state = dict(
     cubic_validation=None,
 )
 ui = dict(busy=False, coefs={}, definitions={}, wired=False)
+
+print("Cell 17/22 — This cell runs correctly. Numbered input controls are created; the interface opens in Cell 22.")
 
 
 # Code cell 18: Input handling
@@ -5309,8 +5343,8 @@ def populate_definitions():
     for name, item in definitions.items():
         fields = {
             symbol: (
-                number(DEFAULT_VALUES[symbol], f"|{symbol}|"),
-                number(0, f"Phase {symbol} (°)"),
+                number(DEFAULT_VALUES[symbol], f"2.5 |{symbol}|"),
+                number(0, f"2.5 Phase {symbol} (°)"),
             )
             for symbol in parameters_for(item)
         }
@@ -5625,6 +5659,8 @@ def on_load_example(_=None):
         cfg = cubic_fig1_config(3, "VV")
     load_configuration(cfg)
     status.value = "<b>Example loaded.</b> Review the visible inputs, then calculate."
+
+print("Cell 18/22 — This cell runs correctly. Input handlers are defined; no manual input is required in this cell.")
 
 
 # Code cell 19: Calculation actions
@@ -5981,6 +6017,8 @@ def on_cubic_export(_=None):
         tabs.selected_index = tab_index["Downloads"]
     except Exception as exception:
         report_error(exception)
+
+print("Cell 19/22 — This cell runs correctly. Calculation actions are defined; use the buttons in Cell 22.")
 
 
 # Code cell 20: Core validation
@@ -6571,6 +6609,8 @@ def run_self_checks():
         validate_resonance_utility(),
         validate_polarization_and_interference(),
     ]
+
+print("Cell 20/22 — This cell runs correctly. Core validation functions are defined; they run from Cell 22 or tool 8.")
 
 
 # Code cell 21: General-model validation
@@ -7602,6 +7642,8 @@ def checking_report_markdown(report):
                   "Evidence: "+json.dumps(serializable(item["evidence"]),ensure_ascii=False,allow_nan=False),""]
     return "\n\n".join(lines)
 
+print("Cell 21/22 — This cell runs correctly. General-model checks are defined; they run from Cell 22 or tool 8.")
+
 
 # Code cell 22: Open the application
 """Open one application; material changes never silently select new optics."""
@@ -7648,7 +7690,7 @@ settings = widgets.Tab(
     ]
 )
 for i, title in enumerate(
-    ["Material / tensors", "Orientation", "Jones states", "Display", "Comparisons"]
+    ["2. Material / tensors", "3. Orientation", "4. Jones states", "5. Display", "9. Comparisons"]
 ):
     settings.set_title(i, title)
 optical_overview_out = widgets.Output()
@@ -7665,7 +7707,7 @@ optical_guide_panel.selected_index = None
 app_view = widgets.VBox(
     [
         widgets.HTML(
-            "<h2>ROTATION RAMAN TENSOR CALCULATION</h2><p>One 3D tensor / Jones engine. Separate Ag Cartesian plots and full mathematical derivations.</p>"
+            "<h2>ROTATION RAMAN TENSOR CALCULATION</h2><p><b>Version 3 · numbered tools.</b> First run: the example below is already loaded and calculated. For your next run, follow 1 → 2 → 3 → 4 → 5 → 6, then inspect results and use 7 to download. Optional: 8 validates, 9 compares, 10 benchmarks silicon. Read the input guide above this cell for values, units and expected outputs.</p>"
         ),
         model_pick,
         optics_pick,
@@ -7761,7 +7803,10 @@ def start_application():
         )
     load_configuration(slide_component_config())
     on_run()
+    if state["last_error"] is not None: raise RuntimeError(state["last_error"])
     on_validate()
 
 
 start_application()
+
+print("Cell 22/22 — This cell runs correctly. The interface is displayed. Inspect Calculation status and Validation for result checks.")

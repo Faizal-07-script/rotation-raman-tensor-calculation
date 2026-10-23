@@ -212,6 +212,7 @@ PLOT_STYLE_STATUS = apply_scientific_style()
 
 
 
+
 # ==== Notebook code cell 3: Crystal orientation ====
 """Build a proper 3D frame using the direct and reciprocal lattice metrics."""
 
@@ -350,6 +351,7 @@ def build_orientation(config):
         normal_sign=normal_sign,
         notes=notes,
     )
+
 
 
 
@@ -731,6 +733,7 @@ SOURCES["birefringence"] = dict(
 
 
 
+
 # ==== Notebook code cell 5: Jones states and optical protocols ====
 """Jones states and the optical sequence adopted from the Quarter-wave-plate notebook."""
 
@@ -1103,6 +1106,7 @@ def validate_optical_method_guide():
 
 
 
+
 # ==== Notebook code cell 6: Amplitude and intensity engine ====
 """One matrix-based scattering engine for every material and point group."""
 
@@ -1353,6 +1357,7 @@ def numeric_summary(result, values):
 
 
 
+
 # ==== Notebook code cell 7: Optical reference model ====
 """The Quarter-wave-plate main-source model, with no REFERENCE channel or intensity rules."""
 
@@ -1455,6 +1460,7 @@ def qwp_source_values(parameters):
         ref_delta: deg(values["delta_deg"]),
         ref_phi: deg(values["phi_deg"]),
     }
+
 
 
 
@@ -1772,6 +1778,7 @@ def resonance_element(excitation_ev, phonon_ev, contributions):
 
 
 
+
 # ==== Notebook code cell 9: Polarization and interference checks ====
 """Independent polarization-state and within-mode interference diagnostics.
 
@@ -1997,6 +2004,7 @@ def physics_audit_markdown(run):
         "The entry split is an algebraic explanation, not a decomposition into independent phonons. Only the complete intensity is invariant under a change of Cartesian basis. Raw angle-resolved audit data are included in the result ZIP."
     )
     return "\n\n".join(lines)
+
 
 
 
@@ -2712,6 +2720,7 @@ def protocol_state_comparison():
 
 
 
+
 # ==== Notebook code cell 11: Slide reference algebra ====
 """A separate derivation/check of the user-provided component reference, not a plotting engine."""
 
@@ -2892,6 +2901,7 @@ def component_ag_flow_markdown(run):
         "For complex inputs, a²,b²,c² in this reference mean the corresponding squared magnitudes. The user-prescribed component-intensity sum is retained."
     )
     return lines
+
 
 
 
@@ -3602,6 +3612,7 @@ def paper_intensity_latex(run, derivation):
 
 
 
+
 # ==== Notebook code cell 13: Scientific figures ====
 """Create readable calculation records and figures from already-computed results."""
 
@@ -4182,6 +4193,7 @@ def publication_comparison(runs, channel_name, normalized=True):
 
 
 
+
 # ==== Notebook code cell 14: Six-surface silicon benchmark ====
 """Cubic benchmark, computed by the existing 3D Jones engine."""
 
@@ -4376,6 +4388,7 @@ def cubic_steps_markdown(run):
 
 
 cubic_fig1_figure = publication_cubic_figure
+
 
 
 
@@ -4631,6 +4644,7 @@ def make_cubic_origin_archive(study, validation=None):
                 )
             plt.close(figure)
     return buffer.getvalue()
+
 
 
 
@@ -4910,6 +4924,7 @@ def make_general_archive(run, figures, derivation, validation=None, comparisons=
                 )
         archive.writestr("comparison_components.csv", rows.getvalue())
     return buffer.getvalue()
+
 
 
 
@@ -5501,6 +5516,7 @@ def run_self_checks():
         validate_resonance_utility(),
         validate_polarization_and_interference(),
     ]
+
 
 
 
