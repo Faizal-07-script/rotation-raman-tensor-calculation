@@ -1,95 +1,95 @@
 {
   "status": "passed",
-  "revision": "2026-10-31-r1",
+  "revision": "2026-11-02-r1",
   "cases": [
     {
       "case": "Complex Ag/B1g (211): CUBIC_VV",
       "channels": 4,
-      "equations": 194,
+      "equations": 247,
       "maximum_relative_residual": 4.499861270811705e-16
     },
     {
       "case": "Complex Ag/B1g (211): CUBIC_VH",
       "channels": 4,
-      "equations": 194,
+      "equations": 247,
       "maximum_relative_residual": 5.684713158484023e-16
     },
     {
       "case": "Complex Ag/B1g (211): LINEAR_PAIR",
       "channels": 8,
-      "equations": 347,
+      "equations": 437,
       "maximum_relative_residual": 5.684713158484023e-16
     },
     {
       "case": "Complex Ag/B1g (211): CIRCULAR_LINEAR",
       "channels": 4,
-      "equations": 194,
+      "equations": 247,
       "maximum_relative_residual": 5.99941001660977e-16
     },
     {
       "case": "Complex Ag/B1g (211): CUBIC_SIGMA",
       "channels": 4,
-      "equations": 194,
+      "equations": 247,
       "maximum_relative_residual": 5.921189464667501e-16
     },
     {
       "case": "Complex Ag/B1g (211): QWP",
       "channels": 4,
-      "equations": 195,
+      "equations": 248,
       "maximum_relative_residual": 5.742351415485915e-16
     },
     {
       "case": "Complex Ag/B1g (211): CIRCULAR_SAME",
       "channels": 4,
-      "equations": 190,
+      "equations": 242,
       "maximum_relative_residual": 1.598721155460225e-16
     },
     {
       "case": "Complex Ag/B1g (211): CIRCULAR_OPPOSITE",
       "channels": 4,
-      "equations": 190,
+      "equations": 242,
       "maximum_relative_residual": 1.598721155460225e-16
     },
     {
       "case": "Complex Ag/B1g (211): DIRECT_JONES",
       "channels": 4,
-      "equations": 194,
+      "equations": 247,
       "maximum_relative_residual": 5.99941001660977e-16
     },
     {
       "case": "Silicon (500), VV",
       "channels": 1,
-      "equations": 129,
+      "equations": 133,
       "maximum_relative_residual": 2.220446049250313e-16
     },
     {
       "case": "Silicon (510), VV",
       "channels": 1,
-      "equations": 129,
+      "equations": 133,
       "maximum_relative_residual": 7.48423653571727e-16
     },
     {
       "case": "Silicon (520), VV",
       "channels": 1,
-      "equations": 129,
+      "equations": 133,
       "maximum_relative_residual": 6.847570104181729e-16
     },
     {
       "case": "Silicon (530), VV",
       "channels": 1,
-      "equations": 129,
+      "equations": 133,
       "maximum_relative_residual": 5.364797629352536e-16
     },
     {
       "case": "Silicon (540), VV",
       "channels": 1,
-      "equations": 129,
+      "equations": 133,
       "maximum_relative_residual": 3.384186459028256e-16
     },
     {
       "case": "Silicon (550), VV",
       "channels": 1,
-      "equations": 129,
+      "equations": 133,
       "maximum_relative_residual": 3.3308104555400256e-16
     },
     {
@@ -99,9 +99,9 @@
       "maximum_relative_residual": 4.306917208345861e-16
     }
   ],
-  "engine_sha256": "699662d383fede9eb7c30facf375b2cbf0b38e4aca6e765a181276fd704a35a2",
+  "engine_sha256": "be409df29083e5beebc28c44b66c3524f2531e88b79e5b425e90fdb597d0dfa4",
   "total_cases": 16,
   "invalid_geometry_rejected_before_intensity": true,
   "scope": "Displayed expressions, input preparation, and unchanged matrix-response arrays. This is not new experimental validation.",
-  "elapsed_seconds": 13.64
+  "elapsed_seconds": 8.49
 }

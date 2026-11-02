@@ -116,7 +116,7 @@ Cartesian unit basis vectors. The ref label is the reference used by automatic X
 
 ## $R_c,R_{lab},R_\perp,R_{ref}$
 
-Raman tensor in crystal, measurement, transverse or effective-reference coordinates. Matrix subscripts give entries; j labels the phonon partner. R_perp is 2 by 2 after the full 3 by 3 rotation.
+Raman tensor in crystal, measurement, transverse or effective-reference coordinates. Matrix subscripts give entries; j labels the phonon component. R_perp is 2 by 2 after the full 3 by 3 rotation.
 
 **Unit / convention:** relative tensor-coefficient units in this program
 
@@ -226,7 +226,7 @@ Phases in the supplied effective 2D source tensor. Delta belongs to its off-diag
 
 
 
-## $\phi_a,\phi_b$
+## $\phi_a,\phi_b,\phi_c,\phi_d,\phi_e,\phi_f$
 
 Phase of the indicated complex tensor coefficient, relative to the chosen reference phase.
 
@@ -236,7 +236,7 @@ Phase of the indicated complex tensor coefficient, relative to the chosen refere
 
 ## $\rho_a,\rho_b$
 
-Nonnegative magnitude of the indicated complex tensor coefficient.
+Zero or positive size of the indicated complex tensor entry.
 
 **Unit / convention:** same relative units as its tensor coefficient
 
@@ -244,7 +244,7 @@ Nonnegative magnitude of the indicated complex tensor coefficient.
 
 ## $a,b,c,d,e,f$
 
-Complex tensor coefficients in the selected symmetry form. The three silicon T2g partners share d.
+Complex tensor coefficients in the selected symmetry form. The three silicon T2g components share d.
 
 **Unit / convention:** relative tensor-coefficient units
 
@@ -292,7 +292,7 @@ Reduced scattered/returned field and induced-response amplitudes calculated from
 
 ## $\mathcal A,\mathcal A_j$
 
-Detected complex Raman scattering amplitude. A j subscript identifies one orthogonal phonon partner; a Cartesian label identifies one tensor contribution.
+Detected complex Raman scattering amplitude. A j subscript identifies one orthogonal phonon component; a Cartesian label identifies one tensor contribution.
 
 **Unit / convention:** relative tensor-coefficient units
 
@@ -300,7 +300,7 @@ Detected complex Raman scattering amplitude. A j subscript identifies one orthog
 
 ## $I,I_j;\ I_{min},I_{max}$
 
-Relative intensity and its extrema. Orthogonal unresolved phonon partners add as intensities. Tensor terms within one phonon interfere before the modulus is squared.
+Relative intensity and its extrema. Orthogonal unresolved phonon components add as intensities. Tensor terms within one phonon interfere before the modulus is squared.
 
 **Unit / convention:** squared relative tensor-coefficient units, plotted as a.u.
 
@@ -396,7 +396,7 @@ Maximum absolute intensity residual between equivalent matrix/basis representati
 
 ## $i,j,k,l;\ m,n$
 
-In matrix entries and contraction sums, indices run over Cartesian components. In an amplitude/partner sum, j labels a phonon partner and m,n label coherent terms. These index roles are local, not extra fitted parameters.
+In matrix entries and contraction sums, indices run over Cartesian components. In an amplitude/phonon-component intensity sum, j labels a phonon component and m,n label coherent terms. These index roles are local, not extra fitted parameters.
 
 **Unit / convention:** dimensionless labels or integer indices
 
@@ -528,7 +528,7 @@ Helicity-Dependent Raman Spectroscopy of Diamond and Zinc-Blende Crystal Structu
 
 Section 2.1, Eqs. (1)-(6); Section 2.2, Eqs. (9) and (11)
 
-Si T2g tensors, cubic surface axes, tensor rotation, summed orthogonal partners and complex polarization states. Supplied PDF pp. 2-4 checked directly.
+Si T2g tensors, cubic surface axes, tensor rotation, summed orthogonal phonon components and complex polarization states. Supplied PDF pp. 2-4 checked directly.
 
 https://doi.org/10.1002/jrs.70113
 

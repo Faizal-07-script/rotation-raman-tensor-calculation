@@ -5,8 +5,8 @@
 [Full website](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/)
 · [Calculator-only website](https://faizal-07-script.github.io/raman-tensor-calculator/)
 
-[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.ipynb?sha=c1c5b4a3ba05)
-· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.zip?sha=1189083c726b)
+[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.ipynb?sha=80d67c22e711)
+· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.zip?sha=a43d1675acfa)
 
 The full website contains the introduction, optical-method notes, references,
 22-cell Python tutorial and calculator. The separate `raman-tensor-calculator`
@@ -37,7 +37,7 @@ Cartesian and polar plots use the same sampled intensities and normalization.
 The result ZIP contains CSV data, figures, both derivation views and symbolic
 LaTeX. Individual equations can be copied as LaTeX. Separate Ag Cartesian
 powers are shown as contributions of one phonon; their powers are not added
-as if they were separate modes. Unresolved orthogonal phonon partners are
+as if they were separate modes. Unresolved orthogonal phonon components are
 summed as intensities.
 
 ## Program and sources

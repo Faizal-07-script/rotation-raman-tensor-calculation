@@ -79,10 +79,10 @@ def tidy(expression):
 
 def complex_parameter(magnitude, phase_deg):
     """Build a complex tensor coefficient from magnitude and phase in degrees."""
-    magnitude = real_number(magnitude, "Coefficient magnitude")
+    magnitude = real_number(magnitude, "Coefficient size")
     phase_deg = real_number(phase_deg, "Coefficient phase")
     if magnitude < 0:
-        raise ValueError("Coefficient magnitudes must be nonnegative.")
+        raise ValueError("Coefficient size |d|s must be nonnegative.")
     return exact(magnitude) * sp.exp(sp.I * deg(exact(phase_deg)))
 
 
@@ -372,12 +372,12 @@ def symmetric(xx=0, yy=0, zz=0, xy=0, xz=0, yz=0):
     return sp.Matrix([[xx, xy, xz], [xy, yy, yz], [xz, yz, zz]])
 
 
-def family(partners, note="", channels=None):
-    """Store one tensor or a set of symmetry-related degenerate phonon partners."""
+def family(components, note="", channels=None):
+    """Store one tensor or a set of symmetry-related degenerate phonon components."""
     return dict(
-        partners=[sp.Matrix(R) for R in partners],
+        partners=[sp.Matrix(R) for R in components],
         note=note,
-        channels=channels or [str(i + 1) for i in range(len(partners))],
+        channels=channels or [str(i + 1) for i in range(len(components))],
     )
 
 
@@ -451,7 +451,7 @@ for name, symbol, labels in [
             labels[0]: family([AXIAL]),
             labels[1]: family(
                 TRIGONAL,
-                "Both partners share c,d; partner signs follow the stated Cartesian basis.",
+                "Both components share c,d; component signs follow the stated Cartesian basis.",
             ),
         },
     )
@@ -503,7 +503,7 @@ for name, symbol, labels in [
             labels[0]: family([a * sp.eye(3)]),
             labels[1]: family(
                 CUBIC_E,
-                "The two partners have equal Frobenius norm. Their overall normalization is absorbed into b.",
+                "The two components have equal Frobenius norm. Their overall normalization is absorbed into b.",
             ),
             labels[2]: family(CUBIC_T, channels=["yz", "xz", "xy"]),
         },
@@ -557,7 +557,7 @@ MATERIALS = {
         modes={"T2g": "T2g"},
         lattice=(1, 1, 1, 90, 90, 90),
         surface="(500)",
-        note="The first-order silicon mode is the T2g triplet, also called F2g. Three orthogonal partners are summed as intensities. A unity cubic lattice gives the correct (hkl) direction without the absolute lattice length.",
+        note="The first-order silicon mode is the T2g triplet, also called F2g. Three orthogonal phonon components are summed as intensities. A unity cubic lattice gives the correct (hkl) direction without the absolute lattice length.",
         sources=["silicon", "tensor_reference"],
     ),
     "Ti1.03S2": dict(
@@ -692,7 +692,7 @@ def experiment_families(cfg):
             item["calculation_tensors"] = item["partners"]
             item["calculation_labels"] = item["channels"]
             item["combination_reason"] = (
-                "Sum over orthogonal unresolved phonon partners."
+                "Sum over orthogonal unresolved phonon components."
                 if len(item["partners"]) > 1
                 else "One tensor; its elements interfere coherently before the modulus square."
             )
@@ -724,7 +724,7 @@ SURFACES = {
 }
 RULE_LABELS = {
     "COMPONENT_POWER_SUM": "Component reference Ag component-intensity sum",
-    "DEGENERATE_PARTNER_SUM": "Unresolved phonon partner-intensity sum",
+    "DEGENERATE_PARTNER_SUM": "Unresolved phonon component-intensity sum",
     "SINGLE_TENSOR": "Single coherent tensor",
 }
 AUDIT_VERSION = "5"
@@ -740,6 +740,30 @@ SOURCES["birefringence"] = dict(
     url="https://doi.org/10.1038/srep35964",
     role="Demonstrates that anisotropic internal propagation can require a modified Raman formalism.",
 )
+
+
+def tensor_component_label(tensor):
+    """Name the nonzero matrix positions in the original crystal axes."""
+    matrix = sp.Matrix(tensor)
+    labels = []
+    for i in range(matrix.rows):
+        for j in range(i, matrix.cols):
+            if matrix[i,j] != 0 or matrix[j,i] != 0:
+                labels.append("xyz"[i]+"xyz"[j] if i == j else
+                              "xyz"[i]+"xyz"[j]+"/"+"xyz"[j]+"xyz"[i])
+    return ", ".join(labels) if labels else "zero tensor"
+
+
+def technical_term_html(text, kind="tensor", definition=""):
+    """Color standard terms, with an explicit definition as well as color."""
+    palette = {"tensor": ("#8a4b12", "#fff3e6"),
+               "size": ("#00656c", "#e7f5f3"),
+               "phase": ("#65408b", "#f2ecfa"),
+               "geometry": ("#245f9c", "#edf4ff")}
+    color, background = palette.get(kind, palette["tensor"])
+    return ('<span title="'+html.escape(definition, quote=True)+'" '
+            'style="color:'+color+';background:'+background+';padding:2px 5px;'
+            'border-radius:4px;font-weight:600">'+html.escape(text)+'</span>')
 
 
 
@@ -1033,7 +1057,7 @@ def optical_methods_overview_markdown():
         r"$$\mathbf k_i=-k_i\hat Z,\quad\mathbf k_s=+k_s\hat Z,\quad S_3=2\mathrm{Im}(E_X^*E_Y),\quad h_i=-S_3(E_i),\quad h_s=S_3(e_s)$$",
         "The physical sign above uses exp[i(k.r-ω t)] and fixed laboratory XY components. Reference papers can attach conserved/changing names to different beam-coordinate conventions. Match those conventions before comparing names. Fixed circular states give constant intensity when the sample is not rotated.",
         "### Ag presentation",
-        "Ag(xx), Ag(yy) and Ag(zz) remain separate contribution powers in the main plots. A complete single-phonon intensity is the squared sum of its component amplitudes; orthogonal unresolved phonon partners instead contribute a sum of powers. These are separate choices from the optical profile."]
+        "Ag(xx), Ag(yy) and Ag(zz) remain separate contribution powers in the main plots. A complete single-phonon intensity is the squared sum of its component amplitudes; orthogonal unresolved phonon components instead contribute a sum of powers. These are separate choices from the optical profile."]
     return "\n\n".join(lines)
 
 
@@ -1864,7 +1888,7 @@ def tensor_interference_audit(run):
     """Independently reconstruct complete-tensor intensities from Cartesian entries.
 
     Entries of each single phonon tensor are summed as amplitudes. Only after
-    that operation are powers summed across orthogonal phonon partners. The
+    that operation are powers summed across orthogonal phonon components. The
     component reference keeps its own selected curve; its coherent comparison uses
     exactly the same full tensor, orientation, states and coefficients.
     """
@@ -1885,7 +1909,7 @@ def tensor_interference_audit(run):
         coherent, self_power = np.zeros(len(angles)), np.zeros(len(angles))
         entries, entry_labels = [], []
         with np.errstate(over="raise", invalid="raise"):
-            for partner, tensor in enumerate(family_data["numeric_partners"], 1):
+            for component, tensor in enumerate(family_data["numeric_partners"], 1):
                 tensor = numeric(tensor)
                 amplitude = np.zeros(len(angles), dtype=complex)
                 for row, column in np.ndindex(tensor.shape):
@@ -1893,7 +1917,7 @@ def tensor_interference_audit(run):
                         continue
                     entry = detection[row].conjugate() * tensor[row, column] * incident[column]
                     entries.append(entry)
-                    entry_labels.append(f"Partner {partner}: R_{'xyz'[row]}{'xyz'[column]}")
+                    entry_labels.append(f"Component {component}: R_{'xyz'[row]}{'xyz'[column]}")
                     amplitude += entry
                     self_power += np.abs(entry) ** 2
                 coherent += np.abs(amplitude) ** 2
@@ -1986,7 +2010,7 @@ def physics_audit_markdown(run):
     lines += [
         "S3=2 Im(Ex* Ey)/S0 refers to one fixed laboratory XY basis. With exp[i(k.r-ω.t)], ki=-Z and ks=+Z, propagation-relative circular helicity is hi=-S3i and hs=+S3s. Thus equal laboratory circular labels are not automatically equal propagation-relative helicities. The paper's Eq. 11 labels are retained explicitly in the separate Eq. 24 checker.",
         r"$$I_{\mathrm{coherent}}=\sum_\nu\left|\sum_j A_{\nu j}\right|^2=\sum_{\nu,j}|A_{\nu j}|^2+2\operatorname{Re}\sum_\nu\sum_{j<k}A_{\nu j}A_{\nu k}^*.$$",
-        "Here ν labels orthogonal unresolved phonon partners, while j labels tensor-entry contributions within one partner. Negative cross terms describe destructive interference; they are not negative measured intensities.",
+        "Here ν labels orthogonal unresolved phonon components, while j labels tensor-entry contributions within one component. Negative cross terms describe destructive interference; they are not negative measured intensities.",
     ]
     table = [
         "| Mode / channel | Angle (degrees) | Entry self-powers | Interference | Complete coherent I | Selected curve I |",
@@ -2405,7 +2429,7 @@ def calculate_experiment(configuration):
         )
         if any(len(item["partners"]) > 1 for item in families.values()):
             assumptions.append(
-                "The sum over orthogonal degenerate phonon partners is a material-library extension; it is not a split of the elements of one tensor."
+                "The sum over orthogonal degenerate phonon components is a material-library extension; it is not a split of the elements of one tensor."
             )
     elif config["calculation_method"] == "CIRCULAR" or (
         config["calculation_method"] == "GENERAL" and config["optics"].startswith("CIRCULAR_")
@@ -2421,7 +2445,7 @@ def calculate_experiment(configuration):
         assumptions.extend(
             [
                 "Cubic reference Section 2.2 states; the σ⁺α detector is an effective elliptical-state scan, with no extra Quarter-wave-plate return QWP.",
-                "For Si, sum complete-tensor intensities over the three orthogonal T2g partners (Eq. 9). This is not a sum over Cartesian entries within one phonon.",
+                "For Si, sum complete-tensor intensities over the three orthogonal T2g components (Eq. 9). This is not a sum over Cartesian entries within one phonon.",
                 "The Fig. 1 benchmark locks the cubic paper axes and d across all six surfaces. Other materials/orientations are a Jones/tensor extension, not a claimed paper benchmark.",
             ]
         )
@@ -2603,7 +2627,7 @@ def attach_display_channels(run):
                 kind=(
                     "Complete phonon tensor"
                     if len(result["terms"]) == 1
-                    else "Orthogonal unresolved phonon partners"
+                    else "Orthogonal unresolved phonon components"
                 ),
                 optical=optical,
                 records=result["terms"],
@@ -2619,7 +2643,7 @@ def attach_display_channels(run):
     run["presentation_policy"] = {
         "Ag": "Separate Cartesian component powers; no Ag component sum in the main plots or main CSV.",
         "complete_mode": "Retained separately for coherent-interference checks; hidden from component plots.",
-        "degenerate_modes": "Sum powers over orthogonal unresolved complete phonon partners.",
+        "degenerate_modes": "Sum powers over orthogonal unresolved complete phonon components.",
         "normalization": "One common scale per base mode, including its Ag components and paired VV/VH channels.",
     }
     return run
@@ -3032,7 +3056,7 @@ def paper_steps_markdown(run):
         equation("E_i", selected["Ein"])
         equation("e_s", selected["analyzer"])
         for record, label in zip(result["terms"], item["calculation_labels"]):
-            lines.append("**Complete tensor / phonon partner:** " + label + ".")
+            lines.append("**Complete tensor / phonon component:** " + label + ".")
             if config["show_steps"]:
                 equation("R_c", record["Rc"])
                 equation("R_c T", tidy(record["Rc"] * geometry["T"]))
@@ -3061,7 +3085,7 @@ def paper_steps_markdown(run):
             )
             for matrix in item["matrices"]:
                 equation(r"R_{circ}", matrix)
-            equation(r"I_{circ}\;\mathrm{(partner\ powers\ summed)}", sp.Matrix(item["powers"]))
+            equation(r"I_{circ}\;\mathrm{(component\ powers\ summed)}", sp.Matrix(item["powers"]))
         lines.extend(["### Separate angular-momentum check", r"$$s_s-s_i-\ell_i+m_\nu^{ph}=Np.$$"])
         lines.append(
             "User-declared charges for this independent rule example: `"
@@ -3154,7 +3178,7 @@ DERIVATION_REFERENCES = {
         "title": "Helicity-Dependent Raman Spectroscopy of Diamond and Zinc-Blende Crystal Structures",
         "url": "https://doi.org/10.1002/jrs.70113",
         "location": "Section 2.1, Eqs. (1)-(6); Section 2.2, Eqs. (9) and (11)",
-        "scope": "Si T2g tensors, cubic surface axes, tensor rotation, summed orthogonal partners and complex polarization states. Supplied PDF pp. 2-4 checked directly.",
+        "scope": "Si T2g tensors, cubic surface axes, tensor rotation, summed orthogonal phonon components and complex polarization states. Supplied PDF pp. 2-4 checked directly.",
     },
     "KUMAR_NOTEBOOK": {
         "label": "Kumar-san, supplied original notebook (2026-10-15)",
@@ -3213,7 +3237,7 @@ SYMBOL_CATALOG = {
         ("in_plane_rotation", r"\Pi(\psi)", "Three-dimensional rotation about the measurement Z axis used to update the frame.", "dimensionless matrix"),
         ("coordinate_vector", r"\mathbf v_c,\mathbf v_{lab}", "Components of the same arbitrary vector in crystal and measurement coordinates.", "same units as the vector being represented"),
         ("reference_axis", r"\mathbf e_{ref};\ \mathbf e_x,\mathbf e_y,\mathbf e_z;\ \hat x", "Cartesian unit basis vectors. The ref label is the reference used by automatic X; x,y,z refer to crystal axes in the tensor decomposition.", "dimensionless"),
-        ("tensor", r"R_c,R_{lab},R_\perp,R_{ref}", "Raman tensor in crystal, measurement, transverse or effective-reference coordinates. Matrix subscripts give entries; j labels the phonon partner. R_perp is 2 by 2 after the full 3 by 3 rotation.", "relative tensor-coefficient units in this program"),
+        ("tensor", r"R_c,R_{lab},R_\perp,R_{ref}", "Raman tensor in crystal, measurement, transverse or effective-reference coordinates. Matrix subscripts give entries; j labels the phonon component. R_perp is 2 by 2 after the full 3 by 3 rotation.", "relative tensor-coefficient units in this program"),
         ("physical_tensor", r"R_\chi^{(m)}", "Physical Raman tensor defined by the derivative of susceptibility with respect to the declared normal coordinate of mode m. Its units depend on that coordinate's normalization.", "reciprocal unit of the normal coordinate u_m"),
         ("projector", r"P", "2 by 3 transverse selector [[1,0,0],[0,1,0]] in measurement coordinates. Its transpose embeds a Jones vector in three dimensions.", "dimensionless"),
         ("identity", r"I_3", "3 by 3 identity matrix; this I is not Raman intensity.", "dimensionless"),
@@ -3227,18 +3251,18 @@ SYMBOL_CATALOG = {
         ("analyzer_angle", r"\alpha", "Detection-state scan angle of the selected optical profile. A direct linear analyzer, the return-QWP chain and the elliptical reference use different Jones-state definitions.", "rad in formulas; degree in input and angle CSV columns"),
         ("jones_phase", r"\beta,\beta^\prime;\ \beta_i,\beta_s", "Relative phase of Y with respect to X. The reference uses beta for the incident state and beta prime for the detected state; direct controls use the i and s subscripts.", "rad in formulas; degree in the input form"),
         ("source_phase", r"\delta,\phi", "Phases in the supplied effective 2D source tensor. Delta belongs to its off-diagonal term; phi belongs to its yy term.", "rad in formulas; degree in the effective-source controls"),
-        ("coefficient_phase", r"\phi_a,\phi_b", "Phase of the indicated complex tensor coefficient, relative to the chosen reference phase.", "rad in formulas; degree in coefficient controls"),
-        ("coefficient_magnitude", r"\rho_a,\rho_b", "Nonnegative magnitude of the indicated complex tensor coefficient.", "same relative units as its tensor coefficient"),
-        ("coefficients", r"a,b,c,d,e,f", "Complex tensor coefficients in the selected symmetry form. The three silicon T2g partners share d.", "relative tensor-coefficient units"),
+        ("coefficient_phase", r"\phi_a,\phi_b,\phi_c,\phi_d,\phi_e,\phi_f", "Phase of the indicated complex tensor coefficient, relative to the chosen reference phase.", "rad in formulas; degree in coefficient controls"),
+        ("coefficient_magnitude", r"\rho_a,\rho_b", "Zero or positive size of the indicated complex tensor entry.", "same relative units as its tensor coefficient"),
+        ("coefficients", r"a,b,c,d,e,f", "Complex tensor coefficients in the selected symmetry form. The three silicon T2g components share d.", "relative tensor-coefficient units"),
         ("source_A", r"A", "Real off-diagonal reference amplitude in Kumar's effective 2D tensor; it is distinct from the detected amplitude written as calligraphic A.", "same relative coefficient units as source a"),
         ("source_a", r"a", "Real diagonal reference amplitude in Kumar's effective 2D tensor. It is distinct from a generally complex crystal coefficient named a.", "relative source tensor-coefficient units"),
         ("rank_one_coefficient", r"q", "Coefficient of the selected Ag rank-one Cartesian contribution: a for xx, b for yy or c for zz. It is not a phonon normal coordinate.", "relative tensor-coefficient units"),
         ("rotated_axis", r"\mathbf p;\ \mathbf v,v_x,v_y", "Crystal unit axis expressed in measurement coordinates, then restricted to XY. The projected vector need not have unit length.", "dimensionless"),
         ("overlap", r"G,G_i,G_s;\ \eta_i,\eta_s", "Eta denotes an incident or detector overlap amplitude. G is its nonnegative squared magnitude; active means evaluated with the actual selected optical chain.", "dimensionless"),
         ("scattered_response", r"E_{sc},E_{out};\ \mathcal P_c,\mathcal P_{lab}", "Reduced scattered/returned field and induced-response amplitudes calculated from a relative tensor and unit Jones state. These are not calibrated SI electric fields or polarization densities.", "relative tensor-coefficient units"),
-        ("amplitude", r"\mathcal A,\mathcal A_j", "Detected complex Raman scattering amplitude. A j subscript identifies one orthogonal phonon partner; a Cartesian label identifies one tensor contribution.", "relative tensor-coefficient units"),
-        ("amplitude_harmonics", r"C,D;\ K_0,K_c,K_s", "Complex coefficients of the first-harmonic or second-harmonic amplitude expansion. Subscripts 0,c,s mean constant, cosine and sine; a further j denotes a partner.", "same units as the detected amplitude"),
-        ("intensity", r"I,I_j;\ I_{min},I_{max}", "Relative intensity and its extrema. Orthogonal unresolved phonon partners add as intensities. Tensor terms within one phonon interfere before the modulus is squared.", "squared relative tensor-coefficient units, plotted as a.u."),
+        ("amplitude", r"\mathcal A,\mathcal A_j", "Detected complex Raman scattering amplitude. A j subscript identifies one orthogonal phonon component; a Cartesian label identifies one tensor contribution.", "relative tensor-coefficient units"),
+        ("amplitude_harmonics", r"C,D;\ K_0,K_c,K_s", "Complex coefficients of the first-harmonic or second-harmonic amplitude expansion. Subscripts 0,c,s mean constant, cosine and sine; a further j denotes a component.", "same units as the detected amplitude"),
+        ("intensity", r"I,I_j;\ I_{min},I_{max}", "Relative intensity and its extrema. Orthogonal unresolved phonon components add as intensities. Tensor terms within one phonon interfere before the modulus is squared.", "squared relative tensor-coefficient units, plotted as a.u."),
         ("maximum_angle", r"\alpha_{max},\theta_{max}", "An angle at a continuous intensity maximum, obtained from the harmonic expression. It need not fall on the sampled grid; a constant curve has no unique extremum angle.", "degree when explicitly labeled degree; otherwise rad"),
         ("delta_extrema", r"\Delta", "Nonnegative modulation magnitude sqrt(I_c squared + I_s squared) for a first-harmonic scan. This uppercase Delta is distinct from the source phase delta.", "same relative units as intensity"),
         ("extrema_polynomial", r"u_1,u_2;\ z", "Complex intensity-harmonic coefficients used only to find second-harmonic stationary points, and the unit-circle variable z=exp(2 i theta). These u symbols are not phonon coordinates.", "u_1,u_2: intensity units; z: dimensionless"),
@@ -3252,7 +3276,7 @@ SYMBOL_CATALOG = {
         ("wavevector", r"\mathbf k_i,\mathbf k_s;\ k_i,k_s", "Incident and scattered propagation vectors and their nonnegative magnitudes, written in measurement coordinates. Only their directions are used in this plane-wave calculation.", "m^-1 for physical wavevectors; not numerically predicted here"),
         ("helicity", r"S_3;\ h_i,h_s", "Normalized circular Stokes component and propagation-relative helicity expectation. With incident propagation along -Z and detection along +Z, h_i=-S_3 and h_s=+S_3.", "dimensionless; pure circular states have values +1 or -1"),
         ("representation_error", r"\epsilon_{direct},\epsilon_{circular}", "Maximum absolute intensity residual between equivalent matrix/basis representations, evaluated using the same tensor and actual optical states. These epsilon symbols are not epsilon_0.", "same relative units as unnormalized intensity"),
-        ("cartesian_indices", r"i,j,k,l;\ m,n", "In matrix entries and contraction sums, indices run over Cartesian components. In an amplitude/partner sum, j labels a phonon partner and m,n label coherent terms. These index roles are local, not extra fitted parameters.", "dimensionless labels or integer indices"),
+        ("cartesian_indices", r"i,j,k,l;\ m,n", "In matrix entries and contraction sums, indices run over Cartesian components. In an amplitude/phonon-component intensity sum, j labels a phonon component and m,n label coherent terms. These index roles are local, not extra fitted parameters.", "dimensionless labels or integer indices"),
         ("imaginary_unit", r"i", "Imaginary unit, i squared = -1. It is distinct from the incident-state subscript i and Cartesian summation indices.", "dimensionless"),
         ("pi", r"\pi", "Circle constant used in angle conversion and special-angle states.", "dimensionless; angle multiples are in rad"),
         ("exponential", r"\exp", "Complex exponential. The e in an exponential is Euler's number, distinct from a tensor coefficient named e. Its exponent is dimensionless.", "dimensionless"),
@@ -3329,7 +3353,7 @@ def equation_symbol_definitions(value, expressions=(), scope="algebra", context=
     if r"\beta" in value: add("jones_phase")
     if r"\delta" in value or (r"\phi" in value and not has(r"\\phi_")): add("source_phase")
     if has(r"\\phi_"): add("coefficient_phase")
-    if r"\rho" in value: add("coefficient_magnitude")
+    if r"\rho" in value or re.search(r"\|[abcdef]\|",value): add("coefficient_magnitude")
     coefficient_names = {"a", "b", "c", "d", "e", "f"}
     stripped = re.sub(r"\\mathbf\s*\{?[a-z]\}?", " ", value)
     stripped = re.sub(r"e\^\{?[+-]?i[^{}]*\}?", " ", stripped)
@@ -3383,6 +3407,12 @@ def equation_symbol_definitions(value, expressions=(), scope="algebra", context=
     if r"\operatorname{atan2}" in value or r"\pmod" in value: add("inverse_trig")
     rows = [copy.deepcopy(SYMBOL_CATALOG[key]) for key in keys]
     for row in rows:
+        if row["id"] == "coefficient_phase":
+            names = sorted(set(re.findall(r"\\phi_\{?([abcdef])\}?", value)))
+            if names: row["latex"] = ",".join(r"\phi_{"+name+"}" for name in names)
+        if row["id"] == "coefficient_magnitude":
+            names = sorted(set(re.findall(r"\|([abcdef])\|", value)))
+            if names: row["latex"] = ",".join("|"+name+"|" for name in names)
         if row["id"] == "coefficients":
             row["latex"] = ",".join(sorted(active_coefficients))
         if row["id"] in {"linear_angle", "analyzer_angle"} and r"\mathrm{degree}" in value:
@@ -3402,10 +3432,10 @@ def annotate_equation(value, expressions=(), scope="algebra", context=None):
         explanation = "Complex polarization convention: Paukatong Eq. (11). QWP and effective detector: supplied Kumar notebook. The actual selected Jones matrices are evaluated here."
     elif scope == "tensor":
         references = ["PIMENTA2021", "PAUKATONG2026", "PROGRAM_ALGEBRA"]
-        explanation = "Physical tensor definition: Pimenta Eqs. (1)-(4). Si partner tensors and intensity sum: Paukatong Eqs. (1)-(3) and (9). Relative numerical coefficients are declared inputs."
+        explanation = "Physical tensor definition: Pimenta Eqs. (1)-(4). Si T2g basis tensors and intensity sum: Paukatong Eqs. (1)-(3) and (9). Relative numerical coefficients are declared inputs."
     elif scope in {"record", "final"}:
         references = ["PIMENTA2021", "PAUKATONG2026", "KUMAR_NOTEBOOK", "PROGRAM_ALGEBRA"]
-        explanation = "Tensor/intensity principle: Pimenta Eqs. (2)-(4); conjugate detector and Si partner sum: Paukatong Eqs. (9),(11). Intermediate products, harmonics and extrema are program algebra; QWP source convention follows Kumar where selected."
+        explanation = "Tensor/intensity principle: Pimenta Eqs. (2)-(4); conjugate detector and Si phonon-component intensity sum: Paukatong Eqs. (9),(11). Intermediate products, harmonics and extrema are program algebra; QWP source convention follows Kumar where selected."
     symbols = equation_symbol_definitions(value, expressions, scope, context)
     if any(row["id"] in {"physical_polarization", "vacuum_permittivity", "physical_electric_field", "susceptibility"} for row in symbols):
         references.append("IUPAC_POLARIZATION")
@@ -3429,7 +3459,7 @@ def equation_notes_markdown(item):
 
 # Short definitions are used once at the end of the full-mathematics view.
 # The explained view retains each equation's complete definitions and sources.
-SHORT_SYMBOL_MEANINGS = {'lattice': 'Direct-lattice matrix and its crystal basis vectors.', 'miller': 'Surface Miller indices.', 'direction_indices': 'In-plane direct-lattice direction; hu + kv + lw = 0.', 'reciprocal_normal': 'Surface normal before normalization; the 2π factor is omitted.', 'tangent': 'In-plane reference before normalization.', 'frame_axes': 'Measurement unit axes in crystal coordinates; 0 means before rotation.', 'lab_normal': 'Measurement normal in measurement coordinates, (0,0,1).', 'normal_sign': 'Chosen normal direction, +1 or −1.', 'frame_angle': 'In-plane rotation of the measurement frame.', 'frame': 'Frame matrix: measurement components → crystal components.', 'in_plane_rotation': 'Rotation about the measurement normal.', 'coordinate_vector': 'The same vector in crystal and measurement coordinates.', 'reference_axis': 'Cartesian unit vectors; ref is the automatic in-plane reference.', 'tensor': 'Raman tensor in crystal, measurement, transverse or reference coordinates.', 'physical_tensor': 'Susceptibility derivative with respect to the phonon normal coordinate.', 'projector': '2 × 3 selector of measurement X and Y components.', 'identity': '3 × 3 identity matrix.', 'incident_state': 'Unit incident Jones state and its 3D embeddings.', 'detector_state': 'Unit Jones state; s is detection at the sample, an is the analyzer.', 'return_optics': 'Return-path Jones matrix.', 'qwp': 'Quarter-wave-plate matrix and transverse rotation matrix.', 'circular_basis': 'Fixed-XY circular Jones states, (1,±i)/√2.', 'mixing_angle': 'Jones mixing angle between X and Y components.', 'linear_angle': 'VV/VH scan angle; i and s label incident and detection mixing angles.', 'analyzer_angle': 'Detection-state scan angle for the selected optical profile.', 'jones_phase': 'Relative Y-to-X phase; i and s label incidence and detection.', 'source_phase': 'Off-diagonal and yy phases in the effective 2D source tensor.', 'coefficient_phase': 'Phase of a complex tensor coefficient.', 'coefficient_magnitude': 'Magnitude of a complex tensor coefficient.', 'coefficients': 'Active complex tensor coefficients; Si T2g partners share d.', 'source_A': 'Real off-diagonal source coefficient; distinct from calligraphic amplitude.', 'source_a': 'Real diagonal source coefficient in the effective 2D model.', 'rank_one_coefficient': 'Selected Ag Cartesian coefficient: a, b or c.', 'rotated_axis': 'Rotated crystal axis and its XY projection; projection need not be unit length.', 'overlap': 'η is a polarization overlap; G is its squared magnitude.', 'scattered_response': 'Reduced field or induced response from a relative tensor and unit Jones state.', 'amplitude': 'Detected complex amplitude; j labels a phonon partner.', 'amplitude_harmonics': 'Constant, cosine and sine coefficients in the amplitude expansion.', 'intensity': 'Relative intensity, harmonic coefficients and extrema; partner powers are summed.', 'maximum_angle': 'Angle at a continuous maximum; undefined for a constant curve.', 'delta_extrema': 'First-harmonic modulation magnitude; distinct from lowercase source phase δ.', 'extrema_polynomial': 'Stationary-point coefficients and z = exp(2iθ); these u values are not phonon coordinates.', 'susceptibility': 'Electric susceptibility; superscript 0 is its equilibrium value.', 'normal_coordinate': 'Phonon normal coordinate with a chosen displacement or mass normalization.', 'vacuum_permittivity': 'Vacuum electric permittivity.', 'physical_electric_field': 'Physical incident electric field in crystal coordinates.', 'transverse_field': 'Electric field in the transverse-wave condition.', 'physical_polarization': 'Physical Raman-induced polarization density of phonon m.', 'physical_intensity': 'Measured intensity and its uncalculated field/phonon/collection scale factor.', 'wavevector': 'Incident/scattered propagation vectors and magnitudes in measurement coordinates.', 'helicity': 'Circular Stokes component and propagation-relative helicity; hi = −S3, hs = +S3.', 'representation_error': 'Intensity residual between equivalent matrix or basis calculations.', 'cartesian_indices': 'Local Cartesian indices, phonon-partner labels or coherent-term labels.', 'imaginary_unit': 'Imaginary unit; distinct from incident and Cartesian index labels.', 'pi': 'Circle constant.', 'exponential': 'Exponential function; its e is distinct from a tensor coefficient e.', 'transpose': 'Transpose, inverse transpose and inverse; standalone T is the frame matrix.', 'conjugation': 'Complex conjugation and conjugate transpose.', 'norm': 'Complex modulus or Euclidean vector norm.', 'products': 'Dot product, cross product and sum.', 'real_imag': 'Real part, imaginary part and complex phase.', 'derivative': 'Derivative with respect to the indicated angle or normal coordinate.', 'determinant': 'Matrix determinant; a proper frame has det(T) = +1.', 'big_o': 'Omitted second- and higher-order normal-coordinate terms.', 'equilibrium_evaluation': 'Evaluate at the equilibrium coordinate; this bar is not a modulus.', 'inverse_trig': 'Quadrant-aware inverse tangent and angular equivalence modulo π.'}
+SHORT_SYMBOL_MEANINGS = {'lattice': 'Direct-lattice matrix and its crystal basis vectors.', 'miller': 'Surface Miller indices.', 'direction_indices': 'In-plane direct-lattice direction; hu + kv + lw = 0.', 'reciprocal_normal': 'Surface normal before normalization; the 2π factor is omitted.', 'tangent': 'In-plane reference before normalization.', 'frame_axes': 'Measurement unit axes in crystal coordinates; 0 means before rotation.', 'lab_normal': 'Measurement normal in measurement coordinates, (0,0,1).', 'normal_sign': 'Chosen normal direction, +1 or −1.', 'frame_angle': 'In-plane rotation of the measurement frame.', 'frame': 'Frame matrix: measurement components → crystal components.', 'in_plane_rotation': 'Rotation about the measurement normal.', 'coordinate_vector': 'The same vector in crystal and measurement coordinates.', 'reference_axis': 'Cartesian unit vectors; ref is the automatic in-plane reference.', 'tensor': 'Raman tensor in crystal, measurement, transverse or reference coordinates.', 'physical_tensor': 'Susceptibility derivative with respect to the phonon normal coordinate.', 'projector': '2 × 3 selector of measurement X and Y components.', 'identity': '3 × 3 identity matrix.', 'incident_state': 'Unit incident Jones state and its 3D embeddings.', 'detector_state': 'Unit Jones state; s is detection at the sample, an is the analyzer.', 'return_optics': 'Return-path Jones matrix.', 'qwp': 'Quarter-wave-plate matrix and transverse rotation matrix.', 'circular_basis': 'Fixed-XY circular Jones states, (1,±i)/√2.', 'mixing_angle': 'Jones mixing angle between X and Y components.', 'linear_angle': 'VV/VH scan angle; i and s label incident and detection mixing angles.', 'analyzer_angle': 'Detection-state scan angle for the selected optical profile.', 'jones_phase': 'Relative Y-to-X phase; i and s label incidence and detection.', 'source_phase': 'Off-diagonal and yy phases in the effective 2D source tensor.', 'coefficient_phase': 'Phase of a tensor entry, relative to the chosen reference; 0° gives a positive real entry when its size is positive.', 'coefficient_magnitude': 'Size |d| of a complex tensor entry; zero or positive.', 'coefficients': 'Active complex tensor coefficients; Si T2g components share d.', 'source_A': 'Real off-diagonal source coefficient; distinct from calligraphic amplitude.', 'source_a': 'Real diagonal source coefficient in the effective 2D model.', 'rank_one_coefficient': 'Selected Ag Cartesian coefficient: a, b or c.', 'rotated_axis': 'Rotated crystal axis and its XY projection; projection need not be unit length.', 'overlap': 'η is a polarization overlap; G is its squared magnitude.', 'scattered_response': 'Reduced field or induced response from a relative tensor and unit Jones state.', 'amplitude': 'Detected complex amplitude; j labels a phonon component.', 'amplitude_harmonics': 'Constant, cosine and sine coefficients in the amplitude expansion.', 'intensity': 'Relative intensity, harmonic coefficients and extrema; phonon-component intensities are summed.', 'maximum_angle': 'Angle at a continuous maximum; undefined for a constant curve.', 'delta_extrema': 'First-harmonic modulation magnitude; distinct from lowercase source phase δ.', 'extrema_polynomial': 'Stationary-point coefficients and z = exp(2iθ); these u values are not phonon coordinates.', 'susceptibility': 'Electric susceptibility; superscript 0 is its equilibrium value.', 'normal_coordinate': 'Phonon normal coordinate with a chosen displacement or mass normalization.', 'vacuum_permittivity': 'Vacuum electric permittivity.', 'physical_electric_field': 'Physical incident electric field in crystal coordinates.', 'transverse_field': 'Electric field in the transverse-wave condition.', 'physical_polarization': 'Physical Raman-induced polarization density of phonon m.', 'physical_intensity': 'Measured intensity and its uncalculated field/phonon/collection scale factor.', 'wavevector': 'Incident/scattered propagation vectors and magnitudes in measurement coordinates.', 'helicity': 'Circular Stokes component and propagation-relative helicity; hi = −S3, hs = +S3.', 'representation_error': 'Intensity residual between equivalent matrix or basis calculations.', 'cartesian_indices': 'Local Cartesian indices, phonon-component labels or coherent-term labels.', 'imaginary_unit': 'Imaginary unit; distinct from incident and Cartesian index labels.', 'pi': 'Circle constant.', 'exponential': 'Exponential function; its e is distinct from a tensor coefficient e.', 'transpose': 'Transpose, inverse transpose and inverse; standalone T is the frame matrix.', 'conjugation': 'Complex conjugation and conjugate transpose.', 'norm': 'Complex modulus or Euclidean vector norm.', 'products': 'Dot product, cross product and sum.', 'real_imag': 'Real part, imaginary part and complex phase.', 'derivative': 'Derivative with respect to the indicated angle or normal coordinate.', 'determinant': 'Matrix determinant; a proper frame has det(T) = +1.', 'big_o': 'Omitted second- and higher-order normal-coordinate terms.', 'equilibrium_evaluation': 'Evaluate at the equilibrium coordinate; this bar is not a modulus.', 'inverse_trig': 'Quadrant-aware inverse tangent and angular equivalence modulo π.'}
 
 
 def calculation_symbol_legend(entries):
@@ -3551,6 +3581,29 @@ def latex_text(value):
     return "".join(replacements.get(ch,ch) for ch in str(value))
 
 
+
+def trace_coefficient_inputs(trace, cfg):
+    """Define complex entries before they appear in a matrix calculation."""
+    if cfg.get("tensor_model") == "QWP_SOURCE_2D":
+        return
+    trace.note("A Raman tensor entry is a complex response coefficient, not a displacement or rotation angle. Its size uses the chosen relative tensor scale. The coefficient phase is distinct from the frame angle ψ and the polarization phases βᵢ and βₛ. A common phase on a whole tensor does not change intensity; phase differences between entries of one tensor can change interference.")
+    for name in cfg.get("modes", []):
+        trace.note("Selected Raman mode: " + name + ".")
+        for symbol, value in sorted(cfg.get("mode_values", {}).get(name, {}).items(), key=lambda row:str(row[0])):
+            label = raman_latex(symbol)
+            size = sp.simplify(sp.Abs(value))
+            phase = sp.arg(value) if value != 0 else sp.S.Zero
+            trace.tex(label + "=|" + label + r"|e^{i\phi_{" + label + "}}", (symbol,),
+                      "The size |"+str(symbol)+"| is zero or positive. Its phase is an angle in the complex plane, not a physical rotation of the sample.")
+            trace.eq("|"+label+"|", size, "Read the chosen coefficient size in relative tensor units.")
+            if value == 0:
+                trace.note("A zero-size coefficient has no defined phase. The input displays 0° by convention.")
+            else:
+                trace.eq(r"\phi_{"+label+r"}\ (\mathrm{degree})", sp.simplify(180*phase/sp.pi),
+                         "Phase 0° means a positive real entry; 180° means a negative real entry; 90° means a positive imaginary entry. Phases differing by 360° are equivalent.")
+            trace.eq(label, value, "This is the actual complex value inserted into the tensor.")
+
+
 def trace_geometry(trace, run):
     """Expand the direct/reciprocal metric and every frame-construction step."""
     geometry, cfg = run["geometry"], run["config"]
@@ -3591,7 +3644,7 @@ def trace_geometry(trace, run):
     trace.eq(r"T^{-1}=T^T", T.T)
     trace.eq(r"T^TT", sp.simplify(T.T * T))
     trace.eq(r"\det T", sp.simplify(T.det()))
-    trace.tex(r"\mathbf v_c=T\mathbf v_{lab},\quad R_{lab}=T^TR_cT,\quad R_{lab}\ne |T^TR_cT|^2")
+    trace.tex(r"\mathbf v_c=T\mathbf v_{lab},\quad R_{lab}=T^TR_cT")
     trace.tex(
         r"\Pi(\psi)=\begin{pmatrix}\cos\psi&-\sin\psi&0\\\sin\psi&\cos\psi&0\\0&0&1\end{pmatrix},\quad T(\psi)=T(0)\Pi(\psi)"
     )
@@ -3757,13 +3810,14 @@ def trace_tensor_definition(trace, run):
         )
 
 
-def trace_record(trace, run, channel, record, partner_index):
+def trace_record(trace, run, channel, record, tensor_index):
     """Show the full matrix products without harmonic-coefficient aliases."""
     Rc, optical = record.get("Rc", record["Rperp"]), channel["optical"]
-    trace.section(channel["name"] + " / tensor partner " + str(partner_index), scope="record")
+    component = tensor_component_label(Rc)
+    trace.section(channel["name"] + " / " + component + " component", scope="record")
     trace.note(channel["kind"] + ".")
     trace.eq("R_c" if run["geometry"] is not None else "R_{ref}", Rc,
-             "Start from this tensor in the crystal basis. Each listed partner is treated separately." if run["geometry"] is not None else "Start from the effective two-dimensional source tensor in its declared XY basis.")
+             "Start from the crystal-basis tensor with nonzero entries at " + component + ". For a degenerate mode, calculate each orthogonal phonon component separately before adding its intensity." if run["geometry"] is not None else "Start from the effective two-dimensional source tensor in its declared XY basis.")
     if run["geometry"] is not None:
         T = run["geometry"]["T"]
         trace.frame = T
@@ -3809,9 +3863,9 @@ def trace_record(trace, run, channel, record, partner_index):
     trace.eq(r"\mathcal A^*", sp.conjugate(amplitude), "Conjugate the complete amplitude, including every complex tensor element.")
     trace.tex("I=" + r"\left(" + trace.latex(amplitude) + r"\right)\left("
               + trace.latex(sp.conjugate(amplitude)) + r"\right)", (amplitude,),
-              "Multiply the complete amplitude by its conjugate. Keep all interference terms within this tensor partner.")
+              "Multiply the complete amplitude by its conjugate. Keep all interference terms within this basis tensor.")
     trace.eq("I", sp.expand(amplitude * sp.conjugate(amplitude)),
-             "Expand the product explicitly. The following final section combines any orthogonal phonon partners.")
+             "Expand the product explicitly. The following final section combines any orthogonal phonon components.")
 
 
 def trace_final(trace, run, channel):
@@ -3821,7 +3875,7 @@ def trace_final(trace, run, channel):
     trace.section("Final intensity: " + channel["name"], scope="final")
     amplitudes = [trace.latex(r["amplitude"]) for r in channel["records"]]
     trace.tex("I=" + "+".join(r"\left|" + a + r"\right|^2" for a in amplitudes),
-              explanation="Sum the intensities of the unresolved orthogonal phonon partners."
+              explanation="Sum the intensities of the unresolved orthogonal phonon components."
               if len(amplitudes) > 1 else "Take the squared modulus of this complete amplitude.")
     variable_tex = raman_latex(trace.variable)
     trace.eq("I(" + variable_tex + ")", symbolic,
@@ -3853,6 +3907,7 @@ def detailed_calculation(run):
     trace = CalculationTrace(variable, run["config"])
     trace.section("ROTATION RAMAN TENSOR CALCULATION / mathematical derivation")
     trace.note(run["config"]["case_label"])
+    trace_coefficient_inputs(trace, run["config"])
     trace_geometry(trace, run)
     trace_optics(trace, run)
     trace_tensor_definition(trace, run)
@@ -3861,6 +3916,20 @@ def detailed_calculation(run):
         for j, record in enumerate(channel["records"], 1):
             trace_record(trace, run, channel, record, j)
         finals.append(trace_final(trace, run, channel))
+    complete_finals = []
+    for name, result in run["results"].items():
+        family = run["families"][name]
+        if family.get("irrep") != "Ag" or run["geometry"] is None:
+            continue
+        channel = dict(name=name+" (complete tensor)", optical=result.get("optical",run["optical"]),
+                       records=result["terms"], values=family["values"],
+                       summary=run["summaries"][name], kind="Complete coherent Ag response")
+        trace.note("Complete Ag response: add the amplitudes from all entries of this one tensor before taking the squared modulus. Its separate Cartesian powers above cannot be added to obtain this result.")
+        for j, record in enumerate(channel["records"], 1):
+            trace_record(trace, run, channel, record, j)
+        final = trace_final(trace, run, channel)
+        final["source_mode"] = name
+        complete_finals.append(final)
     trace.section("Independent representation checks", scope="checks")
     for row in matching_protocol_audit(run):
         trace.tex(
@@ -3878,7 +3947,7 @@ def detailed_calculation(run):
                 explained_markdown=trace.markdown(explained=True),
                 symbol_legend=calculation_symbol_legend(trace.entries),
                 reference_ids=calculation_reference_ids(trace.entries),
-                finals=finals, references=DERIVATION_REFERENCES)
+                finals=finals, complete_finals=complete_finals, references=DERIVATION_REFERENCES)
 
 
 def latex_document_plain(entries, title="Raman tensor calculation", explained=True):
@@ -3999,7 +4068,7 @@ def equation_explanation(value, scope):
     """Describe the operation shown in this row."""
     lhs = value.replace(r"\begin{aligned}", "").split("=", 1)[0].rstrip("&")
     rules = [
-        ("(h,k,l)", "Enter the Miller indices of the measured surface."),
+        ("(h,k,l)", "Read the selected surface Miller indices. These are inputs, not a result of the preceding lattice calculation."),
         ("(u,v,w)", "Choose a crystal direction lying in that surface."),
         (r"\|\mathbf g", "Find the length of the surface-normal vector."),
         (r"\|\mathbf t", "Find the length of the in-plane reference vector."),
@@ -4036,7 +4105,7 @@ def equation_explanation(value, scope):
         (r"E_i", "Write the incident polarization at the sample."),
         (r"R_{\perp,j}", "Keep the transverse tensor entries. Multiply each phonon amplitude by its complex conjugate."),
         (r"\left|\sum", "Terms from the same phonon interfere: add their amplitudes before taking the squared modulus."),
-        (r"a", "Write complex tensor coefficients in magnitude–phase form. Their phase difference controls the interference term."),
+        (r"a", "Write the size and phase of each complex tensor entry. Their phase difference controls the interference term."),
         (r"Q", "Write the quarter-wave-plate Jones matrix in the stated reference convention."),
         (r"B", "Write the Jones matrix of the return optical path. With no return element, this is the identity."),
         (r"P", "Select the measurement X and Y components with this 2 × 3 matrix."),
@@ -4068,7 +4137,8 @@ def prepare_input_review(configuration):
     trace = CalculationTrace(theta_scan if optical["scan_basis"] == "SECOND" else alpha, cfg)
     skeleton = dict(config=cfg, geometry=geometry, optical=optical)
     trace.section("Input review")
-    trace.note("Check the axes, tensor matrices and polarization states before calculating the intensity.")
+    trace.note("Check the axes, tensor matrices and polarization states before calculating the intensity. X, Y and Z are measurement axes expressed in crystal Cartesian coordinates; they are not Jones polarization vectors. T maps measurement components to crystal components, so the same tensor in the measurement frame is Tᵀ R_c T.")
+    trace_coefficient_inputs(trace, cfg)
     trace_geometry(trace, skeleton)
     trace_optics(trace, skeleton)
     if not source:
@@ -4076,8 +4146,8 @@ def prepare_input_review(configuration):
         for name in cfg["modes"]:
             definition = definitions[name]
             trace.section("Tensor preview: " + name, scope="record")
-            partners = [cfg["custom_tensor"]] if cfg["point_group"] == "CUSTOM" else definition["partners"]
-            for tensor in partners:
+            components = [cfg["custom_tensor"]] if cfg["point_group"] == "CUSTOM" else definition["partners"]
+            for tensor in components:
                 T = geometry["T"]
                 rotated = tidy(T.T * tensor * T)
                 trace.eq("R_c", tensor, "The selected crystal-basis tensor before numerical coefficient substitution.")
@@ -4694,7 +4764,7 @@ CUBIC_PANELS = {
 }
 CUBIC_COLORS = ["#ff0000", "#ff8c00", "#20a928", "#1685c4", "#9362cf", "#916252"]
 
-CUBIC_READING_NOTES = "### Cubic benchmark reference\n\nDOI 10.1002/jrs.70113: the six-surface silicon benchmark uses the Eq. 4 frame, Eq. 11 Jones states and the complete T2g partner sum. VV and VH scan θ; σ⁺α scans α with θ=45 degrees and β=β′=90 degrees. All curves use one shared coefficient scale. The companion guides provide the derivation and independent checks."
+CUBIC_READING_NOTES = "### Cubic benchmark reference\n\nDOI 10.1002/jrs.70113: the six-surface silicon benchmark uses the Eq. 4 frame, Eq. 11 Jones states and the complete T2g intensity sum. VV and VH scan θ; σ⁺α scans α with θ=45 degrees and β=β′=90 degrees. All curves use one shared coefficient scale. The companion guides provide the derivation and independent checks."
 
 
 def cubic_frame(indices):
@@ -4747,7 +4817,7 @@ def cubic_projected_partners(run):
 
 
 def cubic_steps_markdown(run):
-    """Document the actual rotated tensors, optical states and complete-partner sum."""
+    """Document the actual rotated tensors, optical states and complete-component sum."""
     variable = theta_scan if run["optical"]["scan_basis"] == "SECOND" else alpha
     lines = [
         "# ROTATION RAMAN TENSOR CALCULATION",
@@ -4770,16 +4840,16 @@ def cubic_steps_markdown(run):
     )
     for name, result in run["results"].items():
         values = run["families"][name]["values"]
-        lines.append("### " + name + ": complete phonon partners")
+        lines.append("### " + name + ": complete phonon components")
         for i, record in enumerate(result["terms"], 1):
-            lines.append("**Partner " + str(i) + ".**")
+            lines.append("**Component " + tensor_component_label(record["Rc"]) + ".**")
             if run["config"]["show_steps"]:
                 equation("R_c", record["Rc"])
                 equation(r"R_{lab}=T^TR_cT", record["Rlab"])
                 equation(r"R_\perp=P R_{lab}P^T", record["Rperp"])
             equation(r"\mathcal A_" + str(i), tidy(record["amplitude"].subs(values)))
         lines.append(
-            r"$$I=\sum_{\nu\in\mathrm{orthogonal\ partners}}|\mathcal A_\nu|^2.$$ Each complete tensor is contracted coherently. This sum does not discard interference within a tensor."
+            r"$$I=\sum_{\nu\in\mathrm{orthogonal\ components}}|\mathcal A_\nu|^2.$$ Each complete tensor is contracted coherently. This sum does not discard interference within a tensor."
         )
         lines.append(final_intensity_context(run, name))
         equation("I", display_intensity(run["summaries"][name], variable))
@@ -5206,7 +5276,7 @@ def make_archive(run, figures, report, comparisons=(), comparison_plot=None, val
         archive.writestr("intensity_raw.csv", table.getvalue())
         table = io.StringIO()
         writer = csv.writer(table)
-        writer.writerow(["mode", "component_or_partner", angle_name, "intensity"])
+        writer.writerow(["mode", "tensor_component", angle_name, "intensity"])
         for name, curves in run["component_curves"].items():
             for label, curve in zip(run["families"][name]["calculation_labels"], curves):
                 writer.writerows(
@@ -5509,7 +5579,7 @@ def validate_tensor_library():
                     np.array(tensor.diff(symbol), dtype=complex).reshape(9)
                     for symbol in tensor.free_symbols
                 )
-            partners = np.column_stack(
+            components = np.column_stack(
                 [numeric(tensor.subs(trial)).reshape(9) for tensor in tensors]
             )
             for index, generator in enumerate(generator_matrices(group_name)):
@@ -5520,16 +5590,16 @@ def validate_tensor_library():
                         for tensor in tensors
                     ]
                 )
-                representation = np.linalg.lstsq(partners, transformed, rcond=None)[0]
+                representation = np.linalg.lstsq(components, transformed, rcond=None)[0]
                 check(
-                    np.allclose(partners @ representation, transformed, atol=1e-10),
+                    np.allclose(components @ representation, transformed, atol=1e-10),
                     f"{group_name}/{irrep}: covariance failed.",
                 )
                 check(
                     np.allclose(
                         representation.conj().T @ representation, np.eye(len(tensors)), atol=1e-10
                     ),
-                    f"{group_name}/{irrep}: partner norm is inconsistent.",
+                    f"{group_name}/{irrep}: component norm is inconsistent.",
                 )
                 if (group_name, irrep) in expected:
                     check(
@@ -5887,7 +5957,7 @@ def validate_component_reference():
 
 
 def validate_degeneracy_and_limits():
-    """Check unresolved-partner sums and geometry-specific selection rules."""
+    """Check unresolved-phonon-component intensity sums and geometry-specific selection rules."""
     random = np.random.default_rng(72)
     angles = np.linspace(0, 2 * np.pi, 73)
     direct = optical_chain(
@@ -5915,7 +5985,7 @@ def validate_degeneracy_and_limits():
         )
         check(
             np.allclose(first, second, atol=1e-10),
-            f"{group}/{mode}: the unresolved partner sum depends on the partner basis.",
+            f"{group}/{mode}: the unresolved phonon-component intensity sum depends on the component basis.",
         )
     silicon = lambda optical: dict(
         terms=[amplitude_record(tensor, sp.eye(3), optical) for tensor in CUBIC_T]
@@ -5940,7 +6010,7 @@ def validate_degeneracy_and_limits():
         np.allclose(numeric_curve(e1, {c: 1}, angles), 0),
         "Basal normal-backscattering E1g extinction failed.",
     )
-    return "Degenerate partner-basis invariance, Si optical-profile limits and basal D6h E1g extinction pass."
+    return "Degenerate phonon-basis invariance, Si optical-profile limits and basal D6h E1g extinction pass."
 
 
 def validate_input_and_numerics():
@@ -6342,7 +6412,7 @@ def validate_cubic_fig1(study):
             check(
                 len(run["results"]["T2g"]["terms"]) == 3
                 and run["results"]["T2g"]["rule"] == "DEGENERATE_PARTNER_SUM",
-                "Si needs all three complete T2g phonon partners.",
+                "Si needs all three complete T2g phonon components.",
             )
             g = 4 * 25 * k * k / (25 + k * k) ** 2
             angle = run["angles"]
@@ -6413,7 +6483,7 @@ def validate_cubic_fig1(study):
     return [
         "All 18 curves: general 3D matrix engine matches independently derived closed forms; largest absolute error in I/|d|² = "
         + format(largest_error, ".3g"),
-        "Eq. 4 proper frames, three complete Si partners, independent Eq. 8 phonon-basis invariance and (110) LO/Si distinction pass.",
+        "Eq. 4 proper frames, three complete Si T2g components, independent Eq. 8 phonon-basis invariance and (110) LO/Si distinction pass.",
         "Continuous extrema, σ tilt 90 to 103.2825255885 degrees, common d scaling and unobservable global phase pass.",
         "Origin plotting script compiles. Actual native Origin execution requires the user's Origin installation.",
     ]
@@ -6979,7 +7049,7 @@ def checking_procedures_for_run(run):
                 rotation_actual.extend(Rl.ravel());rotation_expected.extend((T.T@Rc@T).ravel())
                 rotation_actual.extend(R.ravel());rotation_expected.extend((numeric(P)@Rl@numeric(P).T).ravel())
         row(prefix+"c",name+": explicit chain","Check the plotted arrays against independent complex matrix propagation.",
-            "Propagate E_i through each tensor and B, project with analyzer dagger, and sum only partner powers.",
+            "Propagate E_i through each tensor and B, project with analyzer dagger, and sum only phonon-component intensities.",
             r"I_{\rm plot}=\sum_j\lvert e_{\rm an}^\dagger B R_{\perp,j}E_i\rvert^2",
             ch["curve"],raw,scope)
         row(prefix+"d",name+": circular reconstruction","Ensure basis changes preserve the same physical states and intensity.",
@@ -7034,3 +7104,112 @@ def checking_report_markdown(report):
         lines += ["**Result:** "+item["status"],"",
                   "Evidence: "+json.dumps(serializable(item["evidence"]),ensure_ascii=False,allow_nan=False),""]
     return "\n\n".join(lines)
+
+@lru_cache(maxsize=1)
+def reference_analytic_report():
+    """Compare independent paper expressions with the tensor/Jones contraction.
+
+    Scope: main-text Eqs. (11)-(14), the six (5,k,0) Si surfaces,
+    and proper frames from Eqs. (4)-(6). This does not claim an audit of
+    every supporting-information expression or experimental agreement.
+    """
+    checks = []
+
+    def add(label, detail, residual=0, expression=None):
+        check(abs(float(residual)) < 3e-12, label + " failed")
+        row = dict(label=label, detail=detail, residual=float(residual), status="passed")
+        if expression is not None:
+            row["latex"] = raman_latex(expression)
+        checks.append(row)
+
+    th, al, bi, bs = sp.symbols('theta alpha beta beta_prime', real=True)
+    av, bv, cv = sp.symbols('a b c', real=True)
+    ei = sp.Matrix([sp.cos(th), sp.exp(sp.I*bi)*sp.sin(th)])
+    es = sp.Matrix([sp.cos(th+al), sp.exp(sp.I*bs)*sp.sin(th+al)])
+    matrix = sp.Matrix([[av, cv], [cv, bv]])
+    # Eq. (13), with all paper coefficient aliases substituted explicitly.
+    # The reference assumes real entries here; complex coefficients in the
+    # general engine are tested using the full conjugated contraction.
+    paper = ((av**2+bv**2+2*cv**2)/4
+        +(av**2-bv**2)/2*sp.cos(2*th+al)*sp.cos(al)
+        +((av**2+bv**2-2*cv**2)/4+cv**2/2*sp.cos(bs+bi)
+          +av*bv/2*sp.cos(bs-bi))/2*sp.cos(2*al)
+        +((av**2+bv**2-2*cv**2)/4-cv**2/2*sp.cos(bs+bi)
+          -av*bv/2*sp.cos(bs-bi))/2*sp.cos(4*th+2*al)
+        +(av*cv+bv*cv)/2*(sp.sin(2*th)*sp.cos(bi)+sp.sin(2*(th+al))*sp.cos(bs))
+        +(av*cv-bv*cv)/2*(sp.cos(2*(th+al))*sp.sin(2*th)*sp.cos(bi)
+                             +sp.cos(2*th)*sp.sin(2*(th+al))*sp.cos(bs)))
+    re_amplitude = (av*sp.cos(th+al)*sp.cos(th)
+        +cv*sp.cos(th+al)*sp.sin(th)*sp.cos(bi)
+        +cv*sp.sin(th+al)*sp.cos(th)*sp.cos(bs)
+        +bv*sp.sin(th+al)*sp.sin(th)*sp.cos(bi-bs))
+    im_amplitude = (cv*sp.cos(th+al)*sp.sin(th)*sp.sin(bi)
+        -cv*sp.sin(th+al)*sp.cos(th)*sp.sin(bs)
+        +bv*sp.sin(th+al)*sp.sin(th)*sp.sin(bi-bs))
+    trig_symbols = sp.symbols('ct st ca sa ci si cs ss', real=True)
+    substitutions = {}
+    for angle, cosine, sine in zip([th,al,bi,bs],trig_symbols[::2],trig_symbols[1::2]):
+        substitutions[sp.cos(angle)] = cosine
+        substitutions[sp.sin(angle)] = sine
+    polynomial = sp.expand(sp.expand_trig(re_amplitude**2+im_amplitude**2-paper)).xreplace(substitutions)
+    identities = [trig_symbols[i]**2+trig_symbols[i+1]**2-1 for i in range(0,8,2)]
+    basis = sp.groebner(identities, *trig_symbols, domain=sp.QQ.poly_ring(av,bv,cv))
+    symbolic_residual = basis.reduce(polynomial)[1]
+    check(symbolic_residual == 0, "Paper Eq. (13) symbolic contraction identity failed")
+    add("Eq. (13): general real symmetric 2×2 tensor",
+        "Exact polynomial reduction of |es† R ei|² minus the fully substituted paper expression is zero for arbitrary real a,b,c and θ,α,β,β′.",
+        expression=paper)
+    # Independently check the complex matrix contraction, including phase signs.
+    amp=(es.H*matrix*ei)[0]
+    expected_amp=re_amplitude+sp.I*im_amplitude
+    for parameters in [(0.31,0.67,0.12,1.29,1.2,-0.8,0.6),
+                       (0.73,-0.54,1.1,-0.9,0.4,1.3,-0.7)]:
+        env=dict(zip([th,al,bi,bs,av,bv,cv],parameters))
+        check(abs(complex((amp-expected_amp).subs(env).evalf()))<1e-12,"Eq. (11) phase sign mismatch")
+    add("Eq. (11): conjugated detection state", "Two independent complex-state substitutions check the signs of the incident and detected phases.")
+    eq14=(1-sp.cos(2*th)*sp.cos(2*(th+al))
+          +sp.sin(2*th)*sp.sin(2*(th+al))*sp.cos(bi+bs))/2
+    residual14=sp.expand(sp.expand_trig((re_amplitude**2+im_amplitude**2).subs({av:0,bv:0,cv:1})-eq14)).xreplace(substitutions)
+    check(basis.reduce(residual14)[1]==0,"Paper Eq. (14) failed")
+    add("Eq. (14): (001) off-diagonal limit", "Exact identity with d=1; a common complex d multiplies the intensity by |d|².", expression=eq14)
+    # Six surfaces, three profiles: compare an explicit independent closed
+    # form with the actual matrix calculation, not with a fitted polar plot.
+    for k in range(6):
+        for protocol in ['VV','VH','SIGMA']:
+            cfg=cubic_fig1_config(k,protocol,plot_points=361)
+            run=calculate_general(cfg)
+            variable=theta_scan if protocol!='SIGMA' else alpha
+            fraction=sp.Rational(100*k*k,(25+k*k)**2)
+            closed={'VV':sp.sin(2*variable)**2+fraction*sp.cos(variable)**4,
+                    'VH':sp.cos(2*variable)**2+fraction*sp.sin(2*variable)**2/4,
+                    'SIGMA':sp.sin(variable)**2+fraction*(1-sp.sin(2*variable))/4}[protocol]
+            actual=sum((r['amplitude']*sp.conjugate(r['amplitude']) for r in run['results']['T2g']['terms']),sp.S.Zero)
+            actual=actual.subs(d,1).subs(alpha,variable)
+            check(sp.trigsimp(sp.expand_trig(actual-closed))==0,"Si symbolic intensity comparison failed")
+            expected=np.asarray(sp.lambdify(variable,closed,'numpy')(run['angles']),dtype=float)
+            residual=float(np.max(np.abs(run['curves']['T2g']-expected)))
+            add(f"Si (5{k}0), {protocol}","Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",residual,closed)
+        frame=build_orientation(cubic_fig1_config(k,'VV'))['T']
+        check(zero(frame-cubic_frame((5,k,0))),"Paper frame mismatch")
+        check(zero(frame.T*frame-sp.eye(3)) and sp.simplify(frame.det())==1,"Improper frame")
+    add("Eqs. (4)-(6): all six measurement frames", "Six exact comparisons with the paper frame; each satisfies TᵀT=I and det(T)=+1.")
+    return dict(status='passed',version='5',revision=NOTEBOOK_REVISION if 'NOTEBOOK_REVISION' in globals() else '2026-11-02-r1',
+        reference=dict(title=CUBIC_SOURCE['title'],doi=CUBIC_SOURCE['doi'],url=CUBIC_SOURCE['url']),
+        checks=checks,passed=len(checks),total=len(checks),
+        maximum_numerical_residual=max(row['residual'] for row in checks),
+        scope='Checked main-text algebra and 18 Si (5,k,0) configurations. The (5,k,0) formulas are derived reductions using the paper conventions, not quotations of unavailable SI equations. Other surfaces, every SI expression, other materials and experimental agreement are outside this report. Independent lab-member review remains pending.')
+
+
+def reference_analytic_markdown(report=None):
+    """Readable evidence for colleagues; includes formulas without A/B/C aliases."""
+    report=reference_analytic_report() if report is None else report
+    lines=['# Reference analytical equation checks — Version 5','',
+           'Revision: '+report['revision'],
+           '**Reference:** '+report['reference']['title']+'; '+report['reference']['url'],
+           '**Result:** '+str(report['passed'])+'/'+str(report['total'])+' defined checks passed.',
+           report['scope'],
+           'The general Eq. (13) comparison assumes real symmetric tensor entries, as in the checked formula. The calculator retains full complex conjugation for complex coefficients. Frame angle, phase signs and scan-angle zero must agree before comparing polar plots.']
+    for row in report['checks']:
+        lines += ['','## '+row['label'],row['detail'],'Residual: '+str(row['residual'])]
+        if row.get('latex'):lines += ['$$'+row['latex']+'$$']
+    return '\n\n'.join(lines)+'\n'

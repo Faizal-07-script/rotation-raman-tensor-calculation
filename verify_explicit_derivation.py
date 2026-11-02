@@ -66,7 +66,7 @@ try:ns['prepare_input_review'](cfg)
 except ValueError:invalid_rejected=True
 else:raise AssertionError('Invalid in-plane direction passed input review')
 
-report=dict(status='passed',revision='2026-10-31-r1',cases=reports,
+report=dict(status='passed',revision='2026-11-02-r1',cases=reports,
             engine_sha256=hashlib.sha256((ROOT/'dist/raman_engine.py').read_bytes()).hexdigest(),
             total_cases=len(reports),invalid_geometry_rejected_before_intensity=invalid_rejected,
             scope='Displayed expressions, input preparation, and unchanged matrix-response arrays. This is not new experimental validation.',

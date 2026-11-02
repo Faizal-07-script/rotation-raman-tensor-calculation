@@ -1,39 +1,28 @@
 {
   "status": "passed",
   "version": "5",
-  "revision": "2026-10-31-r1",
-  "source_sha256": "08e989744f05813bcf286cd192866a7a434116e35de9d5e48a6325eae9193986",
-  "engine_sha256": "699662d383fede9eb7c30facf375b2cbf0b38e4aca6e765a181276fd704a35a2",
+  "revision": "2026-11-02-r1",
+  "source_sha256": "b5cb80d8e18accb0f4622057ef66f877e3771ff3262905f5f658881051acb6a8",
+  "engine_sha256": "be409df29083e5beebc28c44b66c3524f2531e88b79e5b425e90fdb597d0dfa4",
   "entry_points": [
     "index.html",
     "calculator.html"
   ],
   "checks": [
     "Full website opens on Home with navigation closed.",
-    "Calculator-only page hides the site navigation and links to the full website.",
-    "Its optional guide offers only calculator input and result tours.",
-    "Input review shows the axes and preparation before the intensity scan.",
-    "Silicon (500), VV completes in the browser.",
-    "Cartesian and polar plots use the same sampled intensities and display scales.",
-    "Four cards show intensity extrema and representative angles.",
-    "129 mathematical equations render without KaTeX errors or K/C/D aliases.",
-    "English explanations appear left of the equations on desktop and above them on narrow screens."
+    "Calculator-only entry opens in the calculator and hides the navigation toggle.",
+    "Coefficient size/phase labels, Cartesian tensor-component labels and complex value are visible.",
+    "Changing the Si coefficient phase to 90\u00b0 displays d=i; Review inputs retains phase 90\u00b0 and d=i.",
+    "Pre-calculation input review shows X/Y/Z and distinguishes geometry from Jones states.",
+    "Silicon (500), VV with d=i completes in the browser with maximum 1 at 45\u00b0.",
+    "All 133 default derivation equations render without KaTeX errors; three Si sections use yz/zy, xz/zx and xy/yx labels.",
+    "Validation view displays 22/22 build-time reference-equation checks with scope and evidence downloads.",
+    "CSV downloaded from the actual browser run agrees with sin\u00b2(2\u03b8) at all 721 angles."
   ],
   "browser_csv": {
     "samples": 721,
+    "coefficient": "d=i (coefficient phase 90 degrees)",
     "maximum_absolute_residual": 1.887379141862766e-15
   },
-  "responsive_css_viewports": [
-    375,
-    525
-  ],
-  "responsive_document_client_widths": [
-    360,
-    510
-  ],
-  "responsive_document_scroll_widths": [
-    360,
-    510
-  ],
-  "scope": "Interface, input review, mathematical rendering, CSV export and responsive layout. Scientific checks are recorded separately."
+  "scope": "Current desktop browser inputs, preview, calculation, mathematical rendering and CSV. Algebraic and Python execution checks are recorded separately; no new narrow-viewport measurement is claimed."
 }

@@ -15,7 +15,7 @@ Use **Jupyter Notebook / JupyterLab or Google Colab** with a Python kernel and w
 1. Open the current `261024 - Raman Tensor Rotation Ver 5.0.ipynb` notebook and choose **Restart kernel and Run All**. Run all **22 code cells in order**. Do not start from Cell 17 or Cell 22 in a fresh kernel.
 2. Each code cell prints **“Run completed successfully.”**, its cell number, what is ready and which cell to run next. The explanation above each code cell states its role, what to enter and what to expect. Cells 1–21 primarily define functions or controls; their message confirms execution, while the numerical/model checks are reported separately.
 3. Cell 22 checks **silicon (500), VV** and shows a short guide above the calculator; the plot is in the Polar plots tab. The **Silicon (500), VV reference frame** example is loaded automatically, and the **Polar plots** result tab is selected. No typing, `input()` prompt, external data file or coefficient editing is required for this first run.
-4. Inspect **Polar plots**, **Intensity values** and **Validation**. The first result has **one T2g channel**, combining the intensities of three unresolved orthogonal phonon partners, and **721 samples** from 0° through 360°. Cell 22 compares every sample with the reference equation below before opening the results. View the current plot in the Polar plots tab.
+4. Inspect **Polar plots**, **Intensity values** and **Validation**. The first result has **one T2g channel**, combining the intensities of three unresolved orthogonal phonon components, and **721 samples** from 0° through 360°. Cell 22 compares every sample with the reference equation below before opening the results. View the current plot in the Polar plots tab.
 5. For a different run, follow numbered tools **1 → 2 → 3 → 4 → 5 → 6**, then **7** to export. A selected example changes the form only after **1.4 Load selected example**. Example loading replaces inputs; review its selected model and optics afterward. The notebook automatically calculates only the initial example; press **6** after later changes.
 6. **8** reruns model validation, **9** saves and compares calculated runs, and **10** is the separate silicon benchmark. These optional tools are not required to run the first example.
 
@@ -24,7 +24,7 @@ Use **Jupyter Notebook / JupyterLab or Google Colab** with a Python kernel and w
 | Tool | Action / input | First-run example | Units / format / scope |
 | --- | --- | --- | --- |
 | **1. Model, optics & example** | 1.1 choose tensor model; 1.2 choose optics; 1.3 choose an example; 1.4 load it; 1.5–1.6 label and note | Full 3D crystal; VV reference (`CUBIC_VV`); Silicon (500) | Model and optics are separate choices. Labels/notes are exported text. Choose the paired linear profile (`LINEAR_PAIR`) when you want both VV and VH. |
-| **2. Material & tensor coefficients** | 2.1 material; 2.2 point group; 2.3 modes; 2.4 optional Ag equality; 2.5 each coefficient's magnitude and phase; 2.6 custom tensor | Si; Oh; T2g; shared d=1 with zero phase | Magnitudes ≥0 in one consistent relative scale; phases in degrees. A custom tensor is a 3×3 JSON array of numbers or strings such as `"1+0.2j"`. Named materials fix their stated point group. For another group, choose General. |
+| **2. Material & tensor coefficients** | 2.1 material; 2.2 point group; 2.3 modes; 2.4 optional Ag equality; 2.5 each tensor entry’s size and phase; 2.6 custom tensor | Si; Oh; T2g; shared d=1 with zero phase | Coefficient sizes ≥0 in one consistent relative scale; coefficient phases in degrees. A custom tensor is a 3×3 JSON array of numbers or strings such as `"1+0.2j"`. Named materials fix their stated point group. For another group, choose General. |
 | **3. Orientation & lattice** | 3.2 surface; 3.3 h,k,l; 3.4 u,v,w; 3.5 automatic X; 3.6 normal side; 3.7 frame angle; 3.8 lengths; 3.9 lattice angles | (500); hkl=(5,0,0); uvw=(0,-5,0); automatic X off; normal +1; ψ=0; lengths=(1,1,1); angles=(90,90,90) | Indices are integers and must satisfy hu+kv+lw=0. Lengths >0 use one common unit; angles/ψ use degrees. Equal lengths describe the cubic silicon reference; replace ratios for a noncubic sample. Web tool 3.1 also permits a proper manual frame. |
 | **4. Jones states & optical controls** | Set only fields active for the selected optical profile; inspect its equations and actual states | VV uses co-rotating parallel linear states; θ₀=0°; direct/circular-rule fields are inactive | Angles/phases are degrees. Direct Jones uses (cos θ, exp(iβ) sin θ). Conditional circular-rule charges are integers; phonon charges use comma-separated integers, e.g. `0, 1`; optional absorption charge may be blank. Those rule fields do not rescale the intensity. |
 | **5. Display settings** | 5.1 angular grid; 5.2 normalization; 5.3 Cartesian plots; 5.4 frame; 5.5 notebook mathematical steps | 0.5° / 721 samples; normalization off; Cartesian off; frame and steps on | Normalization is one common scale per mode. Raw CSV retains the unnormalized intensities. |
@@ -107,3 +107,52 @@ Share the current notebook or program ZIP and this guide with a colleague. Ask t
 | Γ; Δ; ∑ | Brillouin-zone center; a difference; summation |
 
 Greek letters are case-sensitive. Internal names such as `theta_i_deg` remain valid Python/JSON identifiers; the interface displays θᵢ. A and a are different source amplitudes.
+
+
+## Understanding the two coefficient inputs
+
+The letter d is a Raman tensor entry. The two inputs specify d = |d| exp(iφd).
+The **size |d|** is nonnegative; **phase φd** is entered in degrees. With size 1,
+phase 0° gives d=1, phase 180° gives d=−1, and phase 90° gives d=i. This phase
+is an angle in the complex plane, not the sample angle ψ or polarization angle θ.
+Use size 1 and phase 0° for the initial real-valued demonstration. A zero entry
+has no defined phase; the form uses 0° as a harmless convention. A common phase
+of the entire tensor does not change intensity; relative phases within one
+tensor can change interference. The value under each pair is what enters R.
+
+The three Si T₂g matrices are identified by their nonzero entries: yz/zy, xz/zx,
+and xy/yx in crystal coordinates. They are orthogonal components of one
+triply degenerate mode. Their intensities add when unresolved. Entries within
+one tensor instead add as amplitudes before squaring.
+
+**Colors:** amber identifies tensor components, teal coefficient size, purple
+coefficient phase, and blue measurement axes. Each term also has a written
+definition; color is not the only way to understand it.
+
+## The common calculation
+
+1. Surface, in-plane X and lattice → X, Y, Z and T. Y = Z × X.
+2. Material symmetry and Raman mode → crystal tensor with your coefficient values.
+3. Transform both tensor indices: R_lab = Tᵀ R_crystal T.
+4. Optical method → incident and detection Jones states at the sample.
+5. Contract to obtain the complex amplitude, then take its squared modulus.
+
+Changing the surface rebuilds T. Changing the material or mode replaces R.
+Changing polarization replaces the Jones states. X/Y/Z are geometry axes,
+not Jones vectors. Automatic X chooses a Cartesian reference; it does not
+fetch the axis from a paper. For silicon, (500) and (100) have the same normal.
+
+## Analytical comparison with New-san
+
+Read Reference_Equation_Checks.md and its matching JSON. The report covers
+the checked main-text real-tensor Eq. (13), its Eq. (14) limit, six proper
+frames, and all 18 Si (5,k,0) configurations. It includes exact symbolic
+identities and numerical residuals. It does not claim all supporting-information
+formulas, other materials, or experimental agreement have been checked.
+In Python, tool 8 displays the same analytical evidence. In the website,
+open Checks, comparisons and benchmark → Validation or Silicon benchmark.
+For Ag, the complete coherent intensity is shown separately from the component
+plots; compare complete_modes_audit.csv with a measured single-mode intensity.
+
+Before the next meeting, ask a colleague to run the current notebook and use
+the checklist above. The software cannot establish that a colleague reviewed it.

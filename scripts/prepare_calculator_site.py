@@ -15,6 +15,13 @@ if target == SOURCE:
 target.mkdir(parents=True, exist_ok=True)
 shutil.copytree(SOURCE / 'dist', target / 'dist', dirs_exist_ok=True)
 shutil.copy2(SOURCE / 'dist/calculator.html', target / 'dist/index.html')
+# Keep the browsable Python sources and checks current in both repositories.
+shutil.copytree(SOURCE / 'sources', target / 'sources', dirs_exist_ok=True)
+for name in ['scripts', 'validation']:
+    shutil.copytree(SOURCE / name, target / name, dirs_exist_ok=True)
+for pattern in ['*.py', '*verification.json', 'QUICKSTART.md', 'Saito-sensei feedback.md']:
+    for path in SOURCE.glob(pattern):
+        shutil.copy2(path, target / path.name)
 release = json.loads((SOURCE / 'dist/data/release.json').read_text())
 assert release['version'] == '5'
 for filename in ['raman_engine.py', 'web_bridge.py', 'calculator-ui.js']:

@@ -25,6 +25,6 @@
     "Full result ZIP: 44 valid entries, including figures, data, mathematics and comparison inputs.",
     "Silicon benchmark: 18 calculated cases pass their independent identities and OriginLab export."
   ],
-  "elapsed_seconds": 57.2,
-  "engine_sha256": "699662d383fede9eb7c30facf375b2cbf0b38e4aca6e765a181276fd704a35a2"
+  "elapsed_seconds": 40.0,
+  "engine_sha256": "be409df29083e5beebc28c44b66c3524f2531e88b79e5b425e90fdb597d0dfa4"
 }

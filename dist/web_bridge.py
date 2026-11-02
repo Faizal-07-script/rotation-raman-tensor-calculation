@@ -48,7 +48,7 @@ def web_form(cfg):
 def web_mode_definition(definition):
     return dict(irrep=definition['irrep'], parameters=[str(s) for s in parameters_for(definition)],
                 tensors=[sp.latex(R) for R in definition['partners']],
-                partners=len(definition['partners']), note=definition.get('note',''))
+                partners=len(definition['partners']), components=[tensor_component_label(R) for R in definition['partners']], note=definition.get('note',''))
 
 
 def web_catalog():
@@ -99,7 +99,7 @@ def web_configuration(data):
         definitions = definitions_for(cfg['material'], group)
         modes = data.get('modes', list(definitions))
         if not isinstance(modes, list) or not modes:
-            raise ValueError('Select at least one mode or branch.')
+            raise ValueError('Select at least one Raman mode.')
         if any(name not in definitions for name in modes):
             raise ValueError('A selected mode does not belong to the current material or point group.')
         values = {}
@@ -108,7 +108,7 @@ def web_configuration(data):
             for symbol in parameters_for(definitions[name]):
                 pair = data.get('mode_values',{}).get(name,{}).get(str(symbol))
                 if not isinstance(pair,dict):
-                    raise ValueError(f'Enter magnitude and phase for {name}: {symbol}.')
+                    raise ValueError(f'Enter the coefficient size and phase for {name}: {symbol}.')
                 values[name][symbol] = complex_parameter(pair.get('magnitude'), pair.get('phase'))
         lattice = data.get('lattice',cfg['lattice'])
         if not isinstance(lattice,list) or len(lattice)!=6:
@@ -213,6 +213,10 @@ def web_result(run, derivation, figures):
             symbolic='I('+raman_latex(row['variable'])+')='+raman_latex(row['expression']),
             numerical='I('+raman_latex(row['variable'])+')='+raman_latex(row['substituted']))
             for row in derivation['finals']],
+        complete_mode_intensity=[dict(channel=row['channel'],source_mode=row['source_mode'],
+            symbolic='I('+raman_latex(row['variable'])+')='+raman_latex(row['expression']),
+            numerical='I('+raman_latex(row['variable'])+')='+raman_latex(row['substituted']))
+            for row in derivation.get('complete_finals',[])],
         symbol_legend=derivation['symbol_legend'],derivation_reference_ids=derivation['reference_ids'],
         derivation_references=DERIVATION_REFERENCES,
         latex=tex,csv=csv_from_curves(run['angles'],run['display_curves'],'theta_deg' if run['optical']['scan_basis']=='SECOND' else 'alpha_deg'),
@@ -270,8 +274,10 @@ def web_validate():
     second=validate_general_upgrade()+validate_optical_method_guide()
     web_progress('Running QWP source reference checking procedures and recording their purposes and residuals…')
     reference=validate_optical_reference()
+    analytical=reference_analytic_report()
     report=dict(status=reference["status"],version=AUDIT_VERSION,checks=first+second,
-                optical_reference=reference)
+                optical_reference=reference,analytical_reference=analytical)
+    report["checks"].append(f"New-san reference: {analytical['passed']}/{analytical['total']} analytical equation checks pass.")
     WEB_STATE["validation"]=report
     return web_json(report)
 

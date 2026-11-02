@@ -1,7 +1,7 @@
 {
   "version": "5",
-  "revision": "2026-10-31-r1",
-  "source_sha256": "08e989744f05813bcf286cd192866a7a434116e35de9d5e48a6325eae9193986",
+  "revision": "2026-11-02-r1",
+  "source_sha256": "b5cb80d8e18accb0f4622057ef66f877e3771ff3262905f5f658881051acb6a8",
   "code_cells": 22,
   "default_input": {
     "material": "Si",
@@ -16,42 +16,44 @@
     "notebook": {
       "filename": "261024 - Raman Tensor Rotation Ver 5.0.ipynb",
       "canonical": "ROTATION_RAMAN_TENSOR_CALCULATION.ipynb",
-      "sha256": "c1c5b4a3ba0557adf362926b0ee81e4ca56835e65e83267b1d19e889289b87f7",
-      "size_bytes": 635558
+      "sha256": "80d67c22e7119c0f544b155cf53a9763845f1e978a8c4f5708d41657a68de01e",
+      "size_bytes": 657645
     },
     "python": {
       "filename": "261024 - Raman Tensor Rotation Ver 5.0.py",
       "canonical": "ROTATION_RAMAN_TENSOR_CALCULATION.py",
-      "sha256": "4592210f4dfb77d3a378195a8d173dc9fa689bd5e73b4c3952f132bcd553655a",
-      "size_bytes": 415640
+      "sha256": "38ed4a8783f26735f5c732ed1ecc1695fd4d073d564c9683be409e9bbfb51b6c",
+      "size_bytes": 431415
     },
     "bundle": {
       "filename": "261024 - Raman Tensor Rotation Ver 5.0.zip",
       "canonical": "All_Python_Programs.zip",
-      "sha256": "1189083c726b21d09142f452fcb55ee15cbc58e793880aa30170163ef385de0b",
-      "size_bytes": 458530
+      "sha256": "a43d1675acfaa0245e3cfdbc602a59c64adf8afd42a97777605a2a992ea786fc",
+      "size_bytes": 479376
     }
   },
   "assets": {
     "example_input_v5.json": "d384c2de443800263d5fec6dfacc384acd9de874b98600640eb00bfd8cd776a8",
-    "261024 - Raman Tensor Rotation Ver 5.0.zip": "1189083c726b21d09142f452fcb55ee15cbc58e793880aa30170163ef385de0b",
-    "SAITO_FEEDBACK_AUDIT.md": "b60966f9373020ec1ab9154c1dcb75596e64f8bb6b7343025bea7966aad6f3ce",
-    "Dr_Kumar_Original.ipynb": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
-    "Symbols_And_References.md": "8ba697fe7bf1272f79670954f4458d062471025b0cc0828a7f0caecba67afe27",
-    "261024 - Raman Tensor Rotation Ver 5.0.py": "4592210f4dfb77d3a378195a8d173dc9fa689bd5e73b4c3952f132bcd553655a",
-    "requirements.txt": "0cb5038254c3346aab5a31db0760daa181dabd4e4efdeeddd54363c25ad647e1",
-    "README.txt": "e2794dd7ff4ed443ee69e0e52843a223d23d4b1033e21a085dec2c4b208fde43",
-    "All_Python_Programs.zip": "9f2117e1eee859ffeac7618498558f404dd8ee2c7f48d692ce5c7d07c8deb31e",
-    "261024 - Raman Tensor Rotation Ver 5.0.ipynb": "c1c5b4a3ba0557adf362926b0ee81e4ca56835e65e83267b1d19e889289b87f7",
-    "Optical_Methods_Guide.md": "1a49fe9a863fa83c5bee01046c0c398364a9151ad423671055fac989394e8f95",
-    "web_bridge.py": "9a0da92322f36702865537b7015d67f2131468f469326455c2036c638286de5d",
-    "Silicon_Startup_Polar_Plot.png": "023c56b9726ff85f88bfe0bc5c7d635ae496a5554a641977fa62ccb5dae0cb03",
-    "raman_engine.py": "699662d383fede9eb7c30facf375b2cbf0b38e4aca6e765a181276fd704a35a2",
-    "ROTATION_RAMAN_TENSOR_CALCULATION.py": "4592210f4dfb77d3a378195a8d173dc9fa689bd5e73b4c3952f132bcd553655a",
-    "original_optical_reference.ipynb": "c1fa022ce24803c411a24e9aed8152743da6a8feb29cd7ea3cd69885c31aeee0",
-    "ROTATION_RAMAN_TENSOR_CALCULATION.ipynb": "c1c5b4a3ba0557adf362926b0ee81e4ca56835e65e83267b1d19e889289b87f7",
+    "Optical_Methods_Guide.md": "9298b257689c2cf32847505c89e4aa768f0990e7c96be5e21d720bc2f964c8c1",
+    "261024 - Raman Tensor Rotation Ver 5.0.zip": "a43d1675acfaa0245e3cfdbc602a59c64adf8afd42a97777605a2a992ea786fc",
     "sci.mplstyle": "14635df30cd9f8f33431b83dc6700ce51569c28f6e2113d217eb3e60e284bca5",
-    "QUICKSTART.md": "c4853a9350c31120645cac86ee1941b5508a5d9cb2e10df876161a9d1b6050fe",
-    "silicon_startup_input_v5.json": "d384c2de443800263d5fec6dfacc384acd9de874b98600640eb00bfd8cd776a8"
+    "Reference_Equation_Checks.md": "ae516adfd654839f2d53d62c34805a2ca524b02fac2acdac350a2fd1614d4b2f",
+    "silicon_startup_input_v5.json": "d384c2de443800263d5fec6dfacc384acd9de874b98600640eb00bfd8cd776a8",
+    "original_optical_reference.ipynb": "c1fa022ce24803c411a24e9aed8152743da6a8feb29cd7ea3cd69885c31aeee0",
+    "ROTATION_RAMAN_TENSOR_CALCULATION.ipynb": "80d67c22e7119c0f544b155cf53a9763845f1e978a8c4f5708d41657a68de01e",
+    "All_Python_Programs.zip": "219704d48cc18b9fee7a915f4e71a79d674965500093bf20dc3af60cc6e3753b",
+    "Dr_Kumar_Original.ipynb": "661989475b7bd39b1ab57bc4d9d59285ccf903baa24b58a78017d841feba8ec7",
+    "requirements.txt": "0cb5038254c3346aab5a31db0760daa181dabd4e4efdeeddd54363c25ad647e1",
+    "Symbols_And_References.md": "d63643e78853ccdad4118619495540b3a9441263f431422a1b3abaa08d1c07aa",
+    "Reference_Equation_Checks.json": "a734cecdc109f3c45429f740584dbe1ee2ecbdba36e602ca390e980d74135948",
+    "ROTATION_RAMAN_TENSOR_CALCULATION.py": "38ed4a8783f26735f5c732ed1ecc1695fd4d073d564c9683be409e9bbfb51b6c",
+    "QUICKSTART.md": "da7ba4a6626165af07720ac75b5bd1321357d80826303a865e53f72fef9f229e",
+    "web_bridge.py": "32dea7465d8baca5bd4de2146ee7a7f2278a2db8ca52d3b64f3dda0e2d1160d2",
+    "261024 - Raman Tensor Rotation Ver 5.0.ipynb": "80d67c22e7119c0f544b155cf53a9763845f1e978a8c4f5708d41657a68de01e",
+    "261024 - Raman Tensor Rotation Ver 5.0.py": "38ed4a8783f26735f5c732ed1ecc1695fd4d073d564c9683be409e9bbfb51b6c",
+    "Silicon_Startup_Polar_Plot.png": "023c56b9726ff85f88bfe0bc5c7d635ae496a5554a641977fa62ccb5dae0cb03",
+    "README.txt": "3d7236c825975f9bff55ff75573e5f92f3bc846d2099b41a000f2818879a1995",
+    "raman_engine.py": "be409df29083e5beebc28c44b66c3524f2531e88b79e5b425e90fdb597d0dfa4",
+    "SAITO_FEEDBACK_AUDIT.md": "492be01d7037ecff2f2ab53be1c733f41b488b6d09d68cfc24568cc16b2584e4"
   }
 }

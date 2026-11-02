@@ -1,0 +1,169 @@
+{
+  "status": "passed",
+  "version": "5",
+  "revision": "2026-11-02-r1",
+  "reference": {
+    "title": "Helicity-Dependent Raman Spectroscopy of Diamond and Zinc-Blende Crystal Structures",
+    "doi": "10.1002/jrs.70113",
+    "url": "https://doi.org/10.1002/jrs.70113"
+  },
+  "checks": [
+    {
+      "label": "Eq. (13): general real symmetric 2×2 tensor",
+      "detail": "Exact polynomial reduction of |es† R ei|² minus the fully substituted paper expression is zero for arbitrary real a,b,c and θ,α,β,β′.",
+      "residual": 0.0,
+      "status": "passed",
+      "latex": "\\frac{a^{2}}{4} + \\frac{b^{2}}{4} + \\frac{c^{2}}{2} + \\left(\\frac{a^{2}}{2} - \\frac{b^{2}}{2}\\right) \\cos{\\left(\\alpha \\right)} \\cos{\\left(\\alpha + 2 \\theta \\right)} + \\left(\\frac{a c}{2} - \\frac{b c}{2}\\right) \\left(\\sin{\\left(2 \\theta \\right)} \\cos{\\left(\\beta \\right)} \\cos{\\left(2 \\alpha + 2 \\theta \\right)} + \\sin{\\left(2 \\alpha + 2 \\theta \\right)} \\cos{\\left(\\beta^{\\prime} \\right)} \\cos{\\left(2 \\theta \\right)}\\right) + \\left(\\frac{a c}{2} + \\frac{b c}{2}\\right) \\left(\\sin{\\left(2 \\theta \\right)} \\cos{\\left(\\beta \\right)} + \\sin{\\left(2 \\alpha + 2 \\theta \\right)} \\cos{\\left(\\beta^{\\prime} \\right)}\\right) + \\left(\\frac{a^{2}}{8} - \\frac{a b \\cos{\\left(\\beta - \\beta^{\\prime} \\right)}}{4} + \\frac{b^{2}}{8} - \\frac{c^{2} \\cos{\\left(\\beta + \\beta^{\\prime} \\right)}}{4} - \\frac{c^{2}}{4}\\right) \\cos{\\left(2 \\alpha + 4 \\theta \\right)} + \\left(\\frac{a^{2}}{8} + \\frac{a b \\cos{\\left(\\beta - \\beta^{\\prime} \\right)}}{4} + \\frac{b^{2}}{8} + \\frac{c^{2} \\cos{\\left(\\beta + \\beta^{\\prime} \\right)}}{4} - \\frac{c^{2}}{4}\\right) \\cos{\\left(2 \\alpha \\right)}"
+    },
+    {
+      "label": "Eq. (11): conjugated detection state",
+      "detail": "Two independent complex-state substitutions check the signs of the incident and detected phases.",
+      "residual": 0.0,
+      "status": "passed"
+    },
+    {
+      "label": "Eq. (14): (001) off-diagonal limit",
+      "detail": "Exact identity with d=1; a common complex d multiplies the intensity by |d|².",
+      "residual": 0.0,
+      "status": "passed",
+      "latex": "\\frac{\\sin{\\left(2 \\theta \\right)} \\sin{\\left(2 \\alpha + 2 \\theta \\right)} \\cos{\\left(\\beta + \\beta^{\\prime} \\right)}}{2} - \\frac{\\cos{\\left(2 \\theta \\right)} \\cos{\\left(2 \\alpha + 2 \\theta \\right)}}{2} + \\frac{1}{2}"
+    },
+    {
+      "label": "Si (500), VV",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 0.0,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(2 \\theta \\right)}"
+    },
+    {
+      "label": "Si (500), VH",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 0.0,
+      "status": "passed",
+      "latex": "\\cos^{2}{\\left(2 \\theta \\right)}"
+    },
+    {
+      "label": "Si (500), SIGMA",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 0.0,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(\\alpha \\right)}"
+    },
+    {
+      "label": "Si (510), VV",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 2.220446049250313e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(2 \\theta \\right)} + \\frac{25 \\cos^{4}{\\left(\\theta \\right)}}{169}"
+    },
+    {
+      "label": "Si (510), VH",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 2.220446049250313e-16,
+      "status": "passed",
+      "latex": "\\frac{25 \\sin^{2}{\\left(2 \\theta \\right)}}{676} + \\cos^{2}{\\left(2 \\theta \\right)}"
+    },
+    {
+      "label": "Si (510), SIGMA",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 4.440892098500626e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(\\alpha \\right)} - \\frac{25 \\sin{\\left(2 \\alpha \\right)}}{676} + \\frac{25}{676}"
+    },
+    {
+      "label": "Si (520), VV",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 2.220446049250313e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(2 \\theta \\right)} + \\frac{400 \\cos^{4}{\\left(\\theta \\right)}}{841}"
+    },
+    {
+      "label": "Si (520), VH",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 2.220446049250313e-16,
+      "status": "passed",
+      "latex": "\\frac{100 \\sin^{2}{\\left(2 \\theta \\right)}}{841} + \\cos^{2}{\\left(2 \\theta \\right)}"
+    },
+    {
+      "label": "Si (520), SIGMA",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 2.220446049250313e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(\\alpha \\right)} - \\frac{100 \\sin{\\left(2 \\alpha \\right)}}{841} + \\frac{100}{841}"
+    },
+    {
+      "label": "Si (530), VV",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 4.440892098500626e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(2 \\theta \\right)} + \\frac{225 \\cos^{4}{\\left(\\theta \\right)}}{289}"
+    },
+    {
+      "label": "Si (530), VH",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 2.220446049250313e-16,
+      "status": "passed",
+      "latex": "\\frac{225 \\sin^{2}{\\left(2 \\theta \\right)}}{1156} + \\cos^{2}{\\left(2 \\theta \\right)}"
+    },
+    {
+      "label": "Si (530), SIGMA",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 3.3306690738754696e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(\\alpha \\right)} - \\frac{225 \\sin{\\left(2 \\alpha \\right)}}{1156} + \\frac{225}{1156}"
+    },
+    {
+      "label": "Si (540), VV",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 4.440892098500626e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(2 \\theta \\right)} + \\frac{1600 \\cos^{4}{\\left(\\theta \\right)}}{1681}"
+    },
+    {
+      "label": "Si (540), VH",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 2.220446049250313e-16,
+      "status": "passed",
+      "latex": "\\frac{400 \\sin^{2}{\\left(2 \\theta \\right)}}{1681} + \\cos^{2}{\\left(2 \\theta \\right)}"
+    },
+    {
+      "label": "Si (540), SIGMA",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 4.440892098500626e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(\\alpha \\right)} - \\frac{400 \\sin{\\left(2 \\alpha \\right)}}{1681} + \\frac{400}{1681}"
+    },
+    {
+      "label": "Si (550), VV",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 4.440892098500626e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(2 \\theta \\right)} + \\cos^{4}{\\left(\\theta \\right)}"
+    },
+    {
+      "label": "Si (550), VH",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 3.3306690738754696e-16,
+      "status": "passed",
+      "latex": "\\frac{\\sin^{2}{\\left(2 \\theta \\right)}}{4} + \\cos^{2}{\\left(2 \\theta \\right)}"
+    },
+    {
+      "label": "Si (550), SIGMA",
+      "detail": "Exact matrix-to-closed-form identity plus 361 numerical angles; paper axes and optical states, d=1, no normalization.",
+      "residual": 4.440892098500626e-16,
+      "status": "passed",
+      "latex": "\\sin^{2}{\\left(\\alpha \\right)} - \\frac{\\sin{\\left(2 \\alpha \\right)}}{4} + \\frac{1}{4}"
+    },
+    {
+      "label": "Eqs. (4)-(6): all six measurement frames",
+      "detail": "Six exact comparisons with the paper frame; each satisfies TᵀT=I and det(T)=+1.",
+      "residual": 0.0,
+      "status": "passed"
+    }
+  ],
+  "passed": 22,
+  "total": 22,
+  "maximum_numerical_residual": 4.440892098500626e-16,
+  "scope": "Checked main-text algebra and 18 Si (5,k,0) configurations. The (5,k,0) formulas are derived reductions using the paper conventions, not quotations of unavailable SI equations. Other surfaces, every SI expression, other materials and experimental agreement are outside this report. Independent lab-member review remains pending.",
+  "engine_sha256": "be409df29083e5beebc28c44b66c3524f2531e88b79e5b425e90fdb597d0dfa4"
+}

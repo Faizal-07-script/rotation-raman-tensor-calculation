@@ -1,4 +1,4 @@
-Version 5 | Revision 2026-10-31-r1 | Silicon (500) default
+Version 5 | Revision 2026-11-02-r1 | Silicon (500) default
 
 Open 261024 - Raman Tensor Rotation Ver 5.0.ipynb.
 Cell 1 prints this same revision before preparing the environment.
@@ -8,7 +8,7 @@ The .py source has 22 # %% cell boundaries for editors that support Python cells
 ROTATION RAMAN TENSOR CALCULATION — PYTHON DOWNLOADS
 
 Program: 261024 - Raman Tensor Rotation Ver 5.0
-Current version: 4. Run all 22 cells of the .ipynb in Jupyter or Colab.
+Current version: 5. Run all 22 cells of the .ipynb in Jupyter or Colab.
 The matching .py file contains the complete notebook source for an IPython kernel.
 raman_engine.py contains the same scientific functions without notebook-only
 display imports; web_bridge.py supplies validated JSON/browser interfaces.

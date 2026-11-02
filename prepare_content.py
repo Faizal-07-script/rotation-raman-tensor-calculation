@@ -71,6 +71,11 @@ if os.environ.get('RAMAN_PYTHON_DEPENDENCY_PATH'):
 ns={}
 exec(compile(engine,'raman_engine.py','exec'),ns)
 exec(compile((PROJECT/'web_bridge.py').read_text(),'web_bridge.py','exec'),ns)
+reference_report=ns['reference_analytic_report']()
+reference_report['engine_sha256']=hashlib.sha256(engine.encode()).hexdigest()
+(DATA/'reference-equation-checks.json').write_text(json.dumps(reference_report,indent=2,ensure_ascii=False)+'\n')
+(DOWNLOADS/'Reference_Equation_Checks.md').write_text(ns['reference_analytic_markdown'](reference_report))
+(DOWNLOADS/'Reference_Equation_Checks.json').write_text(json.dumps(reference_report,indent=2,ensure_ascii=False)+'\n')
 catalog=ns['web_catalog']()
 example=ns['web_calculate'](json.dumps(catalog['examples'][catalog['default_example']]['config']))
 canonical_startup=json.loads(example)['configuration']
@@ -130,7 +135,7 @@ for name,path in archive_paths.items():shutil.copy2(path,DOWNLOADS/name)
 readme='''ROTATION RAMAN TENSOR CALCULATION — PYTHON DOWNLOADS
 
 Program: 261024 - Raman Tensor Rotation Ver 5.0
-Current version: 4. Run all 22 cells of the .ipynb in Jupyter or Colab.
+Current version: 5. Run all 22 cells of the .ipynb in Jupyter or Colab.
 The matching .py file contains the complete notebook source for an IPython kernel.
 raman_engine.py contains the same scientific functions without notebook-only
 display imports; web_bridge.py supplies validated JSON/browser interfaces.
@@ -186,7 +191,7 @@ in the main figures. A coherent full-mode audit is exported separately.
     'Open the newly downloaded file, then restart its kernel and Run All.\n'
     'The .py source has 22 # %% cell boundaries for editors that support Python cells.\n\n'+readme)
 with zipfile.ZipFile(DOWNLOADS/'All_Python_Programs.zip','w',zipfile.ZIP_DEFLATED) as archive:
-    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','Symbols_And_References.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v5.json','silicon_startup_input_v5.json','Silicon_Startup_Polar_Plot.png']:
+    for name in ['ROTATION_RAMAN_TENSOR_CALCULATION.ipynb','ROTATION_RAMAN_TENSOR_CALCULATION.py','raman_engine.py','web_bridge.py','sci.mplstyle','requirements.txt','README.txt','Optical_Methods_Guide.md','Symbols_And_References.md','QUICKSTART.md','SAITO_FEEDBACK_AUDIT.md','example_input_v5.json','silicon_startup_input_v5.json','Silicon_Startup_Polar_Plot.png','Reference_Equation_Checks.md','Reference_Equation_Checks.json']:
         archive.write(DOWNLOADS/name,name)
     # Original third-party reference notebooks remain separate from the project ZIP.
 

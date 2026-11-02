@@ -74,3 +74,12 @@ body:has(.calc-layout) .page-title-row{margin-bottom:10px}body:has(.calc-layout)
 .curve-legend{display:flex;gap:12px;flex-wrap:wrap;padding:0 18px;font-size:11px}.curve-legend span{display:flex;align-items:center;gap:6px}.curve-legend i{width:16px;height:3px;display:inline-block}
 @media(max-width:1180px){.visualization-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:620px){.extrema-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Standard terms are distinguished by text, definition and color together. */
+.technical-term{font-weight:600;border-radius:4px;padding:1px 4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.term-tensor{color:#8a4b12;background:#fff3e6}.term-size{color:#00656c;background:#e7f5f3}.term-phase{color:#65408b;background:#f2ecfa}.term-geometry{color:#245f9c;background:#edf4ff}
+.calc-controls .field label.term-size{color:#00656c}.calc-controls .field label.term-phase{color:#65408b}
+.coefficient-help{font-size:12px;line-height:1.7;margin:10px 0 18px}.coefficient-help summary{cursor:pointer;font-weight:600;color:var(--burgundy)}.coefficient-help p{font-size:12px;margin:10px 0}.coefficient-help .equation{font-size:15px;padding:8px;overflow:auto}
+.coefficient-entry{border-top:1px solid #dce5eb;padding-top:13px;margin-top:13px}.coefficient-value{font-size:12px;line-height:1.7;margin:4px 0;overflow-wrap:anywhere}.tensor-component-label{font-size:12px;line-height:1.9;margin:0 0 9px}
+.common-calculation{font-size:12px;line-height:1.85;margin:0 0 18px;padding:18px 21px}.common-calculation>summary{font-weight:600;cursor:pointer;font-size:14px}.common-calculation ol{padding-left:22px}.common-calculation .equation{font-size:15px;padding:8px 0;overflow:auto}.term-key{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:13px;font-size:11px}
+.reference-equation-checks{margin-bottom:20px}.reference-equation-checks td{font-size:11px;vertical-align:top}.reference-equation-checks p{font-size:12px;line-height:1.8}.reference-equation-checks .table-wrap{overflow:auto}

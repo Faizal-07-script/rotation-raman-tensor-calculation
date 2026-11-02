@@ -13,13 +13,13 @@
   "examples": [
     {
       "key": "SLIDE",
-      "equations": 158,
-      "definitions": 494
+      "equations": 207,
+      "definitions": 642
     },
     {
       "key": "QWP_3D",
-      "equations": 263,
-      "definitions": 700
+      "equations": 324,
+      "definitions": 872
     },
     {
       "key": "QWP_2D",
@@ -28,26 +28,26 @@
     },
     {
       "key": "LINEAR_BP",
-      "equations": 577,
-      "definitions": 1487
+      "equations": 753,
+      "definitions": 1987
     },
     {
       "key": "CIRCULAR_MOS2",
-      "equations": 138,
-      "definitions": 431
+      "equations": 150,
+      "definitions": 463
     },
     {
       "key": "SI_500",
-      "equations": 129,
-      "definitions": 369
+      "equations": 133,
+      "definitions": 379
     },
     {
       "key": "SI_530",
-      "equations": 129,
-      "definitions": 403
+      "equations": 133,
+      "definitions": 413
     }
   ],
-  "total_example_equations": 1435,
+  "total_example_equations": 1741,
   "profiles": [
     "CUBIC_VV",
     "CUBIC_VH",

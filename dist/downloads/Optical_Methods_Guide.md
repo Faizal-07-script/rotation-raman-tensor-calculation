@@ -50,7 +50,7 @@ The physical sign above uses exp[i(k.r-ω t)] and fixed laboratory XY components
 
 ### Ag presentation
 
-Ag(xx), Ag(yy) and Ag(zz) remain separate contribution powers in the main plots. A complete single-phonon intensity is the squared sum of its component amplitudes; orthogonal unresolved phonon partners instead contribute a sum of powers. These are separate choices from the optical profile.
+Ag(xx), Ag(yy) and Ag(zz) remain separate contribution powers in the main plots. A complete single-phonon intensity is the squared sum of its component amplitudes; orthogonal unresolved phonon components instead contribute a sum of powers. These are separate choices from the optical profile.
 
 ### VV: parallel linear states, scan θ
 

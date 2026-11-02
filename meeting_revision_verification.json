@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "revision": "2026-11-02-r1",
+  "checks": [
+    "Si matrices are named by their original Cartesian entries.",
+    "Coefficient phases 0\u00b0, \u00b190\u00b0, 180\u00b0, 360\u00b0 are retained in the review; a common Si tensor phase preserves intensity.",
+    "The displayed examples 1, i, \u22121 and the zero-size limit match the complex inputs.",
+    "Definitions precede use; selected phases have local labels, and surface indices are identified as inputs.",
+    "The complete Ag equation retains destructive interference; separate Cartesian powers remain separate.",
+    "All 22 paper-equation checks pass; the published evidence identifies the current engine."
+  ],
+  "engine_sha256": "be409df29083e5beebc28c44b66c3524f2531e88b79e5b425e90fdb597d0dfa4",
+  "scope": "Input meanings, source equations, coherent Ag derivation and unchanged Si response. No independent colleague or experimental review is claimed."
+}
