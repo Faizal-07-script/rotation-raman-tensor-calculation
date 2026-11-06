@@ -173,7 +173,7 @@ function renderReferences(downloadOnly=false){
 
 function optionList(options,selected){return options.map(([value,label])=>'<option value="'+esc(value)+'" '+(value===selected?'selected':'')+'>'+esc(label)+'</option>').join('');}
 function numberedControl(id,label){
-  const numbers={'tensor-model':'1.1','optical-method':'1.2','example':'1.3','case-label':'1.5','input-note':'1.6',
+  const numbers={'framework':'1.1','tensor-model':'1.1','optical-method':'1.2','example':'1.3','case-label':'1.5','input-note':'1.6',
     'material':'2.1','point-group':'2.2','ag-relation':'2.4','source-a':'2.1','source-A':'2.2','source-delta':'2.3','source-phi':'2.4',
     'orientation-kind':'3.1','surface':'3.2','automatic-x':'3.5','normal-side':'3.6','frame-angle':'3.7',
     'direct-theta_i_deg':'4.1','direct-beta_i_deg':'4.2','direct-theta_s0_deg':'4.3','direct-beta_s_deg':'4.4','theta-zero':'4.5','analyzer-zero':'4.6',

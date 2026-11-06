@@ -83,3 +83,14 @@ body:has(.calc-layout) .page-title-row{margin-bottom:10px}body:has(.calc-layout)
 .coefficient-entry{border-top:1px solid #dce5eb;padding-top:13px;margin-top:13px}.coefficient-value{font-size:12px;line-height:1.7;margin:4px 0;overflow-wrap:anywhere}.tensor-component-label{font-size:12px;line-height:1.9;margin:0 0 9px}
 .common-calculation{font-size:12px;line-height:1.85;margin:0 0 18px;padding:18px 21px}.common-calculation>summary{font-weight:600;cursor:pointer;font-size:14px}.common-calculation ol{padding-left:22px}.common-calculation .equation{font-size:15px;padding:8px 0;overflow:auto}.term-key{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:13px;font-size:11px}
 .reference-equation-checks{margin-bottom:20px}.reference-equation-checks td{font-size:11px;vertical-align:top}.reference-equation-checks p{font-size:12px;line-height:1.8}.reference-equation-checks .table-wrap{overflow:auto}
+/* Three laboratory models */
+.worked-row.analytical-expression .worked-mathematics .katex,.final-intensity-card.analytical-expression .katex{color:#b4232b}
+.analytical-color-key{font-size:.9rem;color:#b4232b;margin:14px 0}
+.technical-term,.term-phase,.term-size,.term-geometry,.term-tensor{color:inherit;background:transparent;border-color:#dbe2e8}
+.paper-equation-ref{display:block;margin-top:8px;color:var(--muted,#617181)}
+.worked-source{display:none}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:24px 0}
+
+.paper-hidden-input{display:none!important}
+
+.coefficient-entry .term-phase,.coefficient-entry .term-size,.term-key .technical-term{color:inherit;background:transparent}

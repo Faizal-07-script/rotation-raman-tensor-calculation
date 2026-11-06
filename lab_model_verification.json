@@ -1,0 +1,66 @@
+{
+  "status": "passed",
+  "version": "5",
+  "revision": "2026-11-06-r1",
+  "source_sha256": "126daa932d08b5561c47787c176c00dec58a0c6e5adc5fce23648788f9d45f3c",
+  "models": [
+    "USER_PPT",
+    "NEW_SAN",
+    "DR_KUMAR"
+  ],
+  "notebook_code_cells_executed": 22,
+  "paper_equations_in_Si_500_trace": 24,
+  "analytical_entries_in_red": 7,
+  "independent_matrix_checks": {
+    "New_san_cases": 54,
+    "materials": [
+      "Si",
+      "GaAs"
+    ],
+    "polarizations": [
+      "VV",
+      "VH",
+      "sigma+alpha"
+    ],
+    "absolute_tolerance": 2e-11,
+    "PPT_separate_Ag_components": "passed",
+    "Dr_Kumar_QWP_chain": "passed"
+  },
+  "mathematical_typesetting_expressions": 158,
+  "scope": "Source algebra and numerical consistency, not experimental certification or independent laboratory review.",
+  "browser_checks": {
+    "environment": "Managed browser preview of the production dist",
+    "PPT": {
+      "status": "passed",
+      "channels": [
+        "Ag(xx)",
+        "Ag(yy)",
+        "Ag(zz)"
+      ],
+      "equations": 24,
+      "katex_errors": 0
+    },
+    "Dr_Kumar": {
+      "status": "passed",
+      "equations": 9,
+      "analytical_entries": 4,
+      "return_QWP_in_displayed_amplitude": true,
+      "katex_errors": 0
+    },
+    "New_san_Si_500": {
+      "VV": "sin(2 theta)^2",
+      "VH": "cos(2 theta)^2",
+      "sigma+alpha": "sin(alpha)^2",
+      "status": "passed",
+      "equations": 24,
+      "analytical_entries": 7,
+      "katex_errors": 0
+    },
+    "New_san_GaAs_111_VV": {
+      "status": "passed",
+      "TO": "2/3",
+      "LO": "1/3",
+      "katex_errors": 0
+    }
+  }
+}

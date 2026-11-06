@@ -717,39 +717,39 @@
       },
       {
         "start_line": 308,
-        "end_line": 323,
+        "end_line": 321,
         "title": "Prepare 17 inputs and state",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
         "check": "Run the cells in order and inspect the input review or result for this operation."
       },
       {
-        "start_line": 324,
-        "end_line": 325,
+        "start_line": 321,
+        "end_line": 321,
         "title": "Prepare 17 inputs and state",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
         "check": "Run the cells in order and inspect the input review or result for this operation."
       },
       {
-        "start_line": 326,
-        "end_line": 339,
+        "start_line": 321,
+        "end_line": 321,
         "title": "Prepare 17 inputs and state",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
         "check": "Run the cells in order and inspect the input review or result for this operation."
       },
       {
-        "start_line": 340,
-        "end_line": 340,
+        "start_line": 321,
+        "end_line": 321,
         "title": "Prepare 17 inputs and state",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
         "check": "Run the cells in order and inspect the input review or result for this operation."
       },
       {
-        "start_line": 342,
-        "end_line": 342,
+        "start_line": 321,
+        "end_line": 321,
         "title": "Prepare 17 inputs and state",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -928,7 +928,7 @@
       },
       {
         "start_line": 303,
-        "end_line": 308,
+        "end_line": 310,
         "title": "Update model visibility",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -936,7 +936,7 @@
       },
       {
         "start_line": 311,
-        "end_line": 321,
+        "end_line": 323,
         "title": "On model",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -944,7 +944,7 @@
       },
       {
         "start_line": 324,
-        "end_line": 394,
+        "end_line": 396,
         "title": "Load configuration",
         "explanation": "Load explicit visible values; changing a report label never changes optics.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -952,15 +952,15 @@
       },
       {
         "start_line": 397,
-        "end_line": 414,
+        "end_line": 406,
         "title": "On load example",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
         "check": "Run the cells in order and inspect the input review or result for this operation."
       },
       {
-        "start_line": 416,
-        "end_line": 416,
+        "start_line": 397,
+        "end_line": 397,
         "title": "Prepare 18 inputs and state",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -996,7 +996,7 @@
       },
       {
         "start_line": 4,
-        "end_line": 45,
+        "end_line": 46,
         "title": "Collect config",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1004,7 +1004,7 @@
       },
       {
         "start_line": 48,
-        "end_line": 52,
+        "end_line": 53,
         "title": "Report error",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1012,7 +1012,7 @@
       },
       {
         "start_line": 55,
-        "end_line": 75,
+        "end_line": 76,
         "title": "Result table markdown",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1020,7 +1020,7 @@
       },
       {
         "start_line": 78,
-        "end_line": 122,
+        "end_line": 123,
         "title": "Protocol check markdown",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1028,7 +1028,7 @@
       },
       {
         "start_line": 125,
-        "end_line": 182,
+        "end_line": 183,
         "title": "On run",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1036,7 +1036,7 @@
       },
       {
         "start_line": 185,
-        "end_line": 197,
+        "end_line": 198,
         "title": "Download link",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1044,7 +1044,7 @@
       },
       {
         "start_line": 200,
-        "end_line": 217,
+        "end_line": 218,
         "title": "On export",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1052,7 +1052,7 @@
       },
       {
         "start_line": 220,
-        "end_line": 227,
+        "end_line": 228,
         "title": "On latex",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1060,7 +1060,7 @@
       },
       {
         "start_line": 230,
-        "end_line": 255,
+        "end_line": 256,
         "title": "On validate",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1068,7 +1068,7 @@
       },
       {
         "start_line": 258,
-        "end_line": 281,
+        "end_line": 282,
         "title": "Render comparison",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1076,7 +1076,7 @@
       },
       {
         "start_line": 284,
-        "end_line": 294,
+        "end_line": 295,
         "title": "Add comparison",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1084,7 +1084,7 @@
       },
       {
         "start_line": 297,
-        "end_line": 303,
+        "end_line": 304,
         "title": "Clear comparison",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1092,7 +1092,7 @@
       },
       {
         "start_line": 306,
-        "end_line": 310,
+        "end_line": 311,
         "title": "Invalidate cubic",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1100,7 +1100,7 @@
       },
       {
         "start_line": 313,
-        "end_line": 331,
+        "end_line": 332,
         "title": "On cubic run",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1108,7 +1108,7 @@
       },
       {
         "start_line": 334,
-        "end_line": 342,
+        "end_line": 343,
         "title": "On cubic inspect",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1116,7 +1116,7 @@
       },
       {
         "start_line": 345,
-        "end_line": 356,
+        "end_line": 357,
         "title": "On cubic export",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1124,7 +1124,7 @@
       },
       {
         "start_line": 360,
-        "end_line": 382,
+        "end_line": 383,
         "title": "Display explained steps",
         "explanation": "Place English explanations on the left and complete mathematics on the right.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1139,8 +1139,8 @@
         "check": "Run the cells in order and inspect the input review or result for this operation."
       },
       {
-        "start_line": 396,
-        "end_line": 396,
+        "start_line": 394,
+        "end_line": 394,
         "title": "Prepare 19 inputs and state",
         "explanation": "Set the displayed controls or values used by the following numbered operations.",
         "why": "Keep the notebook, browser and exported calculation consistent.",
@@ -1470,7 +1470,7 @@
       },
       {
         "start_line": 1029,
-        "end_line": 1139,
+        "end_line": 1205,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",

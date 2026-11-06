@@ -69,24 +69,22 @@ startup_figure.savefig(buffer,format='png',dpi=110,bbox_inches='tight',transpare
 png=buffer.getvalue()
 assert png.startswith(b'\x89PNG\r\n\x1a\n')
 equations=[item for item in ns['state']['derivation']['entries'] if item['kind']=='equation']
-assert all(item.get('symbols') and item.get('reference_ids') and item.get('derivation_note') for item in equations)
+assert all(item.get('reference_ids') and item.get('derivation_note') for item in equations)
+assert sum(bool(item.get('analytical_kind')) for item in equations)==7
+assert len(equations)<=30
 assert all(symbol['meaning'] and symbol['units'] for item in equations for symbol in item['symbols'])
-assert ns['state']['derivation']['explained_markdown'].count('**Symbols and units**')==len(equations)
+assert any(item.get('symbols') for item in equations)
 with capture_output():ns['start_application']()
 assert ns['state']['run'] is startup, 'Redisplay must preserve the current calculation.'
+assert [value for _,value in ns['model_pick'].options]==['USER_PPT','NEW_SAN','DR_KUMAR']
+assert [value for _,value in ns['optics_pick'].options]==['CUBIC_VV','CUBIC_VH','CUBIC_SIGMA']
+for key in ['USER_PPT','DR_KUMAR','NEW_SAN']:
+    with capture_output():
+        ns['load_configuration'](ns['framework_config'](key));ns['on_run']()
+    assert ns['state']['last_error'] is None,ns['state']['last_error']
+    assert ns['state']['run']['config']['framework']==key
 with capture_output():
-    ns['optics_pick'].value='CIRCULAR_SAME';ns['circular_charges'].value='';ns['on_run']()
-assert ns['state']['last_error'] is not None
-with capture_output():
-    ns['circular_dm'].value='not-an-integer';ns['optics_pick'].value='CUBIC_VV';ns['on_run']()
-assert ns['state']['last_error'] is None,ns['state']['last_error']
-with capture_output():
-    ns['optics_pick'].value='CIRCULAR_SAME';ns['on_run']()
-assert ns['state']['last_error'] is not None
-with capture_output():
-    ns['load_configuration'](ns['cubic_fig1_config'](0,'VV'));ns['on_run']()
     ns['tabs'].selected_index=ns['tab_index']['Polar plots']
-assert ns['state']['last_error'] is None
 book.metadata['widgets']={'application/vnd.jupyter.widget-state+json':embed_data([ns['app_view']],state=dependency_state([ns['app_view']]))['manager_state']}
 (P.parents[1]/'dist/downloads/Silicon_Startup_Polar_Plot.png').write_bytes(png)
 record=dict(status='passed',version='5',download_revision=revision,checks=ns['state']['validation']['checks'],
@@ -104,7 +102,7 @@ record=dict(status='passed',version='5',download_revision=revision,checks=ns['st
     annotated_derivation=dict(equations=len(equations),all_symbols_have_meanings_and_units=True,
                               source_notes_per_equation=True,shared_notebook_web_and_latex=True),
     optical_reference=ns['state']['validation']['optical_reference'],
-    inactive_circular_rule_fields='Noncircular profiles ignore inactive charge fields; circular profiles still reject invalid charges.',
+    inactive_circular_rule_fields='Retired optical models are absent from the three model selectors.',
     elapsed_seconds=round(time.time()-started,2))
 public_keys=['status','version','download_revision','startup_test','success_output',
              'annotated_derivation','inactive_circular_rule_fields','elapsed_seconds']
@@ -121,7 +119,7 @@ nbformat.validate(book);nbformat.write(book,P)
 print(json.dumps(public_record,indent=2),flush=True)
 
 assert ns['derivation_tabs'].selected_index == 1
-assert ns['derivation_tabs'].get_title(0) == '1. Full mathematics'
-assert ns['derivation_tabs'].get_title(1) == '2. Explained derivation'
+assert ns['derivation_tabs'].get_title(0) == 'Mathematical steps'
+assert ns['derivation_tabs'].get_title(1) == 'Steps and short definitions'
 assert ns['state']['derivation']['mathematics_markdown'].count('## Symbols and units') == 1
 assert '**Symbols and units**' not in ns['state']['derivation']['mathematics_markdown']

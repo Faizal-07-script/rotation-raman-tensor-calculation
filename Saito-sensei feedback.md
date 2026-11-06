@@ -37,3 +37,8 @@ the introduction, tutorials and references.
 
 Internal JSON keys used by older saved inputs are preserved for compatibility.
 They are implementation details, not names for new physical quantities.
+
+
+## 6 November 2026 revision
+
+Exactly three calculation models: My PPT slides, New-san, and Dr. Kumar. New-san uses VV, VH and σ⁺α and follows the paper/SI order. Analytical transformed tensors and intensity expressions are red; symbol definitions are brief. Python, both websites and their downloads use the same calculation functions. See LAB_MODEL_REVISION.md.

@@ -2755,6 +2755,134 @@ def protocol_state_comparison():
             )
     return rows
 
+"""The three laboratory calculation models."""
+
+FRAMEWORKS = {
+    "USER_PPT": {"label": "1. My PPT slide model", "profiles": ["CUBIC_SIGMA"]},
+    "NEW_SAN": {"label": "2. New-san — Paukatong et al.", "profiles": ["CUBIC_VV", "CUBIC_VH", "CUBIC_SIGMA"]},
+    "DR_KUMAR": {"label": "3. Dr. Kumar model", "profiles": ["QWP"]},
+}
+LAB_PROFILE_LABELS = {
+    "CUBIC_VV": "VV — parallel linear polarization",
+    "CUBIC_VH": "VH — crossed linear polarization",
+    "CUBIC_SIGMA": "σ⁺α — paper equation (11)",
+    "QWP": "Input QWP → Raman tensor → return QWP → analyzer",
+}
+MATERIALS["GaAs"] = dict(label="GaAs — zinc blende", group="Td", space_group="F-43m (#216)",
+    modes={"TO": "T2", "LO": "T2"}, lattice=(1,1,1,90,90,90), surface="(500)",
+    note="New-san equation (8): TO uses X and Y phonon projections; LO uses Z.", sources=["silicon"])
+
+
+def framework_for(cfg):
+    key = cfg.get("framework")
+    if key is not None:
+        if key not in FRAMEWORKS:
+            raise ValueError("Choose My PPT slide model, New-san, or Dr. Kumar.")
+        return key
+    if cfg.get("tensor_model") == "QWP_SOURCE_2D":
+        return "DR_KUMAR"
+    return "NEW_SAN" if cfg.get("material") in ["Si","GaAs"] and cfg.get("optics","").startswith("CUBIC_") else "USER_PPT"
+
+
+def framework_config(key):
+    if key == "USER_PPT":
+        cfg = slide_component_config()
+    elif key == "NEW_SAN":
+        cfg = general_config("Si","CUBIC_VV")
+        cfg.update(modes=["T2g"],mode_values={"T2g":{d:sp.S.One}},hkl=(5,0,0),uvw=(0,-5,0),normal_sign=1)
+    elif key == "DR_KUMAR":
+        cfg = qwp_source_config()
+    else:
+        raise ValueError("Unknown laboratory model.")
+    cfg.update(framework=key,case_label=FRAMEWORKS[key]["label"].split(". ",1)[-1])
+    return prepare_framework_config(cfg)
+
+
+def prepare_framework_config(configuration):
+    cfg = copy.deepcopy(configuration)
+    key = framework_for(cfg)
+    cfg["framework"] = key
+    if cfg["optics"] not in FRAMEWORKS[key]["profiles"]:
+        raise ValueError("The selected optical configuration does not belong to this model.")
+    if key == "DR_KUMAR":
+        if cfg.get("tensor_model") != "QWP_SOURCE_2D":
+            raise ValueError("Dr. Kumar model uses the supplied original 2×2 source tensor.")
+        cfg.update(calculation_method="QWP",ag_rule="COHERENT_SINGLE_TENSOR",show_geometry=False)
+    else:
+        if cfg.get("tensor_model") != "CRYSTAL_3D":
+            raise ValueError("This model requires a 3×3 crystal tensor.")
+        if key == "NEW_SAN":
+            if cfg.get("material") not in ["Si","GaAs"]:
+                raise ValueError("New-san model covers Si and GaAs. Use the PPT model for the other material tensors.")
+            h,k,ell = map(sp.sympify,cfg["hkl"])
+            if h==k==ell==0:
+                raise ValueError("The surface normal cannot be (000).")
+            cfg.update(orientation="hkl",uvw=(k,-h,0) if h*h+k*k else (1,0,0),
+                       normal_sign=1,azimuth_deg=0,allow_reflection=False,lattice=(1,1,1,90,90,90))
+            cfg["paper_parameters"] = {**default_paper_parameters("CIRCULAR"),"theta0_deg":0}
+            for vals in cfg["mode_values"].values():
+                if any(sp.im(sp.expand_complex(v)) != 0 for v in vals.values()):
+                    raise ValueError("Use a real d in the paper model; its coefficient phase is 0° or 180°.")
+        elif cfg.get("material") == "GaAs":
+            raise ValueError("The GaAs LO/TO calculation belongs to the New-san model.")
+    return cfg
+
+
+_original_calculate_general = calculate_general
+
+
+def newsan_gaas_families(cfg,T):
+    original=definitions_for("Si","Oh")["T2g"]["partners"]
+    families={}
+    for name in cfg["modes"]:
+        if name not in ["LO","TO"]:raise ValueError("Choose the GaAs LO or TO mode.")
+        indices=[2] if name=="LO" else [0,1]
+        tensors=[tidy(sum((T[j,i]*original[j] for j in range(3)),sp.zeros(3))) for i in indices]
+        families[name]=dict(irrep=name,partners=tensors,numeric_partners=[r.subs(cfg["mode_values"][name]) for r in tensors],
+            calculation_tensors=tensors,calculation_labels=["R^"+"XYZ"[i] for i in indices],
+            values=cfg["mode_values"][name],rule="SINGLE_TENSOR" if name=="LO" else "DEGENERATE_PARTNER_SUM",
+            combination_reason="Paper (10): LO is Z; TO is the sum of X and Y intensities.",
+            note="Phonon projection, paper (8).")
+    return families
+
+
+def calculate_general(configuration):
+    cfg = prepare_framework_config(configuration)
+    if cfg["framework"] == "NEW_SAN" and cfg["material"] == "GaAs":
+        geometry = build_orientation(cfg)
+        optical = optical_chain(cfg["optics"],paper=cfg["paper_parameters"])
+        T = geometry["T"]
+        families = newsan_gaas_families(cfg,T)
+        cfg.update(calculation_method="GENERAL",ag_rule="COHERENT_SINGLE_TENSOR",
+                   effective_optical_parameters=copy.deepcopy(optical["parameters"]))
+        run = assemble_calculated_run(cfg,geometry,optical,families,
+            lambda r,o:amplitude_record(r,T,o),["New-san equations (1)–(11); cubic backscattering; one real coefficient per mode."])
+        run = attach_display_channels(attach_physics_audit(run))
+        run["style"] = copy.deepcopy(PLOT_STYLE_STATUS)
+    else:
+        run = _original_calculate_general(cfg)
+    run["config"]["framework"] = cfg["framework"]
+    return run
+
+
+_all_optical_method_catalog=optical_method_catalog
+def optical_method_catalog():
+    return {key:value for key,value in _all_optical_method_catalog().items() if key in LAB_PROFILE_LABELS}
+
+
+def optical_methods_overview_markdown():
+    return """# Laboratory calculation models
+
+1. My PPT slide model: the slide frame and separate Ag Cartesian contributions.
+2. New-san — Paukatong et al.: Si and GaAs, VV, VH and σ⁺α; paper and supplementary equations.
+3. Dr. Kumar model: the original 2×2 tensor and QWP optical sequence.
+
+New-san order: original tensors → surface axes → transformed tensors → Jones states → intensity → polar plot.
+Red expressions identify the analytical Raman tensor and Raman intensity.
+"""
+
+
+
 
 
 
@@ -2942,10 +3070,42 @@ def component_ag_flow_markdown(run):
 
 
 
-# ==== Notebook code cell 12: Complete mathematical derivation ====
-"""Readable paper notes and calculation records, with equations tied to their source."""
-
-PAPER_NOTES = "### Sources and model scope\n\nCircular selection rules: DOI 10.1039/D1CP02209A. Complex linear response: DOI 10.1039/D1CP03626B. Cubic benchmark: DOI 10.1002/jrs.70113.\n\nThe companion guides explain the assumptions and every code cell. Tensor coefficients are supplied inputs; the component reference remains an explicit separate intensity prescription."
+# ==== Notebook code cell 12: Paper-order calculation steps ====
+"""Paper-order calculation steps and short symbol definitions."""
+PAPER_NOTES = "Three laboratory models: My PPT slides; New-san (Paukatong et al.); Dr. Kumar."
+def annotate_equation(value,expressions=(),scope="algebra",context=None):
+    return dict(kind="equation",value=value,symbols=[],reference_ids=[],derivation_note="",scope=scope)
+def equation_explanation(value,scope):
+    return "Evaluate the displayed equation."
+def symbols_and_references_markdown():
+    return "# Symbols and sources\n\nNew-san: Paukatong et al., DOI 10.1002/jrs.70113, equations (1)–(13), SI (S1)–(S18).\n\n"+ "\n".join("$"+tex+"$: "+meaning+" ("+units+")." for rows in LAB_SYMBOLS.values() for _,tex,meaning,units in rows)
+def paper_steps_markdown(run):
+    return detailed_calculation(run)["markdown"]
+class CalculationTrace:
+    def __init__(self,variable=alpha,context=None):
+        self.variable,self.context=variable,context or {}
+        self.entries=[];self.scope="algebra";self.section_number=0;self.operation_number=0
+    def section(self,title,scope=None):
+        self.section_number+=1;self.operation_number=0
+        self.entries.append(dict(kind="section",value=title,step=f"{self.section_number:02d}"))
+    def note(self,value):
+        self.entries.append(dict(kind="note",value=value))
+    def tex(self,value,expressions=(),explanation=None):
+        self.operation_number+=1
+        self.entries.append(dict(kind="equation",value=value,step=f"{self.section_number:02d}.{self.operation_number:02d}",
+            explanation=explanation or "",symbols=[],reference_ids=[],derivation_note=""))
+    def markdown(self,explained=True):
+        rows=[]
+        for item in self.entries:
+            if item["kind"]=="section":rows.append("## "+item["step"]+" "+item["value"])
+            elif item["kind"]=="equation":
+                if explained:rows.extend([item["explanation"],equation_notes_markdown(item)])
+                value=item["value"]
+                if item.get("analytical_kind"):value=r"\color{red}{"+value+"}"
+                rows.append("$$"+value+"$$")
+            else:rows.append(item["value"])
+        if not explained:rows.append(calculation_legend_markdown(self.entries))
+        return "\n\n".join(rows)
 
 
 def display_intensity(summary, variable=alpha):
@@ -2960,7 +3120,6 @@ def display_intensity(summary, variable=alpha):
         if key in cleaned and abs(cleaned[key]) <= threshold:
             cleaned[key] = 0
     return sp.N(intensity_expression(cleaned, variable), 8)
-
 
 def final_intensity_context(run, name):
     """Place enough provenance beside every final equation to identify the calculation."""
@@ -2982,143 +3141,6 @@ def final_intensity_context(run, name):
         + geometry
         + "."
     )
-
-
-def paper_steps_markdown(run):
-    """Report the paper's actual geometry and algebra, followed by this run's results."""
-    config, geometry, optical = run["config"], run["geometry"], run["optical"]
-    linear_scan = config["calculation_method"] == "LINEAR"
-    variable = theta_scan if linear_scan else alpha
-    source = PAPER_SOURCES["linear" if linear_scan else "circular"]
-    lines = [
-        "# ROTATION RAMAN TENSOR CALCULATION",
-        "## " + METHOD_LABELS[config["calculation_method"]],
-        "**Case:** " + config["case_label"],
-        "**Input note:** " + config["input_note"],
-        f"**Material:** {config['material']}; **point group:** {config['point_group']}; **plane:** {config['hkl']}; **in-plane reference:** {config['uvw']}.",
-        "**Source:** " + source["title"] + ", " + source["journal"] + ". " + source["url"],
-        "### Coordinate frame",
-    ]
-
-    def equation(label, expression):
-        """Typeset a calculated equation using the actual scan-variable name."""
-        if isinstance(expression, (sp.Basic, sp.MatrixBase)):
-            expression = expression.subs(alpha, variable)
-        lines.append("$$" + label + "=" + raman_latex(expression) + "$$")
-
-    for key in ["L", "g", "t", "T"]:
-        if key in geometry:
-            equation(key, geometry[key])
-    equation(r"T^{-1}=T^T", geometry["T"].T)
-    equation(r"\det T", sp.simplify(geometry["T"].det()))
-    lines.extend("- " + item for item in run["assumptions"])
-    if linear_scan:
-        lines.extend(
-            [
-                "### Co-rotating linear states",
-                r"$$e_i=(\cos\theta,\sin\theta)^T,\quad e_{s,\parallel}=e_i,\quad e_{s,\perp}=(-\sin\theta,\cos\theta)^T.$$",
-            ]
-        )
-        lines.append(
-            "θ is the polarization angle in the fixed measurement frame. A sample rotation at fixed laboratory optics requires the corresponding opposite frame-angle convention. The selected zero offset is "
-            + str(config["paper_parameters"]["theta0_deg"])
-            + " degrees."
-        )
-        lines.append(
-            r"$$\mathcal A=K_0+K_c\cos2\theta+K_s\sin2\theta,\quad I=|\mathcal A|^2=I_0+I_c\cos2\theta+I_s\sin2\theta+I_{4c}\cos4\theta+I_{4s}\sin4\theta.$$"
-        )
-        lines.append(
-            "Parallel and crossed curves of a branch use the same tensor coefficients. Eq. 13 is recovered on the review's principal xz plane. A general rotated surface can have a nonzero projected off-diagonal entry even when the crystal Ag tensor is diagonal."
-        )
-    else:
-        lines.extend(
-            [
-                "### Circular basis and plane-wave Jones scan",
-                r"$$U=(\sigma^{+}\ \sigma^{-}),\quad R_{circ}=U^\dagger R_\perp U,\quad I_{s_s,s_i}=|(R_{circ})_{s_s,s_i}|^2.$$",
-            ]
-        )
-        equation(r"E_i", optical["Ein"])
-        equation(r"e_s(\alpha)", optical["analyzer"])
-        lines.append(
-            "The polar curve is an ℓ=0 tensor/Jones calculation. A fixed circular analyzer gives a constant curve because no detection state changes during that scan. The linear-analyzer scan is an explicit extension for this program."
-        )
-    for name, result in run["results"].items():
-        item = run["families"][name]
-        values = item["values"]
-        lines.append("### " + name)
-        lines.append(
-            "**Tensor policy:** " + RULE_LABELS[result["rule"]] + ". " + item["combination_reason"]
-        )
-        lines.append(
-            "Active coefficients: `" + json.dumps(serializable(values), ensure_ascii=False) + "`."
-        )
-        selected = result["optical"]
-        equation("E_i", selected["Ein"])
-        equation("e_s", selected["analyzer"])
-        for record, label in zip(result["terms"], item["calculation_labels"]):
-            lines.append("**Complete tensor / phonon component:** " + label + ".")
-            if config["show_steps"]:
-                equation("R_c", record["Rc"])
-                equation("R_c T", tidy(record["Rc"] * geometry["T"]))
-                equation(r"R_{lab}=T^T R_c T", record["Rlab"])
-                equation(r"R_\perp=P R_{lab}P^T", record["Rperp"])
-                equation(r"E_{i,3D}", record["Ein3"])
-                equation(r"\mathcal P_{Raman,3D}\propto R_{lab}E_{i,3D}", record["Einduced3"])
-            equation(r"R_{\perp,\mathrm{active}}", sp.N(record["Rperp"].subs(values), 6))
-            equation(r"\mathcal A=e_s^\dagger R_\perp E_i", tidy(record["amplitude"].subs(values)))
-            if linear_scan:
-                for key in ["K0", "Kc", "Ks"]:
-                    equation(key, sp.N(record[key].subs(values), 7))
-        lines.append(final_intensity_context(run, name))
-        equation(
-            r"I(\theta)" if linear_scan else r"I(\alpha)",
-            display_intensity(run["summaries"][name], variable),
-        )
-    if not linear_scan:
-        diagnostics = run["circular"]
-        lines.append("### All four circular tensor channels")
-        for name, item in diagnostics["channels"].items():
-            lines.append(
-                "**"
-                + name
-                + ".** Rows are outgoing +/−; columns are incoming +/−, in the fixed XY basis."
-            )
-            for matrix in item["matrices"]:
-                equation(r"R_{circ}", matrix)
-            equation(r"I_{circ}\;\mathrm{(component\ powers\ summed)}", sp.Matrix(item["powers"]))
-        lines.extend(["### Separate angular-momentum check", r"$$s_s-s_i-\ell_i+m_\nu^{ph}=Np.$$"])
-        lines.append(
-            "User-declared charges for this independent rule example: `"
-            + str(config["paper_parameters"]["m_ph"])
-            + "`. These charges have not been assigned automatically to the modes above."
-        )
-        lines.append("**Scope:** " + diagnostics["scope"])
-        lines.append(
-            "**Rotation-axis check:** "
-            + diagnostics["axis_check"]["note"]
-            + " Compatible: "
-            + str(diagnostics["axis_check"]["compatible"])
-            + "."
-        )
-        lines += [
-            "| s_i | s_s | Eq. 24 congruence | Matching m_ph | Optional Eq. 21 |",
-            "|---:|---:|---|---|---|",
-        ]
-        for row in diagnostics["rule_checks"]:
-            lines.append(
-                f"| {row['s_i']} | {row['s_s']} | {row['eq24_pass']} | {row['matching_m_ph']} | {'not supplied' if row['eq21_pass'] is None else row['eq21_pass']} |"
-            )
-        lines.append(
-            "A passing congruence is not a quantitative intensity. The condition is diagnostic only when the axis or thin-2D/electronic assumptions are unestablished. No row in this table masks the plane-wave curves."
-        )
-        lines.append(
-            "Circular labels here refer to the stated Jones basis. If helicity is defined relative to each beam's propagation direction, use that beam's transverse frame before assigning a same/opposite-helicity name. The incident and returned wavevectors are opposite in backscattering."
-        )
-    lines.append(
-        "Small roundoff-sized harmonics are suppressed in the displayed final equation only. Raw summary coefficients remain in the ZIP and CSV data."
-    )
-    return "\n\n".join(lines)
-
 
 def linear_figures(run):
     """Show parallel/crossed curves together, using a common scale for each branch."""
@@ -3157,13 +3179,6 @@ def linear_figures(run):
         polar.yaxis.set_major_locator(MaxNLocator(5))
     figure.suptitle(run_description(run), fontsize=10)
     return [("polar_intensity", figure)]
-
-
-"""Calculated mathematical steps shared by all materials and optical protocols."""
-
-
-"""Definitions used beside each calculated equation; numerical functions are unchanged."""
-import re
 
 DERIVATION_REFERENCES = {
     "PIMENTA2021": {
@@ -3217,234 +3232,6 @@ DERIVATION_REFERENCES = {
     },
 }
 
-
-def symbol_definition(key, latex, meaning, units):
-    return dict(id=key, latex=latex, meaning=meaning, units=units)
-
-
-SYMBOL_CATALOG = {
-    row[0]: symbol_definition(*row) for row in [
-        ("lattice", r"L;\ \mathbf a_0,\mathbf b_0,\mathbf c_0", "Direct-lattice matrix and its three column vectors, written in the crystal Cartesian basis. Unity values denote relative lattice lengths.", "one common length unit; or dimensionless relative lengths"),
-        ("miller", r"h,k,l", "Surface Miller indices. They label a reciprocal-lattice normal; they are not Cartesian distances or wave numbers.", "dimensionless integers"),
-        ("direction_indices", r"u,v,w", "Direct-lattice direction indices defining the in-plane reference. The zone condition is hu+kv+lw=0.", "dimensionless integers"),
-        ("reciprocal_normal", r"\mathbf g_{hkl}", "Unnormalized surface normal obtained from the reciprocal metric L to the power -T. This definition omits the conventional reciprocal-lattice factor 2 pi, which cancels on normalization.", "inverse common lattice-length unit"),
-        ("tangent", r"\mathbf t", "In-plane reference before normalization. With explicit uvw it is L(u,v,w); automatic X instead uses a projected unit reference.", "lattice-length unit for explicit uvw; dimensionless for automatic X"),
-        ("frame_axes", r"\mathbf X,\mathbf Y,\mathbf Z;\ \mathbf X_0,\mathbf Y_0", "Unit measurement axes written in crystal coordinates. Subscript 0 denotes the frame before the in-plane rotation.", "dimensionless"),
-        ("lab_normal", r"\hat{\mathbf Z}_{lab}", "The same measurement-normal direction expressed in measurement coordinates: (0,0,1). Use this representation with the measurement-frame projector P.", "dimensionless unit vector"),
-        ("normal_sign", r"s_n", "Chosen side of the reciprocal surface normal, +1 or -1.", "dimensionless"),
-        ("frame_angle", r"\psi", "In-plane rotation of the measurement axes about Z. It changes the frame rather than the optical scan state.", "rad in formulas; degree in the input form"),
-        ("frame", r"T", "Real proper orthogonal matrix whose columns are X, Y, Z in crystal coordinates. It maps measurement components to crystal components; its inverse is its transpose.", "dimensionless"),
-        ("in_plane_rotation", r"\Pi(\psi)", "Three-dimensional rotation about the measurement Z axis used to update the frame.", "dimensionless matrix"),
-        ("coordinate_vector", r"\mathbf v_c,\mathbf v_{lab}", "Components of the same arbitrary vector in crystal and measurement coordinates.", "same units as the vector being represented"),
-        ("reference_axis", r"\mathbf e_{ref};\ \mathbf e_x,\mathbf e_y,\mathbf e_z;\ \hat x", "Cartesian unit basis vectors. The ref label is the reference used by automatic X; x,y,z refer to crystal axes in the tensor decomposition.", "dimensionless"),
-        ("tensor", r"R_c,R_{lab},R_\perp,R_{ref}", "Raman tensor in crystal, measurement, transverse or effective-reference coordinates. Matrix subscripts give entries; j labels the phonon component. R_perp is 2 by 2 after the full 3 by 3 rotation.", "relative tensor-coefficient units in this program"),
-        ("physical_tensor", r"R_\chi^{(m)}", "Physical Raman tensor defined by the derivative of susceptibility with respect to the declared normal coordinate of mode m. Its units depend on that coordinate's normalization.", "reciprocal unit of the normal coordinate u_m"),
-        ("projector", r"P", "2 by 3 transverse selector [[1,0,0],[0,1,0]] in measurement coordinates. Its transpose embeds a Jones vector in three dimensions.", "dimensionless"),
-        ("identity", r"I_3", "3 by 3 identity matrix; this I is not Raman intensity.", "dimensionless"),
-        ("incident_state", r"E_i,E_{i,lab},E_{i,c}", "Normalized incident Jones state and its three-dimensional embeddings in measurement and crystal coordinates. Overall incident field strength is omitted.", "dimensionless"),
-        ("detector_state", r"e,e_s,e_{an}", "Unit Jones polarization state; s is the effective detector at the sample and an is the analyzer after return optics. The amplitude uses the conjugate transpose of the detection state.", "dimensionless"),
-        ("return_optics", r"B", "Jones matrix of the return optical path. The effective detector is B dagger times e_an.", "dimensionless"),
-        ("qwp", r"Q;\ \mathrm{Rot}", "Quarter-wave-plate Jones matrix and real transverse rotation matrix. For the supplied Kumar convention the plate angle is -pi/4 and the return matrix is Q transpose.", "dimensionless matrices; their angle arguments are in rad"),
-        ("circular_basis", r"\sigma^+,\sigma^-", "Normalized fixed-XY circular basis vectors (1,+i)/sqrt(2) and (1,-i)/sqrt(2). A superscript sign labels a state rather than a charge with SI units.", "dimensionless"),
-        ("mixing_angle", r"\vartheta", "Jones mixing angle setting the magnitudes of the two transverse components. For a real linear state it is the polarization angle.", "rad in formulas; degree in direct-state inputs"),
-        ("linear_angle", r"\theta;\ \theta_i,\theta_s", "Theta is the common linear-polarization scan angle for VV/VH. In the general direct-state product, theta_i and theta_s instead denote the incident and detection mixing angles.", "rad in formulas; degree in input and angle CSV columns"),
-        ("analyzer_angle", r"\alpha", "Detection-state scan angle of the selected optical profile. A direct linear analyzer, the return-QWP chain and the elliptical reference use different Jones-state definitions.", "rad in formulas; degree in input and angle CSV columns"),
-        ("jones_phase", r"\beta,\beta^\prime;\ \beta_i,\beta_s", "Relative phase of Y with respect to X. The reference uses beta for the incident state and beta prime for the detected state; direct controls use the i and s subscripts.", "rad in formulas; degree in the input form"),
-        ("source_phase", r"\delta,\phi", "Phases in the supplied effective 2D source tensor. Delta belongs to its off-diagonal term; phi belongs to its yy term.", "rad in formulas; degree in the effective-source controls"),
-        ("coefficient_phase", r"\phi_a,\phi_b,\phi_c,\phi_d,\phi_e,\phi_f", "Phase of the indicated complex tensor coefficient, relative to the chosen reference phase.", "rad in formulas; degree in coefficient controls"),
-        ("coefficient_magnitude", r"\rho_a,\rho_b", "Zero or positive size of the indicated complex tensor entry.", "same relative units as its tensor coefficient"),
-        ("coefficients", r"a,b,c,d,e,f", "Complex tensor coefficients in the selected symmetry form. The three silicon T2g components share d.", "relative tensor-coefficient units"),
-        ("source_A", r"A", "Real off-diagonal reference amplitude in Kumar's effective 2D tensor; it is distinct from the detected amplitude written as calligraphic A.", "same relative coefficient units as source a"),
-        ("source_a", r"a", "Real diagonal reference amplitude in Kumar's effective 2D tensor. It is distinct from a generally complex crystal coefficient named a.", "relative source tensor-coefficient units"),
-        ("rank_one_coefficient", r"q", "Coefficient of the selected Ag rank-one Cartesian contribution: a for xx, b for yy or c for zz. It is not a phonon normal coordinate.", "relative tensor-coefficient units"),
-        ("rotated_axis", r"\mathbf p;\ \mathbf v,v_x,v_y", "Crystal unit axis expressed in measurement coordinates, then restricted to XY. The projected vector need not have unit length.", "dimensionless"),
-        ("overlap", r"G,G_i,G_s;\ \eta_i,\eta_s", "Eta denotes an incident or detector overlap amplitude. G is its nonnegative squared magnitude; active means evaluated with the actual selected optical chain.", "dimensionless"),
-        ("scattered_response", r"E_{sc},E_{out};\ \mathcal P_c,\mathcal P_{lab}", "Reduced scattered/returned field and induced-response amplitudes calculated from a relative tensor and unit Jones state. These are not calibrated SI electric fields or polarization densities.", "relative tensor-coefficient units"),
-        ("amplitude", r"\mathcal A,\mathcal A_j", "Detected complex Raman scattering amplitude. A j subscript identifies one orthogonal phonon component; a Cartesian label identifies one tensor contribution.", "relative tensor-coefficient units"),
-        ("amplitude_harmonics", r"C,D;\ K_0,K_c,K_s", "Complex coefficients of the first-harmonic or second-harmonic amplitude expansion. Subscripts 0,c,s mean constant, cosine and sine; a further j denotes a component.", "same units as the detected amplitude"),
-        ("intensity", r"I,I_j;\ I_{min},I_{max}", "Relative intensity and its extrema. Orthogonal unresolved phonon components add as intensities. Tensor terms within one phonon interfere before the modulus is squared.", "squared relative tensor-coefficient units, plotted as a.u."),
-        ("maximum_angle", r"\alpha_{max},\theta_{max}", "An angle at a continuous intensity maximum, obtained from the harmonic expression. It need not fall on the sampled grid; a constant curve has no unique extremum angle.", "degree when explicitly labeled degree; otherwise rad"),
-        ("delta_extrema", r"\Delta", "Nonnegative modulation magnitude sqrt(I_c squared + I_s squared) for a first-harmonic scan. This uppercase Delta is distinct from the source phase delta.", "same relative units as intensity"),
-        ("extrema_polynomial", r"u_1,u_2;\ z", "Complex intensity-harmonic coefficients used only to find second-harmonic stationary points, and the unit-circle variable z=exp(2 i theta). These u symbols are not phonon coordinates.", "u_1,u_2: intensity units; z: dimensionless"),
-        ("susceptibility", r"\chi_{ij},\chi_{ij}^{(0)}", "Electric susceptibility component and its equilibrium value. Cartesian indices identify the field and induced-polarization components.", "dimensionless in SI"),
-        ("normal_coordinate", r"u_m", "Generalized phonon normal coordinate for branch m, equivalent to the q^mu notation in Pimenta Eq. (2). The program does not prescribe its displacement or mass normalization.", "chosen normal-coordinate unit; e.g. m for a displacement, or kg^(1/2) m if mass weighted"),
-        ("vacuum_permittivity", r"\epsilon_0", "Vacuum electric permittivity in the physical susceptibility relation.", "F m^-1 in SI"),
-        ("physical_electric_field", r"\mathbf E_{i,c}^{\mathrm{phys}}", "Physical incident electric-field amplitude expressed in crystal coordinates. It includes the incident field magnitude omitted from the unit Jones vector.", "V m^-1 in SI"),
-        ("transverse_field", r"\mathbf E", "Optical electric field in the transversality condition k dot E = 0. The same orthogonality condition holds for its normalized polarization direction.", "V m^-1 for the physical field; a unit polarization direction is dimensionless"),
-        ("physical_polarization", r"\mathbf P_R^{\mathrm{phys},(m)}", "Physical Raman-induced electric polarization density of phonon m. It includes epsilon_0, the physical field and the normal-coordinate displacement.", "C m^-2 in SI"),
-        ("physical_intensity", r"I_m^{\mathrm{physical}};\ \kappa_m", "Physical measured intensity and its proportionality factor relative to the squared reduced amplitude. Kappa includes omitted field, phonon and collection factors and is not calculated here.", "chosen measured-intensity unit; kappa: that unit divided by squared relative coefficient units"),
-        ("wavevector", r"\mathbf k_i,\mathbf k_s;\ k_i,k_s", "Incident and scattered propagation vectors and their nonnegative magnitudes, written in measurement coordinates. Only their directions are used in this plane-wave calculation.", "m^-1 for physical wavevectors; not numerically predicted here"),
-        ("helicity", r"S_3;\ h_i,h_s", "Normalized circular Stokes component and propagation-relative helicity expectation. With incident propagation along -Z and detection along +Z, h_i=-S_3 and h_s=+S_3.", "dimensionless; pure circular states have values +1 or -1"),
-        ("representation_error", r"\epsilon_{direct},\epsilon_{circular}", "Maximum absolute intensity residual between equivalent matrix/basis representations, evaluated using the same tensor and actual optical states. These epsilon symbols are not epsilon_0.", "same relative units as unnormalized intensity"),
-        ("cartesian_indices", r"i,j,k,l;\ m,n", "In matrix entries and contraction sums, indices run over Cartesian components. In an amplitude/phonon-component intensity sum, j labels a phonon component and m,n label coherent terms. These index roles are local, not extra fitted parameters.", "dimensionless labels or integer indices"),
-        ("imaginary_unit", r"i", "Imaginary unit, i squared = -1. It is distinct from the incident-state subscript i and Cartesian summation indices.", "dimensionless"),
-        ("pi", r"\pi", "Circle constant used in angle conversion and special-angle states.", "dimensionless; angle multiples are in rad"),
-        ("exponential", r"\exp", "Complex exponential. The e in an exponential is Euler's number, distinct from a tensor coefficient named e. Its exponent is dimensionless.", "dimensionless"),
-        ("transpose", r"{}^T;\ {}^{-T};\ {}^{-1}", "Matrix transpose, inverse transpose and inverse. A superscript T is an operation; a standalone T is the frame matrix.", "operation; dimensions follow the operand"),
-        ("conjugation", r"{}^*,\overline{\phantom a};\ {}^\dagger", "Complex conjugation and conjugate transpose. The detection state must be conjugated before contraction.", "operation; conjugation preserves units"),
-        ("norm", r"|\cdot|;\ \|\cdot\|", "Complex modulus or Euclidean vector norm. Squaring a modulus squares the units of its argument.", "same units as the argument before squaring"),
-        ("products", r"\cdot;\ \times;\ \sum", "Dot product, vector cross product and explicit sum. Their domains are given by the adjacent vector definitions or index limits.", "products multiply units; sums require matching units"),
-        ("real_imag", r"\operatorname{Re},\operatorname{Im};\ \arg", "Real part, imaginary part and complex phase. The argument of a nonzero coefficient is its relative phase.", "Re/Im: operand units; arg: rad"),
-        ("derivative", r"d/d\theta;\ d/d\alpha;\ \partial", "Derivative with respect to the indicated angle or normal coordinate. A derivative divides the numerator's units by the differentiation variable's units.", "intensity per rad for dI/dangle; reciprocal coordinate unit for dchi/du"),
-        ("determinant", r"\det", "Determinant. A proper frame has det(T)=+1 and T transpose times T equals the identity.", "dimensionless for a rotation matrix"),
-        ("big_o", r"O(u^2)", "Terms of second and higher order in the normal-coordinate expansion, omitted in the first-order Raman model.", "same susceptibility units as the retained Taylor series"),
-        ("equilibrium_evaluation", r"\left.\cdot\right|_0", "Evaluate the derivative at the equilibrium normal coordinate u_m=0. This vertical bar denotes evaluation, not a modulus.", "operation; preserves the derivative's units"),
-        ("inverse_trig", r"\operatorname{atan2};\ \pmod\pi", "Quadrant-aware inverse tangent and angular equivalence modulo pi, used for a first-harmonic extremum.", "rad; modulo-pi angles repeat after 180 degrees"),
-    ]
-}
-
-
-def _without_latex_labels(value):
-    """Remove formatting words/subscripts, keeping mathematical base symbols."""
-    text = value.replace(r"\\", " ")
-    text = re.sub(r"\\(?:begin|end)\{[^{}]*\}", " ", text)
-    for _ in range(4):
-        text = re.sub(r"\\(?:mathrm|text|operatorname)\{[^{}]*\}", " ", text)
-    text = re.sub(r"_\{[^{}]*\}", " ", text)
-    text = re.sub(r"_(?:\\[A-Za-z]+|[A-Za-z0-9])", " ", text)
-    text = re.sub(r"\^\{?(?:-T|T|-1|\\dagger|\\ast|\*)\}?", " ", text)
-    text = re.sub(r"\^\{\([^{}]*\)\}", " ", text)
-    text = re.sub(r"\b(?:physical|phys|plot|symbolic|numerical|expanded|active|lab|ref)\b", " ", text)
-    text = re.sub(r"\\[A-Za-z]+", " ", text)
-    return text
-
-
-def equation_symbol_definitions(value, expressions=(), scope="algebra", context=None):
-    """Select local definitions, separating overloaded symbols and physical units."""
-    value = value.replace(r"\mathrm{phys}", "phys").replace(r"\mathrm{physical}", "physical").replace(r"\mathrm{plot}", "plot")
-    keys = []
-    def add(key):
-        if key not in keys:
-            keys.append(key)
-    has = lambda pattern: bool(re.search(pattern, value))
-    reduced = _without_latex_labels(value)
-    letters = set(re.findall(r"[A-Za-z]", reduced))
-    free = set()
-    for expr in expressions:
-        free.update(str(s) for s in sp.sympify(expr).free_symbols)
-    if "L" in letters: add("lattice")
-    if has(r"\(h,k,l\)|g_\{hkl\}|hu\+kv\+lw"): add("miller")
-    if has(r"\(u,v,w\)|hu\+kv\+lw"): add("direction_indices")
-    if has(r"\\mathbf\s*\{?g|g_\{hkl\}"): add("reciprocal_normal")
-    if has(r"\\mathbf\s*\{?t"): add("tangent")
-    crystal_axes = value.replace(r"\hat{\mathbf Z}_{lab}", "")
-    if re.search(r"\\mathbf\s*\{?[XYZ]", crystal_axes): add("frame_axes")
-    if r"\hat{\mathbf Z}_{lab}" in value: add("lab_normal")
-    if "s_n" in value: add("normal_sign")
-    if r"\psi" in value: add("frame_angle")
-    if "T" in letters: add("frame")
-    if r"\Pi" in value: add("in_plane_rotation")
-    if has(r"\\mathbf v_(?:c|\{lab\})"): add("coordinate_vector")
-    if has(r"\\mathbf e_|\\hat\s*x"): add("reference_axis")
-    if "R" in letters:
-        add("physical_tensor" if r"R_\chi" in value or r"R_{\chi" in value else "tensor")
-    if has(r"(?<![A-Za-z])P(?![A-Za-z])") and r"\mathbf P_R" not in value and r"\mathcal P" not in value:
-        add("projector")
-    elif any(token in value for token in ("=P", "[P", r"\,P", r"\quad P", "BPR", "=PR")): add("projector")
-    if "I_3" in value: add("identity")
-    if re.search(r"E_(?:i|\{i)", value.replace(r"\mathbf E_{i,c}^{phys}", "")): add("incident_state")
-    if has(r"e(?:_(?:[isXYxy]|\{an\})|\(\\vartheta|\^\\dagger)") or "S_3(e)" in value: add("detector_state")
-    if "B" in letters: add("return_optics")
-    if "Q" in letters or r"\mathrm{Rot}" in value: add("qwp")
-    if r"\sigma" in value: add("circular_basis")
-    if r"\vartheta" in value: add("mixing_angle")
-    if r"\theta" in value: add("linear_angle")
-    if r"\alpha" in value: add("analyzer_angle")
-    if r"\beta" in value: add("jones_phase")
-    if r"\delta" in value or (r"\phi" in value and not has(r"\\phi_")): add("source_phase")
-    if has(r"\\phi_"): add("coefficient_phase")
-    if r"\rho" in value or re.search(r"\|[abcdef]\|",value): add("coefficient_magnitude")
-    coefficient_names = {"a", "b", "c", "d", "e", "f"}
-    stripped = re.sub(r"\\mathbf\s*\{?[a-z]\}?", " ", value)
-    stripped = re.sub(r"e\^\{?[+-]?i[^{}]*\}?", " ", stripped)
-    stripped = re.sub(r"e_(?:[isXYxy]|\{[^{}]*\})|e\(|e\^\\dagger", " ", stripped)
-    stripped = stripped.replace("dI", "I")
-    stripped = stripped.replace(r"d\theta", r"\theta").replace(r"d\alpha", r"\alpha")
-    literal_coefficients = set(re.findall(r"[A-Za-z]", _without_latex_labels(stripped))) & coefficient_names
-    # In geometry, letters in directions and labels are not tensor coefficients.
-    infer_literals = scope not in {"geometry", "optics"} or r"\rho" in value
-    active_coefficients = (free & coefficient_names) | (literal_coefficients if infer_literals else set())
-    if (context or {}).get("tensor_model") == "QWP_SOURCE_2D" and "a" in active_coefficients:
-        active_coefficients.remove("a")
-        add("source_a")
-    if active_coefficients: add("coefficients")
-    source_A_text = re.sub(r"\\mathcal\s*\{?A\}?", "", value)
-    if "A" in free or "A" in _without_latex_labels(source_A_text): add("source_A")
-    if has(r"(?<![A-Za-z])q(?![A-Za-z])"): add("rank_one_coefficient")
-    if has(r"\\mathbf\s*[pv](?!_(?:c|\{lab\}))|v_[xy]"): add("rotated_axis")
-    if "G" in letters or r"\eta" in value: add("overlap")
-    if "E_{sc}" in value or "E_{out}" in value or r"\mathcal P" in value: add("scattered_response")
-    if has(r"\\mathcal\s*\{?A"): add("amplitude")
-    if letters & {"C", "D", "K"}: add("amplitude_harmonics")
-    intensity_text = value.replace("I_3", "").replace(r"\mathrm{I}", "")
-    if re.search(r"(?<![A-Za-z])I(?![A-Za-z])", intensity_text): add("intensity")
-    if has(r"\\(?:alpha|theta)_\{max\}"): add("maximum_angle")
-    if r"\Delta" in value: add("delta_extrema")
-    if "u_1" in value or "u_2" in value or ("z" in letters and scope == "final"): add("extrema_polynomial")
-    if has(r"\\chi_\{ij\}"): add("susceptibility")
-    if "u_m" in value or "O(u^2)" in value: add("normal_coordinate")
-    if r"\epsilon_0" in value: add("vacuum_permittivity")
-    if r"\mathbf E_{i,c}^{phys}" in value: add("physical_electric_field")
-    if r"\mathbf k\cdot\mathbf E" in value: add("transverse_field")
-    if r"\mathbf P_R^{phys" in value: add("physical_polarization")
-    if "physical" in value or r"\kappa" in value: add("physical_intensity")
-    if has(r"\\mathbf\s*\{?k|k_[is]"): add("wavevector")
-    if "S_3" in value or "h_i" in value or "h_s" in value: add("helicity")
-    if r"\epsilon_{direct}" in value or r"\epsilon_{circular}" in value: add("representation_error")
-    if r"\sum" in value or has(r"_\{[ijkl]{2}\}"): add("cartesian_indices")
-    if "i" in letters or r"\mathrm{i}" in value: add("imaginary_unit")
-    if r"\pi" in value: add("pi")
-    if has(r"(?<![A-Za-z])e\^\{?(?:[-+]?i)|\\exp"): add("exponential")
-    if has(r"\^\{?(?:T|-T|-1)\}?"): add("transpose")
-    if r"\dagger" in value or r"\overline" in value or "^*" in value or "^{*}" in value: add("conjugation")
-    if "|" in value.replace(r"\right|_0", ""): add("norm")
-    if r"\right|_0" in value: add("equilibrium_evaluation")
-    if r"\cdot" in value or r"\times" in value or r"\sum" in value: add("products")
-    if r"\operatorname{Re}" in value or r"\operatorname{Im}" in value or r"\arg" in value: add("real_imag")
-    if "dI" in value or r"\partial" in value: add("derivative")
-    if r"\det" in value: add("determinant")
-    if "O(u^2)" in value: add("big_o")
-    if r"\operatorname{atan2}" in value or r"\pmod" in value: add("inverse_trig")
-    rows = [copy.deepcopy(SYMBOL_CATALOG[key]) for key in keys]
-    for row in rows:
-        if row["id"] == "coefficient_phase":
-            names = sorted(set(re.findall(r"\\phi_\{?([abcdef])\}?", value)))
-            if names: row["latex"] = ",".join(r"\phi_{"+name+"}" for name in names)
-        if row["id"] == "coefficient_magnitude":
-            names = sorted(set(re.findall(r"\|([abcdef])\|", value)))
-            if names: row["latex"] = ",".join("|"+name+"|" for name in names)
-        if row["id"] == "coefficients":
-            row["latex"] = ",".join(sorted(active_coefficients))
-        if row["id"] in {"linear_angle", "analyzer_angle"} and r"\mathrm{degree}" in value:
-            row["units"] = "degree (explicitly labeled numerical angle)"
-    return rows
-
-
-def annotate_equation(value, expressions=(), scope="algebra", context=None):
-    """Keep references separate from the intermediate algebra implemented here."""
-    references = ["PROGRAM_ALGEBRA"]
-    explanation = "Program derivation from the displayed definitions; matrix multiplication, complex conjugation or trigonometric algebra."
-    if scope == "geometry":
-        references = ["PAUKATONG2026", "PROGRAM_GEOMETRY"]
-        explanation = "Frame/tensor convention: Paukatong Eqs. (4)-(6). The reciprocal metric, general lattice and explicit matrix substitutions are derived in this program."
-    elif scope == "optics":
-        references = ["PAUKATONG2026", "KUMAR_NOTEBOOK", "PROGRAM_ALGEBRA"]
-        explanation = "Complex polarization convention: Paukatong Eq. (11). QWP and effective detector: supplied Kumar notebook. The actual selected Jones matrices are evaluated here."
-    elif scope == "tensor":
-        references = ["PIMENTA2021", "PAUKATONG2026", "PROGRAM_ALGEBRA"]
-        explanation = "Physical tensor definition: Pimenta Eqs. (1)-(4). Si T2g basis tensors and intensity sum: Paukatong Eqs. (1)-(3) and (9). Relative numerical coefficients are declared inputs."
-    elif scope in {"record", "final"}:
-        references = ["PIMENTA2021", "PAUKATONG2026", "KUMAR_NOTEBOOK", "PROGRAM_ALGEBRA"]
-        explanation = "Tensor/intensity principle: Pimenta Eqs. (2)-(4); conjugate detector and Si phonon-component intensity sum: Paukatong Eqs. (9),(11). Intermediate products, harmonics and extrema are program algebra; QWP source convention follows Kumar where selected."
-    symbols = equation_symbol_definitions(value, expressions, scope, context)
-    if any(row["id"] in {"physical_polarization", "vacuum_permittivity", "physical_electric_field", "susceptibility"} for row in symbols):
-        references.append("IUPAC_POLARIZATION")
-    if any("angle" in row["id"] or "phase" in row["id"] for row in symbols):
-        references.append("NIST_UNITS")
-    return dict(kind="equation", value=value, symbols=symbols,
-                reference_ids=list(dict.fromkeys(references)), derivation_note=explanation)
-
-
 def equation_notes_markdown(item):
     rows = ["**Symbols and units**", "| Symbol | Meaning | Unit / convention |", "| --- | --- | --- |"]
     for symbol in item.get("symbols", []):
@@ -3456,12 +3243,6 @@ def equation_notes_markdown(item):
         rows.append("- " + label + "; " + ref["location"] + ".")
     return "\n".join(rows)
 
-
-# Short definitions are used once at the end of the full-mathematics view.
-# The explained view retains each equation's complete definitions and sources.
-SHORT_SYMBOL_MEANINGS = {'lattice': 'Direct-lattice matrix and its crystal basis vectors.', 'miller': 'Surface Miller indices.', 'direction_indices': 'In-plane direct-lattice direction; hu + kv + lw = 0.', 'reciprocal_normal': 'Surface normal before normalization; the 2π factor is omitted.', 'tangent': 'In-plane reference before normalization.', 'frame_axes': 'Measurement unit axes in crystal coordinates; 0 means before rotation.', 'lab_normal': 'Measurement normal in measurement coordinates, (0,0,1).', 'normal_sign': 'Chosen normal direction, +1 or −1.', 'frame_angle': 'In-plane rotation of the measurement frame.', 'frame': 'Frame matrix: measurement components → crystal components.', 'in_plane_rotation': 'Rotation about the measurement normal.', 'coordinate_vector': 'The same vector in crystal and measurement coordinates.', 'reference_axis': 'Cartesian unit vectors; ref is the automatic in-plane reference.', 'tensor': 'Raman tensor in crystal, measurement, transverse or reference coordinates.', 'physical_tensor': 'Susceptibility derivative with respect to the phonon normal coordinate.', 'projector': '2 × 3 selector of measurement X and Y components.', 'identity': '3 × 3 identity matrix.', 'incident_state': 'Unit incident Jones state and its 3D embeddings.', 'detector_state': 'Unit Jones state; s is detection at the sample, an is the analyzer.', 'return_optics': 'Return-path Jones matrix.', 'qwp': 'Quarter-wave-plate matrix and transverse rotation matrix.', 'circular_basis': 'Fixed-XY circular Jones states, (1,±i)/√2.', 'mixing_angle': 'Jones mixing angle between X and Y components.', 'linear_angle': 'VV/VH scan angle; i and s label incident and detection mixing angles.', 'analyzer_angle': 'Detection-state scan angle for the selected optical profile.', 'jones_phase': 'Relative Y-to-X phase; i and s label incidence and detection.', 'source_phase': 'Off-diagonal and yy phases in the effective 2D source tensor.', 'coefficient_phase': 'Phase of a tensor entry, relative to the chosen reference; 0° gives a positive real entry when its size is positive.', 'coefficient_magnitude': 'Size |d| of a complex tensor entry; zero or positive.', 'coefficients': 'Active complex tensor coefficients; Si T2g components share d.', 'source_A': 'Real off-diagonal source coefficient; distinct from calligraphic amplitude.', 'source_a': 'Real diagonal source coefficient in the effective 2D model.', 'rank_one_coefficient': 'Selected Ag Cartesian coefficient: a, b or c.', 'rotated_axis': 'Rotated crystal axis and its XY projection; projection need not be unit length.', 'overlap': 'η is a polarization overlap; G is its squared magnitude.', 'scattered_response': 'Reduced field or induced response from a relative tensor and unit Jones state.', 'amplitude': 'Detected complex amplitude; j labels a phonon component.', 'amplitude_harmonics': 'Constant, cosine and sine coefficients in the amplitude expansion.', 'intensity': 'Relative intensity, harmonic coefficients and extrema; phonon-component intensities are summed.', 'maximum_angle': 'Angle at a continuous maximum; undefined for a constant curve.', 'delta_extrema': 'First-harmonic modulation magnitude; distinct from lowercase source phase δ.', 'extrema_polynomial': 'Stationary-point coefficients and z = exp(2iθ); these u values are not phonon coordinates.', 'susceptibility': 'Electric susceptibility; superscript 0 is its equilibrium value.', 'normal_coordinate': 'Phonon normal coordinate with a chosen displacement or mass normalization.', 'vacuum_permittivity': 'Vacuum electric permittivity.', 'physical_electric_field': 'Physical incident electric field in crystal coordinates.', 'transverse_field': 'Electric field in the transverse-wave condition.', 'physical_polarization': 'Physical Raman-induced polarization density of phonon m.', 'physical_intensity': 'Measured intensity and its uncalculated field/phonon/collection scale factor.', 'wavevector': 'Incident/scattered propagation vectors and magnitudes in measurement coordinates.', 'helicity': 'Circular Stokes component and propagation-relative helicity; hi = −S3, hs = +S3.', 'representation_error': 'Intensity residual between equivalent matrix or basis calculations.', 'cartesian_indices': 'Local Cartesian indices, phonon-component labels or coherent-term labels.', 'imaginary_unit': 'Imaginary unit; distinct from incident and Cartesian index labels.', 'pi': 'Circle constant.', 'exponential': 'Exponential function; its e is distinct from a tensor coefficient e.', 'transpose': 'Transpose, inverse transpose and inverse; standalone T is the frame matrix.', 'conjugation': 'Complex conjugation and conjugate transpose.', 'norm': 'Complex modulus or Euclidean vector norm.', 'products': 'Dot product, cross product and sum.', 'real_imag': 'Real part, imaginary part and complex phase.', 'derivative': 'Derivative with respect to the indicated angle or normal coordinate.', 'determinant': 'Matrix determinant; a proper frame has det(T) = +1.', 'big_o': 'Omitted second- and higher-order normal-coordinate terms.', 'equilibrium_evaluation': 'Evaluate at the equilibrium coordinate; this bar is not a modulus.', 'inverse_trig': 'Quadrant-aware inverse tangent and angular equivalence modulo π.'}
-
-
 def calculation_symbol_legend(entries):
     """Collect the symbols used in this calculation, preserving local meanings."""
     rows, seen = [], set()
@@ -3471,15 +3252,13 @@ def calculation_symbol_legend(entries):
             if key not in seen:
                 seen.add(key)
                 row = copy.deepcopy(symbol)
-                row["meaning"] = SHORT_SYMBOL_MEANINGS[row["id"]]
+                row["meaning"] = row["meaning"]
                 rows.append(row)
     return rows
-
 
 def calculation_reference_ids(entries):
     """List the sources used by this calculation once, in order of appearance."""
     return list(dict.fromkeys(key for entry in entries for key in entry.get("reference_ids", [])))
-
 
 def calculation_legend_markdown(entries):
     """Put one short symbol-and-unit table after the complete mathematics."""
@@ -3491,76 +3270,6 @@ def calculation_legend_markdown(entries):
         ref = DERIVATION_REFERENCES[key]
         lines.append("- " + ("[" + ref["label"] + "](" + ref["url"] + ")" if ref["url"] else ref["label"]) + "; " + ref["location"] + ".")
     return "\n".join(lines)
-
-
-def symbols_and_references_markdown():
-    lines = ["# Version 5 - symbols, units and derivation references", "",
-        "Choose Full mathematics for all equations with one short symbol list at the end. Explained derivation places English explanations on the left and the complete mathematics on the right, with symbols defined at first use. This file collects the complete definitions for reference.", "",
-        "Angles are evaluated in radians; controls and angle CSV columns use degrees. Numerical Raman tensors use a declared relative coefficient scale, and plotted intensities use its square (a.u.). The physical susceptibility derivative has units set by the chosen phonon normal coordinate; no absolute detector calibration is inferred.", ""]
-    for key, row in SYMBOL_CATALOG.items():
-        if key in {"amplitude_harmonics", "delta_extrema", "extrema_polynomial", "overlap"}:
-            continue
-        lines += ["## $" + row["latex"] + "$", row["meaning"], "**Unit / convention:** " + row["units"], ""]
-    lines += ["## Reference map", ""]
-    for key, ref in DERIVATION_REFERENCES.items():
-        lines += ["### " + ref["label"], ref["title"], ref["location"], ref["scope"]]
-        if ref["url"]: lines.append(ref["url"])
-        lines.append("")
-    return "\n\n".join(lines)
-
-
-class CalculationTrace:
-    """One numbered, fully substituted mathematical trace for every interface."""
-
-    def __init__(self, variable=alpha, context=None):
-        self.variable, self.context = variable, context or {}
-        self.entries, self.scope = [], "algebra"
-        self.section_number, self.operation_number = 0, 0
-
-    def section(self, title, scope=None):
-        if scope is not None:
-            self.scope = scope
-        self.section_number += 1
-        self.operation_number = 0
-        title = re.sub(r"^\d+\.\s*", "", title)
-        self.entries.append(dict(kind="section", value=title, step=f"{self.section_number:02d}"))
-
-    def note(self, value):
-        self.entries.append(dict(kind="note", value=value))
-
-    def tex(self, value, expressions=(), explanation=None):
-        item = annotate_equation(value, expressions, self.scope, self.context)
-        self.operation_number += 1
-        item.update(step=f"{self.section_number:02d}.{self.operation_number:02d}",
-                    explanation=explanation or equation_explanation(value, self.scope))
-        self.entries.append(item)
-
-    def latex(self, expression):
-        return raman_latex(sp.sympify(expression).subs(alpha, self.variable))
-
-    def eq(self, lhs, expression, explanation=None):
-        self.tex(lhs + "=" + self.latex(expression), (expression,), explanation)
-
-    def chain(self, lhs, factors, answer, explanation=None):
-        self.tex(r"\begin{aligned}" + lhs + r"&=" + r"\,".join(self.latex(x) for x in factors) + r"\\&=" + self.latex(answer) + r"\end{aligned}",
-                 (*factors, answer), explanation)
-
-    def markdown(self, explained=True):
-        result = []
-        for item in self.entries:
-            if item["kind"] == "section":
-                result.append("## " + item.get("step", "") + " " + item["value"])
-            elif item["kind"] == "equation":
-                if explained:
-                    result.append("**Step " + item.get("step", "") + ".** " + item.get("explanation", ""))
-                    result.append(equation_notes_markdown(item))
-                result.append("$$" + item["value"] + "$$")
-            else:
-                result.append(item["value"])
-        if not explained:
-            result.append(calculation_legend_markdown(self.entries))
-        return "\n\n".join(result)
-
 
 def latex_text(value):
     """Escape text while retaining Greek notation in a portable LaTeX document."""
@@ -3579,376 +3288,6 @@ def latex_text(value):
              "π":"pi", "Γ":"Gamma", "Δ":"Delta", "Σ":"Sigma", "Π":"Pi"}
     replacements.update({ch:"$\\"+name+"$" for ch,name in greek.items()})
     return "".join(replacements.get(ch,ch) for ch in str(value))
-
-
-
-def trace_coefficient_inputs(trace, cfg):
-    """Define complex entries before they appear in a matrix calculation."""
-    if cfg.get("tensor_model") == "QWP_SOURCE_2D":
-        return
-    trace.note("A Raman tensor entry is a complex response coefficient, not a displacement or rotation angle. Its size uses the chosen relative tensor scale. The coefficient phase is distinct from the frame angle ψ and the polarization phases βᵢ and βₛ. A common phase on a whole tensor does not change intensity; phase differences between entries of one tensor can change interference.")
-    for name in cfg.get("modes", []):
-        trace.note("Selected Raman mode: " + name + ".")
-        for symbol, value in sorted(cfg.get("mode_values", {}).get(name, {}).items(), key=lambda row:str(row[0])):
-            label = raman_latex(symbol)
-            size = sp.simplify(sp.Abs(value))
-            phase = sp.arg(value) if value != 0 else sp.S.Zero
-            trace.tex(label + "=|" + label + r"|e^{i\phi_{" + label + "}}", (symbol,),
-                      "The size |"+str(symbol)+"| is zero or positive. Its phase is an angle in the complex plane, not a physical rotation of the sample.")
-            trace.eq("|"+label+"|", size, "Read the chosen coefficient size in relative tensor units.")
-            if value == 0:
-                trace.note("A zero-size coefficient has no defined phase. The input displays 0° by convention.")
-            else:
-                trace.eq(r"\phi_{"+label+r"}\ (\mathrm{degree})", sp.simplify(180*phase/sp.pi),
-                         "Phase 0° means a positive real entry; 180° means a negative real entry; 90° means a positive imaginary entry. Phases differing by 360° are equivalent.")
-            trace.eq(label, value, "This is the actual complex value inserted into the tensor.")
-
-
-def trace_geometry(trace, run):
-    """Expand the direct/reciprocal metric and every frame-construction step."""
-    geometry, cfg = run["geometry"], run["config"]
-    trace.section("1. Lattice, surface and measurement axes", scope="geometry")
-    if geometry is None:
-        trace.note("The original effective 2D optical reference has no crystal-orientation input.")
-        return
-    trace.tex(
-        r"L=[\mathbf a_0\ \mathbf b_0\ \mathbf c_0],\quad \mathbf g_{hkl}=L^{-T}(h,k,l)^T,\quad \mathbf t=L(u,v,w)^T"
-    )
-    L, T = geometry["L"], geometry["T"]
-    trace.eq("L", L)
-    trace.eq(r"L^{-T}", tidy(L.inv().T))
-    if cfg.get("orientation", "hkl") == "hkl":
-        h = sp.Matrix(cfg["hkl"])
-        trace.eq("(h,k,l)^T", h)
-        trace.chain(r"\mathbf g_{hkl}", [L.inv().T, h], geometry["g"])
-        gn = sp.sqrt((geometry["g"].T * geometry["g"])[0])
-        trace.eq(r"\|\mathbf g_{hkl}\|", sp.simplify(gn))
-        trace.eq(r"\mathbf Z=s_n\mathbf g_{hkl}/\|\mathbf g_{hkl}\|", T[:, 2])
-        trace.eq("s_n", cfg["normal_sign"])
-        if cfg["uvw"] is not None:
-            u = sp.Matrix(cfg["uvw"])
-            trace.eq("(u,v,w)^T", u)
-            trace.eq("hu+kv+lw", (h.T * u)[0])
-            trace.chain(r"\mathbf t", [L, u], geometry["t"])
-        else:
-            trace.eq(
-                r"\mathbf t=\mathbf e_{ref}-\mathbf Z(\mathbf Z^T\mathbf e_{ref})", geometry["t"]
-            )
-        trace.eq(r"\|\mathbf t\|", sp.simplify(sp.sqrt((geometry["t"].T * geometry["t"])[0])))
-        trace.eq(r"\mathbf X_0=\mathbf t/\|\mathbf t\|", geometry["X0"])
-        trace.eq(r"\mathbf Y_0=\mathbf Z\times\mathbf X_0", geometry["Y0"])
-        trace.eq(r"\psi", deg(cfg["azimuth_deg"]))
-        trace.eq(r"\mathbf X=\cos\psi\,\mathbf X_0+\sin\psi\,\mathbf Y_0", T[:, 0])
-        trace.eq(r"\mathbf Y=-\sin\psi\,\mathbf X_0+\cos\psi\,\mathbf Y_0", T[:, 1])
-    trace.eq(r"T=[\mathbf X\ \mathbf Y\ \mathbf Z]", T)
-    trace.eq(r"T^{-1}=T^T", T.T)
-    trace.eq(r"T^TT", sp.simplify(T.T * T))
-    trace.eq(r"\det T", sp.simplify(T.det()))
-    trace.tex(r"\mathbf v_c=T\mathbf v_{lab},\quad R_{lab}=T^TR_cT")
-    trace.tex(
-        r"\Pi(\psi)=\begin{pmatrix}\cos\psi&-\sin\psi&0\\\sin\psi&\cos\psi&0\\0&0&1\end{pmatrix},\quad T(\psi)=T(0)\Pi(\psi)"
-    )
-    trace.tex(r"R_{lab}(\psi)=\Pi(\psi)^T\,T(0)^TR_cT(0)\,\Pi(\psi)")
-    trace.note(
-        "ψ rotates the measurement frame about Z. The optical scan angle changes the polarization states."
-    )
-
-
-def trace_optics(trace, run):
-    """Show general states, active optical matrices and effective sample detection."""
-    optical = run["optical"]
-    trace.section("2. Jones states and the active measurement protocol", scope="optics")
-    trace.note(GENERAL_PROFILES.get(run["config"]["optics"], optical["label"]))
-    trace.tex(
-        r"e(\vartheta,\beta)=\begin{pmatrix}\cos\vartheta\\e^{i\beta}\sin\vartheta\end{pmatrix},\quad e^\dagger=(\cos\vartheta,\ e^{-i\beta}\sin\vartheta)"
-    )
-    trace.tex(r"\beta_i\equiv\beta,\quad\beta_s\equiv\beta^{\prime}")
-    trace.tex(
-        r"\sigma^{\pm}=\frac{1}{\sqrt2}\begin{pmatrix}1\\\pm i\end{pmatrix},\quad E_i^\dagger E_i=e_s^\dagger e_s=1"
-    )
-    trace.tex(
-        r"\hat{\mathbf Z}_{lab}=(0,0,1)^T,\quad\mathbf k_i=-k_i\hat{\mathbf Z}_{lab},\quad\mathbf k_s=+k_s\hat{\mathbf Z}_{lab},\quad\mathbf k\cdot\mathbf E=0,\quad P^TP=I_3-\hat{\mathbf Z}_{lab}\hat{\mathbf Z}_{lab}^T"
-    )
-    trace.tex(r"S_3(e)=2\operatorname{Im}(e_X^*e_Y),\quad h_i=-S_3(E_i),\quad h_s=+S_3(e_s)")
-    trace.note("Frame columns X, Y, Z above use crystal components. Wavevectors and the projector here use measurement components, with Z_lab=(0,0,1). Jones vectors are normalized states; the reduced scattered responses carry coefficient units.")
-    trace.note(
-        "Fixed-laboratory circular basis labels are used. Propagation-relative helicity changes sign between opposite beam directions. The model uses ideal transverse plane-wave states without a dielectric-propagation or finite-aperture correction."
-    )
-    if optical["kind"] == "QWP":
-        trace.eq(r"Q=\mathrm{Rot}(-\pi/4)\,\mathrm{diag}(1,i)\,\mathrm{Rot}(-\pi/4)^T", QWP_QWP)
-        trace.chain(r"E_i", [QWP_QWP, x_hat], optical["Ein"])
-        trace.eq(r"B=Q^T", optical["B"])
-    else:
-        trace.eq("B", optical["B"])
-    trace.eq("E_i", optical["Ein"])
-    trace.eq(r"e_{an}", optical["analyzer"])
-    trace.chain(
-        r"e_s=B^\dagger e_{an}",
-        [optical["B"].H, optical["analyzer"]],
-        optical["effective_analyzer"],
-    )
-    trace.eq(r"e_s^\dagger", optical["effective_analyzer"].H)
-    trace.eq("P", P)
-    trace.tex(
-        r"E_{i,lab}=P^TE_i,\quad \mathcal A_j=e_{an}^\dagger BPR_{lab,j}P^TE_i=e_s^\dagger R_{\perp,j}E_i"
-    )
-    trace.tex(r"R_{\perp,j}=PR_{lab,j}P^T,\quad I_j=\mathcal A_j\mathcal A_j^*")
-    trace.tex(
-        r"\left|\sum_m\mathcal A_m\right|^2=\sum_m|\mathcal A_m|^2+2\operatorname{Re}\sum_{m<n}\mathcal A_m\mathcal A_n^*"
-    )
-    trace.tex(
-        r"a=\rho_a e^{i\phi_a},\quad b=\rho_b e^{i\phi_b},\quad \operatorname{Re}(ab^*)=\rho_a\rho_b\cos(\phi_a-\phi_b)"
-    )
-
-
-def trace_rank_one(trace, record, component, optical):
-    """Derive the slide-style product for each rotated diagonal Ag contribution."""
-    if component not in ["xx", "yy", "zz"]:
-        return
-    index = "xyz".index(component[0])
-    Rc = record["Rc"]
-    coefficient = Rc[index, index]
-    # Recover the actual normalized rotated crystal axis without dividing by a
-    # possibly zero coefficient; T is supplied explicitly by the caller.
-    T = trace.frame
-    p = T.T * sp.eye(3)[:, index]
-    v = tidy(P * p)
-    vx, vy = v
-    ti, ts, bi, bs = sp.symbols("theta_i theta_s beta beta_prime", real=True)
-    G = (
-        lambda th, be: (vx**2 + vy**2) / 2
-        + (vx**2 - vy**2) * sp.cos(2 * th) / 2
-        + vx * vy * sp.sin(2 * th) * sp.cos(be)
-    )
-    trace.tex(
-        r"R_{c,"
-        + component
-        + r"}=q\,\mathbf e_"
-        + component[0]
-        + r"\mathbf e_"
-        + component[0]
-        + r"^T"
-    )
-    trace.eq("q", coefficient)
-    trace.chain(r"\mathbf p=T^T\mathbf e_" + component[0], [T.T, sp.eye(3)[:, index]], p)
-    trace.eq(r"\mathbf v=P\mathbf p", v)
-    trace.eq(r"R_{\perp," + component + r"}=q\mathbf v\mathbf v^T", tidy(coefficient * v * v.T))
-    trace.tex(r"\mathcal A_{" + component + r"}=q\,(e_s^\dagger\mathbf v)(\mathbf v^TE_i)")
-    trace.tex(r"I_{" + component + r"}=|q|^2\,|e_s^\dagger\mathbf v|^2\,|\mathbf v^TE_i|^2")
-    trace.tex(r"G(\vartheta,\beta)=|v_x\cos\vartheta+v_y e^{i\beta}\sin\vartheta|^2")
-    trace.tex(
-        r"G=v_x^2\cos^2\vartheta+v_y^2\sin^2\vartheta+2v_xv_y\cos\vartheta\sin\vartheta\cos\beta"
-    )
-    trace.tex(
-        r"\cos^2\vartheta=(1+\cos2\vartheta)/2,\quad\sin^2\vartheta=(1-\cos2\vartheta)/2,\quad2\sin\vartheta\cos\vartheta=\sin2\vartheta"
-    )
-    trace.eq(r"G_i(\theta_i,\beta)", sp.factor_terms(G(ti, bi)))
-    trace.eq(r"G_s(\theta_s,\beta^\prime)", sp.factor_terms(G(ts, bs)))
-    trace.note(
-        "The following general product uses direct Jones states before any return optic. The active QWP path is specialized through its effective detector in the matrix steps below."
-    )
-    power = coefficient * sp.conjugate(coefficient)
-    trace.tex(r"I_{" + component + r"}^{\mathrm{direct}}=|q|^2G_iG_s")
-    trace.eq(
-        r"I_{" + component + r"}^{\mathrm{direct,expanded}}",
-        sp.expand(power * G(ti, bi) * G(ts, bs)),
-    )
-    # Specialize the two overlap factors to the active optical chain itself.
-    # In particular, the return QWP changes e_s; it cannot be replaced with a
-    # different elliptical scan just because two endpoint states agree.
-    incident_overlap = tidy((v.T * optical["Ein"])[0])
-    detector_overlap = tidy((optical["effective_analyzer"].H * v)[0])
-    incident_power = tidy(incident_overlap * sp.conjugate(incident_overlap))
-    detector_power = tidy(detector_overlap * sp.conjugate(detector_overlap))
-    trace.eq(r"\eta_i=\mathbf v^TE_i", incident_overlap)
-    trace.eq(r"\eta_i^*", sp.conjugate(incident_overlap))
-    trace.eq(r"\eta_s=e_s^\dagger\mathbf v", detector_overlap)
-    trace.eq(r"\eta_s^*", sp.conjugate(detector_overlap))
-    trace.eq(r"G_{i,active}=\eta_i\eta_i^*", incident_power)
-    trace.eq(r"G_{s,active}=\eta_s\eta_s^*", detector_power)
-    trace.eq(
-        r"I_{" + component + r"}^{active}=|q|^2G_{i,active}G_{s,active}",
-        tidy(power * incident_power * detector_power),
-    )
-    if optical["kind"] in ["CUBIC_SIGMA", "COMPONENT_SIGMA_ALPHA"]:
-        trace.tex(r"\theta_i=\pi/4,\quad\theta_s=\pi/4+\alpha,\quad\beta=\beta^\prime=\pi/2")
-        trace.tex(
-            r"\cos2\theta_i=0,\quad\sin2\theta_i=1,\quad\cos\beta=\cos\beta^\prime=0,\quad\cos2\theta_s=-\sin2\alpha"
-        )
-        special = sp.expand(
-            (power * G(ti, bi) * G(ts, bs)).subs(
-                {ti: sp.pi / 4, ts: sp.pi / 4 + alpha, bi: sp.pi / 2, bs: sp.pi / 2}
-            )
-        )
-        trace.eq(r"I_{" + component + r"}^{\sigma^{+}\alpha}", sp.trigsimp(special))
-
-
-def trace_tensor_definition(trace, run):
-    """Show the complete phonon tensors before displaying their Ag contributions."""
-    trace.section("3. Phonon response and the complete crystal tensor", scope="tensor")
-    trace.tex(
-        r"\chi_{ij}(\{u_m\})=\chi_{ij}^{(0)}+\sum_m(R_\chi^{(m)})_{ij}u_m+O(u^2),\quad R_{\chi,ij}^{(m)}=\left.\partial\chi_{ij}/\partial u_m\right|_0"
-    )
-    trace.tex(
-        r"\mathbf P_R^{\mathrm{phys},(m)}=\epsilon_0R_\chi^{(m)}\mathbf E_{i,c}^{\mathrm{phys}}u_m,\quad I_m^{\mathrm{physical}}=\kappa_m|\mathcal A_m|^2,\quad I_m^{\mathrm{plot}}=|\mathcal A_m|^2\ (\mathrm{a.u.})"
-    )
-    trace.note(
-        "R_chi is the physical susceptibility derivative. The numerical R_c below uses supplied relative coefficients, whose absolute SI scale is not specified. The normal coordinate may be displacement or mass weighted, so its convention must be stated before assigning an SI unit to R_chi. Symmetry fixes the allowed tensor form. Each phonon branch has its own complex coefficients. The common angular-response scale is set to one in the plotted arbitrary units."
-    )
-    for name, data in run["families"].items():
-        if data.get("irrep") != "Ag" or run["geometry"] is None:
-            continue
-        trace.section("Complete crystal tensor: " + name)
-        Rc = data["partners"][0]
-        trace.eq(r"R_{c,Ag}", Rc)
-        parts = cartesian_tensor_parts(Rc)
-        trace.tex(r"R_{c,Ag}=" + "+".join(r"R_{c," + key + "}" for key in parts))
-        T = run["geometry"]["T"]
-        trace.chain(r"R_{lab,Ag}", [T.T, Rc, T], tidy(T.T * Rc * T))
-        trace.note(
-            "The following Ag figures show individual Cartesian contributions of this one tensor. A sum of their powers is not used as the plotted Ag result."
-        )
-
-
-def trace_record(trace, run, channel, record, tensor_index):
-    """Show the full matrix products without harmonic-coefficient aliases."""
-    Rc, optical = record.get("Rc", record["Rperp"]), channel["optical"]
-    component = tensor_component_label(Rc)
-    trace.section(channel["name"] + " / " + component + " component", scope="record")
-    trace.note(channel["kind"] + ".")
-    trace.eq("R_c" if run["geometry"] is not None else "R_{ref}", Rc,
-             "Start from the crystal-basis tensor with nonzero entries at " + component + ". For a degenerate mode, calculate each orthogonal phonon component separately before adding its intensity." if run["geometry"] is not None else "Start from the effective two-dimensional source tensor in its declared XY basis.")
-    if run["geometry"] is not None:
-        T = run["geometry"]["T"]
-        trace.frame = T
-        trace.chain("R_cT", [Rc, T], tidy(Rc * T), "First multiply the crystal tensor by the measurement frame.")
-        trace.chain(r"R_{lab}=T^TR_cT", [T.T, Rc, T], record["Rlab"],
-                    "Apply the frame transformation on both tensor indices before projecting into the optical plane.")
-        for i in range(3):
-            for j in range(3):
-                terms = [T[k, i] * Rc[k, l] * T[l, j] for k in range(3) for l in range(3)]
-                trace.tex(r"(R_{lab})_{" + str(i + 1) + str(j + 1) + "}="
-                          + trace.latex(sp.Add(*terms, evaluate=False)) + "="
-                          + trace.latex(sp.expand(record["Rlab"][i, j])),
-                          explanation="Evaluate row " + str(i + 1) + ", column " + str(j + 1)
-                          + " of the rotated tensor. All nine products are retained here.")
-        trace.chain(r"R_\perp=PR_{lab}P^T", [P, record["Rlab"], P.T], record["Rperp"],
-                    "Select the measurement X and Y components after the full three-dimensional rotation.")
-        Ei3 = tidy(P.T * optical["Ein"])
-        Ec = tidy(T * Ei3)
-        Pc = tidy(Rc * Ec)
-        Pl = tidy(T.T * Pc)
-        trace.chain(r"E_{i,lab}=P^TE_i", [P.T, optical["Ein"]], Ei3,
-                    "Embed the incident two-component Jones state in the measurement XYZ frame.")
-        trace.chain(r"E_{i,c}=TE_{i,lab}", [T, Ei3], Ec,
-                    "Express the same incident field in crystal coordinates.")
-        trace.chain(r"\mathcal P_c=R_cE_{i,c}", [Rc, Ec], Pc,
-                    "Apply this crystal tensor to the incident field. This is the reduced Raman-induced response.")
-        trace.chain(r"\mathcal P_{lab}=T^T\mathcal P_c", [T.T, Pc], Pl,
-                    "Transform the induced response back to measurement coordinates.")
-        trace.chain(r"E_{sc}=P\mathcal P_{lab}", [P, Pl], record["Esc"],
-                    "Retain the transverse part of the induced response in the measurement plane.")
-    trace.chain(r"E_{sc}=R_\perp E_i", [record["Rperp"], optical["Ein"]], record["Esc"],
-                "The transverse tensor gives the same scattered response directly.")
-    trace.chain(r"E_{out}=BE_{sc}", [optical["B"], record["Esc"]], record["Eout"],
-                "Pass the scattered response through the selected return-path optics.")
-    trace.eq(r"e_{an}^\dagger", optical["analyzer"].H,
-             "Take the complex conjugate transpose of the analyzer Jones state.")
-    trace.chain(r"\mathcal A=e_{an}^\dagger E_{out}",
-                [optical["analyzer"].H, record["Eout"]], record["amplitude"],
-                "Contract the analyzer row with the outgoing field to obtain the complete detected amplitude.")
-    amplitude = sp.expand(record["amplitude"])
-    trace.eq(r"\mathcal A", amplitude,
-             "Expand the amplitude in the original tensor coefficients and scan angle.")
-    trace.eq(r"\mathcal A^*", sp.conjugate(amplitude), "Conjugate the complete amplitude, including every complex tensor element.")
-    trace.tex("I=" + r"\left(" + trace.latex(amplitude) + r"\right)\left("
-              + trace.latex(sp.conjugate(amplitude)) + r"\right)", (amplitude,),
-              "Multiply the complete amplitude by its conjugate. Keep all interference terms within this basis tensor.")
-    trace.eq("I", sp.expand(amplitude * sp.conjugate(amplitude)),
-             "Expand the product explicitly. The following final section combines any orthogonal phonon components.")
-
-
-def trace_final(trace, run, channel):
-    """Show physical-coefficient expressions and the substituted final intensity."""
-    summary = symbolic_intensity_summary(channel["records"])
-    symbolic = intensity_expression(summary, trace.variable)
-    trace.section("Final intensity: " + channel["name"], scope="final")
-    amplitudes = [trace.latex(r["amplitude"]) for r in channel["records"]]
-    trace.tex("I=" + "+".join(r"\left|" + a + r"\right|^2" for a in amplitudes),
-              explanation="Sum the intensities of the unresolved orthogonal phonon components."
-              if len(amplitudes) > 1 else "Take the squared modulus of this complete amplitude.")
-    variable_tex = raman_latex(trace.variable)
-    trace.eq("I(" + variable_tex + ")", symbolic,
-             "Collect the terms while keeping the original tensor coefficients symbolic.")
-    for symbol, value in sorted(channel["values"].items(), key=lambda kv: str(kv[0])):
-        trace.eq(raman_latex(symbol), value, "Use this magnitude and phase for the tensor coefficient.")
-    substituted = sp.trigsimp(symbolic.subs(channel["values"]))
-    trace.eq("I(" + variable_tex + ")", substituted,
-             "Insert the chosen coefficient values. This is the intensity sampled in the plot.")
-    derivative = sp.diff(substituted, trace.variable)
-    trace.eq(r"\frac{dI}{d" + variable_tex + "}", derivative,
-             "Differentiate the final intensity. Set this derivative to zero to find stationary angles.")
-    trace.tex(r"\frac{dI}{d" + variable_tex + "}=0" + r"\quad\Longleftrightarrow\quad " + trace.latex(derivative) + "=0", (derivative,),
-              "Solve for the stationary angles, then compare their intensities over one period.")
-    trace.eq("I_{min}", sp.Float(channel["summary"]["Imin"], 12), "The smallest intensity over one scan period.")
-    trace.eq("I_{max}", sp.Float(channel["summary"]["Imax"], 12), "The largest intensity over one scan period.")
-    if channel["summary"]["alpha_max"] is None:
-        trace.note("The intensity is constant. Every scan angle is equivalent, so there is no unique maximum angle.")
-    else:
-        trace.eq(variable_tex + r"_{max}\ (\mathrm{degree})", sp.Float(channel["summary"]["alpha_max"], 12),
-                 "One angle at which the intensity reaches its maximum, in degrees.")
-    return dict(channel=channel["name"], variable=trace.variable, summary=summary, expression=symbolic,
-                substituted=substituted)
-
-
-def detailed_calculation(run):
-    """Generate the same matrix-to-intensity stages for every displayed channel."""
-    variable = theta_scan if run["optical"]["scan_basis"] == "SECOND" else alpha
-    trace = CalculationTrace(variable, run["config"])
-    trace.section("ROTATION RAMAN TENSOR CALCULATION / mathematical derivation")
-    trace.note(run["config"]["case_label"])
-    trace_coefficient_inputs(trace, run["config"])
-    trace_geometry(trace, run)
-    trace_optics(trace, run)
-    trace_tensor_definition(trace, run)
-    finals = []
-    for channel in run["display_channels"].values():
-        for j, record in enumerate(channel["records"], 1):
-            trace_record(trace, run, channel, record, j)
-        finals.append(trace_final(trace, run, channel))
-    complete_finals = []
-    for name, result in run["results"].items():
-        family = run["families"][name]
-        if family.get("irrep") != "Ag" or run["geometry"] is None:
-            continue
-        channel = dict(name=name+" (complete tensor)", optical=result.get("optical",run["optical"]),
-                       records=result["terms"], values=family["values"],
-                       summary=run["summaries"][name], kind="Complete coherent Ag response")
-        trace.note("Complete Ag response: add the amplitudes from all entries of this one tensor before taking the squared modulus. Its separate Cartesian powers above cannot be added to obtain this result.")
-        for j, record in enumerate(channel["records"], 1):
-            trace_record(trace, run, channel, record, j)
-        final = trace_final(trace, run, channel)
-        final["source_mode"] = name
-        complete_finals.append(final)
-    trace.section("Independent representation checks", scope="checks")
-    for row in matching_protocol_audit(run):
-        trace.tex(
-            r"\epsilon_{direct}("
-            + r"\mathrm{"
-            + row["channel"].replace("_", r"\_")
-            + "}"
-            + ")="
-            + raman_latex(sp.Float(row["direct_error"], 5))
-            + r",\quad\epsilon_{circular}="
-            + raman_latex(sp.Float(row["circular_error"], 5))
-        )
-    return dict(entries=trace.entries, markdown=trace.markdown(explained=False),
-                mathematics_markdown=trace.markdown(explained=False),
-                explained_markdown=trace.markdown(explained=True),
-                symbol_legend=calculation_symbol_legend(trace.entries),
-                reference_ids=calculation_reference_ids(trace.entries),
-                finals=finals, complete_finals=complete_finals, references=DERIVATION_REFERENCES)
-
 
 def latex_document_plain(entries, title="Raman tensor calculation", explained=True):
     """Create a compilable article; long equations scale only when needed."""
@@ -3988,7 +3327,6 @@ def latex_document_plain(entries, title="Raman tensor calculation", explained=Tr
             lines.append(r"\noindent " + label + "; " + latex_text(ref["location"]) + r"\par")
     return "\n\n".join(lines) + r"\end{document}" + "\n"
 
-
 def latex_document(entries, title="Raman tensor calculation", explained=True):
     """Export the explained trace with English on the left and mathematics on the right."""
     if not explained:
@@ -4027,8 +3365,6 @@ def latex_document(entries, title="Raman tensor calculation", explained=True):
         lines.append(r"\noindent "+label+'. '+latex_text(ref['location'])+r"\par")
     return '\n\n'.join(lines)+r"\end{document}"+'\n'
 
-
-
 def paper_intensity_latex(run, derivation):
     """Export symbolic I(angle) before substitution plus a separate numeric file."""
     symbolic, numerical = [], []
@@ -4062,103 +3398,154 @@ def paper_intensity_latex(run, derivation):
         explained=latex_document(derivation["entries"], "2. Explained derivation", explained=True),
     )
 
+"""Paper-order equations and short symbol definitions shared by Python and both websites."""
+
+LAB_SYMBOLS = {
+    "tensor": [("R","R","Raman tensor in the displayed coordinate frame.","relative tensor units"),
+               ("coefficient","d","Common nonzero off-diagonal element in the cubic tensors.","relative tensor units")],
+    "frame": [("hkl",r"(h,k,\ell)","Surface Miller indices.","dimensionless"),
+              ("MN",r"M,N","Normalization factors in SI (S2).","dimensionless"),
+              ("XYZ",r"X,Y,Z","Measurement unit axes in the crystal coordinates.","dimensionless"),
+              ("frame","T","Matrix with columns X, Y, Z.","dimensionless")],
+    "optics": [("theta",r"\theta","Linear-polarization scan angle.","radians"),
+               ("alpha",r"\alpha","Detection-state scan angle.","radians"),
+               ("phase",r"\beta,\beta'","Jones-state phases in paper (11).","radians"),
+               ("states",r"\hat e_i,\hat e_s^*","Incident column and conjugated detection row.","normalized")],
+    "intensity": [("intensity","I","Relative Raman intensity; plotted before optional normalization.","relative intensity units")],
+}
 
 
-def equation_explanation(value, scope):
-    """Describe the operation shown in this row."""
-    lhs = value.replace(r"\begin{aligned}", "").split("=", 1)[0].rstrip("&")
-    rules = [
-        ("(h,k,l)", "Read the selected surface Miller indices. These are inputs, not a result of the preceding lattice calculation."),
-        ("(u,v,w)", "Choose a crystal direction lying in that surface."),
-        (r"\|\mathbf g", "Find the length of the surface-normal vector."),
-        (r"\|\mathbf t", "Find the length of the in-plane reference vector."),
-        ("s_n", "Choose which side of the surface normal points along Z."),
-        (r"\psi", "Rotate the measurement axes about Z by this angle."),
-        (r"\chi", "Expand the susceptibility about equilibrium. Its derivative with respect to a phonon coordinate is the Raman tensor."),
-        (r"P_R", "Relate the physical induced polarization to the susceptibility derivative. The plotted intensity uses relative tensor units."),
-        (r"e(\vartheta", "A Jones vector specifies the magnitudes and relative phase of the two transverse field components."),
-        (r"\beta_i", "The direct controls and reference equations use these equivalent phase labels."),
-        (r"\sigma", "Define the two circular basis vectors and normalize the polarization states."),
-        (r"\hat{\mathbf Z}", "The beams travel along opposite directions of the measurement Z axis. Their electric fields lie in the XY plane."),
-        (r"S_3", "Calculate the circular Stokes component. The helicity sign also depends on the beam direction."),
-        (r"\det", "A right-handed rotation frame has determinant +1."),
-        (r"T^TT", "Check that the three axes are mutually perpendicular and have unit length."),
-        (r"T^{-1}", "For this real orthogonal frame, the inverse is the transpose."),
-        (r"\mathbf Y_0", "Complete the right-handed frame with Y₀ = Z × X₀."),
-        (r"\mathbf X_0", "Normalize the in-plane reference to obtain X₀."),
-        (r"\mathbf Y", "Rotate Y₀ by the same frame angle used for X."),
-        (r"\mathbf X", "Rotate X₀ within the surface plane."),
-        (r"\mathbf Z", "Normalize the surface normal and apply the chosen sign."),
-        (r"\mathbf g", "Use the reciprocal lattice to convert Miller indices into a Cartesian normal."),
-        (r"\mathbf t", "Convert the in-plane crystal direction into Cartesian coordinates."),
-        (r"hu+kv", "An in-plane direction satisfies the zone condition hu + kv + lw = 0."),
-        (r"\mathbf v_c", "The frame maps measurement components to crystal components. Apply the transformation to both tensor indices."),
-        (r"\Pi", "Write the rotation about measurement Z. Multiply the original frame by this matrix."),
-        (r"R_{lab}(\psi)", "Insert the in-plane rotation on both sides of the Raman tensor."),
-        (r"L^{-T}", "Take the inverse transpose of the direct-lattice matrix."),
-        (r"L", "Place the three direct-lattice vectors in the matrix columns."),
-        (r"T", "Place X, Y and Z in the columns of the measurement frame."),
-        (r"e_s^\dagger", "Conjugate and transpose the detection state before contracting it with the scattered field."),
-        (r"e_s", "Include the return optics to obtain the detection state at the sample."),
-        (r"e_{an}", "Write the analyzer polarization state."),
-        (r"E_{i,lab}", "Embed the Jones vector in three dimensions, then contract the tensor with the incident and detected states."),
-        (r"E_i", "Write the incident polarization at the sample."),
-        (r"R_{\perp,j}", "Keep the transverse tensor entries. Multiply each phonon amplitude by its complex conjugate."),
-        (r"\left|\sum", "Terms from the same phonon interfere: add their amplitudes before taking the squared modulus."),
-        (r"a", "Write the size and phase of each complex tensor entry. Their phase difference controls the interference term."),
-        (r"Q", "Write the quarter-wave-plate Jones matrix in the stated reference convention."),
-        (r"B", "Write the Jones matrix of the return optical path. With no return element, this is the identity."),
-        (r"P", "Select the measurement X and Y components with this 2 × 3 matrix."),
-        (r"\frac{dI", "Differentiate the intensity to find stationary scan angles."),
-        (r"I", "Evaluate the relative intensity using these tensor coefficients and polarization states."),
-    ]
-    for marker, meaning in rules:
-        if lhs.startswith(marker):
-            return meaning
-    return {
-        "geometry": "Insert the selected lattice and measurement directions.",
-        "optics": "Insert the selected polarization state.",
-        "record": "Multiply these matrices in the order shown.",
-        "final": "Insert the selected tensor coefficients.",
-        "checks": "Compare the same response calculated in two equivalent bases.",
-    }.get(scope, "Insert the values in the definition shown here.")
+def _lab_tex(trace,value,explanation,source="",symbols=(),analytical=None):
+    trace.tex(value.replace(r"\beta'",r"\beta^{\prime}"),explanation=explanation)
+    entry=trace.entries[-1]
+    entry["symbols"]=[dict(id=k,latex=tex,meaning=meaning,units=units) for k,tex,meaning,units in symbols]
+    entry["reference_ids"]=["PAUKATONG2026"] if framework_for(trace.context)=="NEW_SAN" else ["KUMAR_NOTEBOOK"] if framework_for(trace.context)=="DR_KUMAR" else ["PROGRAM_GEOMETRY"]
+    entry["derivation_note"]=source
+    entry["source_equation"]=source
+    entry["analytical_kind"]=analytical
+
+
+def laboratory_trace(run,preflight=False):
+    cfg,optical=run["config"],run["optical"]
+    key=framework_for(cfg)
+    variable=theta_scan if optical["scan_basis"]=="SECOND" else alpha
+    trace=CalculationTrace(variable,cfg)
+    tex=lambda expression:raman_latex(sp.sympify(expression).subs(alpha,variable))
+    add=lambda value,why,src="",symbols=(),kind=None:_lab_tex(trace,value,why,src,symbols,kind)
+    original=definitions_for("Si","Oh")["T2g"]["partners"] if key=="NEW_SAN" else None
+    trace.section("Raman tensor")
+    if key=="DR_KUMAR":
+        add("R="+tex(QWP_SOURCE_TENSOR),"Use the complete source tensor from Dr. Kumar's notebook.",
+            "Dr. Kumar: source tensor",[( "source",r"a,A,\delta,\phi","Real source coefficients a, A and phases δ, φ.","relative coefficients; phase in radians")],kind="raman_tensor")
+    elif key=="NEW_SAN":
+        for label,r in zip(["x","y","z"],original):
+            add(r"R^{"+label+"}="+tex(r),"Nonzero entries: "+tensor_component_label(r)+".","Paper ("+str(1+"xyz".index(label))+")",LAB_SYMBOLS["tensor"] if label=="x" else ())
+    else:
+        for name,family in run["families"].items():
+            for r in family["partners"]:
+                coeffs=",".join(raman_latex(v) for v in sorted(r.free_symbols,key=str))
+                definitions=[("R","R","Raman tensor in the crystal frame.","relative tensor units")]
+                if coeffs:definitions.append(("coefficients",coeffs,"Complex tensor coefficients in the displayed matrix.","relative tensor units"))
+                add("R="+tex(r),"Crystal tensor for "+name+".","PPT slide model",definitions)
+    if key!="DR_KUMAR":
+        trace.section("Surface and measurement axes")
+        T=run["geometry"]["T"]
+        if key=="NEW_SAN":
+            add(r"M=\sqrt{h^2+k^2},\quad N=\sqrt{h^2+k^2+\ell^2}",
+                "Normalize the surface axes.","SI (S2)",LAB_SYMBOLS["frame"])
+            add(r"X=\frac1M\begin{pmatrix}k\\-h\\0\end{pmatrix},\quad "
+                r"Y=\frac1{MN}\begin{pmatrix}h\ell\\k\ell\\-M^2\end{pmatrix},\quad "
+                r"Z=\frac1N\begin{pmatrix}h\\k\\\ell\end{pmatrix}",
+                "Use the paper's in-plane reference. For (001), use the original axes.","SI (S1); SI S3")
+        for j,label in enumerate(["X","Y","Z"]):
+            add(label+"="+tex(T[:,j]),"Selected measurement axis in crystal coordinates.","SI (S1)" if key=="NEW_SAN" else "PPT measurement axes",
+                LAB_SYMBOLS["frame"][2:] if j==0 and key=="USER_PPT" else ())
+        add("T=[X\\ Y\\ Z]="+tex(T),"Place the three axes in columns.","Paper (4)" if key=="NEW_SAN" else "Frame matrix")
+        trace.section("Analytical expression for the Raman tensor")
+        add(r"R^{i\prime}=T^{-1}R^iT=T^TR^iT","Express the tensor in the measurement frame.",
+            "Paper (5)" if key=="NEW_SAN" else "Tensor transformation",kind="raman_tensor")
+        if key=="NEW_SAN":
+            for j,r in enumerate(original):
+                add("R^{"+["x","y","z"][j]+r"\prime}="+tex(tidy(T.T*r*T)),
+                    "Rotated tensor; keep d symbolic.","SI (S7)–(S9)",kind="raman_tensor")
+            if cfg["material"]=="GaAs":
+                add(r"\begin{pmatrix}R^X\\R^Y\\R^Z\end{pmatrix}=T^T"
+                    r"\begin{pmatrix}R^{x\prime}\\R^{y\prime}\\R^{z\prime}\end{pmatrix}",
+                    "Project the phonon polarization: TO uses X,Y; LO uses Z.","Paper (8)",kind="raman_tensor")
+                for name,family in run["families"].items():
+                    for label,r in zip(family["calculation_labels"],family["calculation_tensors"]):
+                        add(label+"="+tex(tidy(T.T*r*T)),"Projected "+name+" Raman tensor.","SI (S14)–(S16)",kind="raman_tensor")
+                trace.note("The phonon projection follows paper (8) and Cartesian SI (S14). A printed polar entry in SI (S10) differs from this direct projection.")
+        else:
+            for name,channel in run.get("display_channels",{}).items():
+                for rec in channel["records"]:
+                    add(r"R'="+tex(rec["Rlab"]),name+": transformed Cartesian contribution.","PPT tensor rotation",kind="raman_tensor")
+    trace.section("Polarization states")
+    if key=="NEW_SAN":
+        add(r"\hat e_i=\begin{pmatrix}\cos\theta\\\sin\theta e^{i\beta}\\0\end{pmatrix},\quad "
+            r"\hat e_s^*=\begin{pmatrix}\cos(\theta+\alpha)&\sin(\theta+\alpha)e^{-i\beta'}&0\end{pmatrix}",
+            "Use the incident and detected states from the paper.","Paper (11)",LAB_SYMBOLS["optics"])
+        setting={"CUBIC_VV":r"\alpha=0,\quad\beta=\beta'=0",
+                 "CUBIC_VH":r"\alpha=\pi/2,\quad\beta=\beta'=0",
+                 "CUBIC_SIGMA":r"\theta=\pi/4,\quad\beta=\beta'=\pi/2"}[cfg["optics"]]
+        add(setting,"VV and VH scan θ; σ⁺α scans α.","Paper Section 2.3; SI (S17),(S18)")
+    if key=="DR_KUMAR":
+        add("Q="+tex(QWP_QWP)+r",\quad Q_{\mathrm{back}}="+tex(QWP_RETURN_QWP),
+            "Use the input and return quarter-wave plates.","Dr. Kumar: QWP matrices")
+    add(r"\hat e_i="+tex(P.T*optical["Ein"] if key!="DR_KUMAR" else optical["Ein"]),
+        "Incident state for this calculation.","Selected polarization")
+    add(r"\hat e_s^*="+tex((P.T*optical["effective_analyzer"]).H if key!="DR_KUMAR" else optical["analyzer"].H),
+        "Conjugated detection row.","Selected polarization")
+    finals=[]
+    if not preflight:
+        trace.section("Analytical expression for the Raman intensity")
+        amplitude_lhs=r"\hat e_s^*Q_{\mathrm{back}}R\hat e_i" if key=="DR_KUMAR" else r"\hat e_s^*R\hat e_i"
+        add(r"I(R)=\left|"+amplitude_lhs+r"\right|^2",
+            "Include the return QWP before the analyzer, then take the squared modulus." if key=="DR_KUMAR" else "Contract the transformed tensor with the polarization states, then take the squared modulus.",
+            "Paper (9)–(13)" if key=="NEW_SAN" else "Jones contraction",LAB_SYMBOLS["intensity"],"raman_intensity")
+        for name,channel in run["display_channels"].items():
+            records=channel["records"]
+            for j,rec in enumerate(records):
+                amplitude=tidy((optical["analyzer"].H*optical["B"]*rec["Rperp"]*optical["Ein"])[0])
+                add(amplitude_lhs+"="+tex(sp.trigsimp(amplitude)),
+                    name+": "+(tensor_component_label(rec.get("Rc",rec["Rperp"])) if key!="DR_KUMAR" else "source tensor")+".",
+                    "Substitution in paper (9)" if key=="NEW_SAN" else "Matrix product")
+            summary=symbolic_intensity_summary(records)
+            expression=sp.trigsimp(intensity_expression(summary,variable))
+            if key=="NEW_SAN":
+                expression=sp.trigsimp(expression.xreplace({sp.conjugate(d):d}))
+            numerical=sp.trigsimp(expression.subs(channel["values"]))
+            power="+".join(r"\left|"+tex(sp.trigsimp(rec["amplitude"]))+r"\right|^2" for rec in records)
+            add("I="+power,"Sum intensities of the orthogonal phonon components." if len(records)>1 else "Square this complete amplitude.",
+                "Paper (9)" if cfg.get("material")=="Si" else "Paper (10)" if key=="NEW_SAN" else "Selected component")
+            add("I("+tex(variable)+")="+tex(expression),name+": analytical angular dependence.",
+                "Paper (9)–(13); SI (S17),(S18)" if key=="NEW_SAN" else "Expanded intensity",kind="raman_intensity")
+            add("I("+tex(variable)+")="+tex(numerical),"Insert the selected tensor value. This expression generates the polar plot.",
+                "Plot equation",kind="raman_intensity")
+            finals.append(dict(channel=name,variable=variable,summary=summary,expression=expression,substituted=numerical))
+    return trace,finals
+
+
+def detailed_calculation(run):
+    trace,finals=laboratory_trace(run)
+    return dict(entries=trace.entries,markdown=trace.markdown(False),mathematics_markdown=trace.markdown(False),
+        explained_markdown=trace.markdown(True),symbol_legend=calculation_symbol_legend(trace.entries),
+        reference_ids=calculation_reference_ids(trace.entries),finals=finals,complete_finals=[],
+        references=DERIVATION_REFERENCES)
+
 
 def prepare_input_review(configuration):
-    """Check geometry, tensor transformations and Jones states without an intensity scan."""
-    cfg = copy.deepcopy(configuration)
-    source = cfg.get("tensor_model") == "QWP_SOURCE_2D"
-    if not source:
-        cfg["calculation_method"] = "GENERAL"
-        cfg["ag_rule"] = "COHERENT_SINGLE_TENSOR"
-        validate_lattice_for_group(cfg)
-    validate_method_policy(cfg)
-    geometry = None if source else build_orientation(cfg)
-    optical = optical_chain(cfg["optics"], cfg.get("direct_jones"), cfg.get("paper_parameters"))
-    trace = CalculationTrace(theta_scan if optical["scan_basis"] == "SECOND" else alpha, cfg)
-    skeleton = dict(config=cfg, geometry=geometry, optical=optical)
-    trace.section("Input review")
-    trace.note("Check the axes, tensor matrices and polarization states before calculating the intensity. X, Y and Z are measurement axes expressed in crystal Cartesian coordinates; they are not Jones polarization vectors. T maps measurement components to crystal components, so the same tensor in the measurement frame is Tᵀ R_c T.")
-    trace_coefficient_inputs(trace, cfg)
-    trace_geometry(trace, skeleton)
-    trace_optics(trace, skeleton)
-    if not source:
-        definitions = definitions_for(cfg["material"], cfg["point_group"])
-        for name in cfg["modes"]:
-            definition = definitions[name]
-            trace.section("Tensor preview: " + name, scope="record")
-            components = [cfg["custom_tensor"]] if cfg["point_group"] == "CUSTOM" else definition["partners"]
-            for tensor in components:
-                T = geometry["T"]
-                rotated = tidy(T.T * tensor * T)
-                trace.eq("R_c", tensor, "The selected crystal-basis tensor before numerical coefficient substitution.")
-                values = cfg.get("mode_values", {}).get(name, {})
-                trace.eq(r"R_{c,\mathrm{input}}", tensor.subs(values), "The crystal tensor with the selected coefficient magnitudes and phases.")
-                trace.chain(r"R_{lab}=T^TR_cT", [T.T, tensor, T], rotated,
-                            "Inspect the full rotated tensor before starting the intensity calculation.")
-                trace.chain(r"R_\perp=PR_{lab}P^T", [P, rotated, P.T], tidy(P * rotated * P.T),
-                            "Inspect the two transverse components used by the optical calculation.")
-    return dict(config=cfg, geometry=geometry, optical=optical, entries=trace.entries,
-                equation_count=sum(e["kind"] == "equation" for e in trace.entries))
+    cfg=prepare_framework_config(configuration)
+    source=cfg["tensor_model"]=="QWP_SOURCE_2D"
+    geometry=None if source else build_orientation(cfg)
+    optical=optical_chain(cfg["optics"],paper=cfg.get("paper_parameters"))
+    families={} if source else newsan_gaas_families(cfg,geometry["T"]) if cfg["framework"]=="NEW_SAN" and cfg["material"]=="GaAs" else experiment_families(cfg)
+    skeleton=dict(config=cfg,geometry=geometry,optical=optical,families=families,display_channels={})
+    trace,_=laboratory_trace(skeleton,preflight=True)
+    return dict(config=cfg,geometry=geometry,optical=optical,entries=trace.entries,
+        equation_count=sum(e["kind"]=="equation" for e in trace.entries))
+
+
 
 
 
@@ -4168,14 +3555,9 @@ def prepare_input_review(configuration):
 
 
 def run_description(run):
-    """Label the actual workflow/model; never assign a crystal to the 2D source."""
-    config = run["config"]
-    if config["tensor_model"] == "QWP_SOURCE_2D":
-        return "Quarter-wave-plate — original 2×2 source model"
-    method = METHOD_LABELS[config["calculation_method"]]
-    suffix = " / 3D extension" if config["calculation_method"] == "QWP" else ""
-    scope = " | ℓ=0 Jones reference" if config["calculation_method"] == "CIRCULAR" else ""
-    return f"{method}{suffix} | {config['material']} / {config['point_group']} | {config['hkl']}{scope}"
+    cfg=run["config"]
+    label=FRAMEWORKS[framework_for(cfg)]["label"]
+    return label if cfg["tensor_model"]=="QWP_SOURCE_2D" else label+" | "+cfg["material"]+" | "+str(cfg["hkl"])
 
 
 def qwp_source_steps_markdown(run):
@@ -7213,3 +6595,69 @@ def reference_analytic_markdown(report=None):
         lines += ['','## '+row['label'],row['detail'],'Residual: '+str(row['residual'])]
         if row.get('latex'):lines += ['$$'+row['latex']+'$$']
     return '\n\n'.join(lines)+'\n'
+
+
+def validate_general_upgrade():
+    """Independently contract the three retained laboratory models."""
+    rng_angles=np.linspace(0,2*np.pi,25)
+    base=np.array([[[0,0,0],[0,0,1],[0,1,0]],[[0,0,1],[0,0,0],[1,0,0]],[[0,1,0],[1,0,0],[0,0,0]]],float)
+    cases=0;largest=0.
+    surfaces=[(5,k,0) for k in range(6)]+[(1,1,1),(1,2,3),(0,0,1)]
+    for material in ["Si","GaAs"]:
+        for hkl in surfaces:
+            h,k,ell=hkl;m=np.hypot(h,k);n=np.linalg.norm(hkl)
+            T=np.eye(3) if m==0 else np.array([[k/m,h*ell/(m*n),h/n],[-h/m,k*ell/(m*n),k/n],[0,-m/n,ell/n]])
+            rp=np.array([T.T@r@T for r in base])
+            projected=np.einsum("ji,jab->iab",T,rp)
+            for profile in FRAMEWORKS["NEW_SAN"]["profiles"]:
+                cfg=general_config(material,profile);cfg.update(framework="NEW_SAN",hkl=hkl,show_geometry=False)
+                run=calculate_general(cfg)
+                if profile=="CUBIC_SIGMA":
+                    ei=np.array([1,1j,0])/np.sqrt(2)
+                    es=np.array([np.cos(rng_angles+np.pi/4),-1j*np.sin(rng_angles+np.pi/4),np.zeros_like(rng_angles)])
+                else:
+                    ei=np.array([np.cos(rng_angles),np.sin(rng_angles),np.zeros_like(rng_angles)])
+                    es=ei if profile=="CUBIC_VV" else np.array([-np.sin(rng_angles),np.cos(rng_angles),np.zeros_like(rng_angles)])
+                for name,channel in run["display_channels"].items():
+                    tensors=rp if material=="Si" else projected[:2] if name=="TO" else projected[2:]
+                    amps=np.einsum("a...,iab,b...->i...",es,tensors,ei)
+                    expected=np.sum(np.abs(amps)**2,axis=0)
+                    actual=evaluate_terms(dict(terms=channel["records"]),channel["values"],rng_angles)["total"]
+                    error=float(np.max(np.abs(expected-actual)));largest=max(largest,error)
+                    check(error<2e-11,f"Paper contraction mismatch for {material} {hkl} {profile} {name}.")
+                cases+=1
+    for key in ["USER_PPT","DR_KUMAR"]:
+        run=calculate_general(framework_config(key));trace=detailed_calculation(run)
+        check(sum(row["kind"]=="equation" for row in trace["entries"])<=40,"The compact derivation has become too long.")
+        if key=="USER_PPT":
+            check(len(run["display_channels"])==3,"PPT Ag contributions must be shown separately.")
+            T=numeric(run["geometry"]["T"]);ei=np.array([1,1j])/np.sqrt(2)
+            es=np.array([np.cos(rng_angles+np.pi/4),-1j*np.sin(rng_angles+np.pi/4)])
+            for channel in run["display_channels"].values():
+                tensor=numeric(channel["records"][0]["Rc"].subs(channel["values"]))
+                amp=np.einsum("a...,ab,b->...",es,(T.T@tensor@T)[:2,:2],ei)
+                actual=evaluate_terms(dict(terms=channel["records"]),channel["values"],rng_angles)["total"]
+                check(float(np.max(np.abs(np.abs(amp)**2-actual)))<2e-11,"PPT component contraction differs.")
+        else:
+            vals=run["families"][QWP_MODE]["values"]
+            tensor=numeric(QWP_SOURCE_TENSOR.subs(vals))
+            q=np.array([[1+1j,-1+1j],[-1+1j,1+1j]])/2
+            outgoing=q.T@tensor@q@np.array([1,0])
+            expected=np.abs(-np.sin(rng_angles)*outgoing[0]+np.cos(rng_angles)*outgoing[1])**2
+            actual=evaluate_terms(run["results"][QWP_MODE],vals,rng_angles)["total"]
+            check(float(np.max(np.abs(expected-actual)))<2e-11,"Dr. Kumar QWP contraction differs.")
+    return [f"New-san: {cases} Si/GaAs surface and polarization cases match independent matrix contractions (largest residual {largest:.3g}).",
+            "PPT: the three separate Cartesian Ag contributions match direct contraction.",
+            "Dr. Kumar: the complete QWP–tensor–QWP chain matches direct contraction.",
+            "Exactly three selectable models; compact symbolic tensor-to-intensity steps."]
+
+
+def validate_optical_method_guide():
+    for key,definition in FRAMEWORKS.items():
+        for profile in definition["profiles"]:
+            optics=optical_chain(profile)
+            for angle in [0,sp.pi/7,sp.pi/2]:
+                check(zero(sp.Matrix([(optics["Ein"].H*optics["Ein"])[0]-1])),"Incident Jones state is not normalized.")
+                detector=optics["effective_analyzer"].subs(alpha,angle)
+                check(zero(sp.Matrix([(detector.H*detector)[0]-1])),"Detection state is not normalized.")
+    return ["Jones states of all three selected models are normalized."]

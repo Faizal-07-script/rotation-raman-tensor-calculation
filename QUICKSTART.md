@@ -1,158 +1,72 @@
-# Version 5 — first run and numbered tools
+# Raman Tensor Rotation — Version 5
 
-**Revision 2026-10-31-r1 — Silicon (500) startup**
+Open **261024 - Raman Tensor Rotation Ver 5.0.ipynb** in Jupyter or Colab.
+Run all 22 cells in order. Each cell prints its number, a success message, and the next action.
+Cell 22 opens the calculator and the Si (500) example.
 
-Run Cell 1 first. Its first output must read:
+## Choose a calculation model
 
-```text
-Version 5 | Revision 2026-10-31-r1 | Silicon (500) default
-```
+1. **My PPT slide model** — the slide frame and polarization convention.
+   Ag Cartesian contributions are displayed separately.
+2. **New-san — Paukatong et al.** — Si T₂g and GaAs TO/LO with **VV**, **VH**, or **σ⁺α**.
+3. **Dr. Kumar model** — the supplied original 2×2 tensor and QWP optical sequence.
 
-Open the newly downloaded notebook named `261024 - Raman Tensor Rotation Ver 5.0.ipynb`. If this revision line is missing, compare the file you opened with the current download. Restart its kernel and run all 22 cells. The success messages appear below each executed cell; the Silicon polar plot appears in Cell 22.
+These are the three selectable models in Python and both websites.
 
-Use **Jupyter Notebook / JupyterLab or Google Colab** with a Python kernel and widget support. The `.ipynb` is the recommended entry point; running the `.py` with an ordinary terminal does not provide the notebook interface. Install the packages in `requirements.txt` in the same kernel if an import is missing.
+## First calculation: New-san
 
-1. Open the current `261024 - Raman Tensor Rotation Ver 5.0.ipynb` notebook and choose **Restart kernel and Run All**. Run all **22 code cells in order**. Do not start from Cell 17 or Cell 22 in a fresh kernel.
-2. Each code cell prints **“Run completed successfully.”**, its cell number, what is ready and which cell to run next. The explanation above each code cell states its role, what to enter and what to expect. Cells 1–21 primarily define functions or controls; their message confirms execution, while the numerical/model checks are reported separately.
-3. Cell 22 checks **silicon (500), VV** and shows a short guide above the calculator; the plot is in the Polar plots tab. The **Silicon (500), VV reference frame** example is loaded automatically, and the **Polar plots** result tab is selected. No typing, `input()` prompt, external data file or coefficient editing is required for this first run.
-4. Inspect **Polar plots**, **Intensity values** and **Validation**. The first result has **one T2g channel**, combining the intensities of three unresolved orthogonal phonon components, and **721 samples** from 0° through 360°. Cell 22 compares every sample with the reference equation below before opening the results. View the current plot in the Polar plots tab.
-5. For a different run, follow numbered tools **1 → 2 → 3 → 4 → 5 → 6**, then **7** to export. A selected example changes the form only after **1.4 Load selected example**. Example loading replaces inputs; review its selected model and optics afterward. The notebook automatically calculates only the initial example; press **6** after later changes.
-6. **8** reruns model validation, **9** saves and compares calculated runs, and **10** is the separate silicon benchmark. These optional tools are not required to run the first example.
+1. Select **New-san**, **Si**, **T₂g**, and **VV**.
+2. Keep **d=1** and surface **(500)**.
+3. Select **Review inputs**. Check X, Y, Z, T, the tensors, and polarization states.
+4. Select **Run calculation**.
+5. Open **Step-by-step calculation** or **Polar plots**.
 
-## Tool numbers and what to enter
+For this example, \(I(\theta)=\sin^2(2\theta)\). The maximum relative intensity is 1.
+Choose VH to obtain \(\cos^2(2\theta)\), or σ⁺α to obtain \(\sin^2\alpha\).
+The raw intensity and the equation use the same coefficient values.
 
-| Tool | Action / input | First-run example | Units / format / scope |
-| --- | --- | --- | --- |
-| **1. Model, optics & example** | 1.1 choose tensor model; 1.2 choose optics; 1.3 choose an example; 1.4 load it; 1.5–1.6 label and note | Full 3D crystal; VV reference (`CUBIC_VV`); Silicon (500) | Model and optics are separate choices. Labels/notes are exported text. Choose the paired linear profile (`LINEAR_PAIR`) when you want both VV and VH. |
-| **2. Material & tensor coefficients** | 2.1 material; 2.2 point group; 2.3 modes; 2.4 optional Ag equality; 2.5 each tensor entry’s size and phase; 2.6 custom tensor | Si; Oh; T2g; shared d=1 with zero phase | Coefficient sizes ≥0 in one consistent relative scale; coefficient phases in degrees. A custom tensor is a 3×3 JSON array of numbers or strings such as `"1+0.2j"`. Named materials fix their stated point group. For another group, choose General. |
-| **3. Orientation & lattice** | 3.2 surface; 3.3 h,k,l; 3.4 u,v,w; 3.5 automatic X; 3.6 normal side; 3.7 frame angle; 3.8 lengths; 3.9 lattice angles | (500); hkl=(5,0,0); uvw=(0,-5,0); automatic X off; normal +1; ψ=0; lengths=(1,1,1); angles=(90,90,90) | Indices are integers and must satisfy hu+kv+lw=0. Lengths >0 use one common unit; angles/ψ use degrees. Equal lengths describe the cubic silicon reference; replace ratios for a noncubic sample. Web tool 3.1 also permits a proper manual frame. |
-| **4. Jones states & optical controls** | Set only fields active for the selected optical profile; inspect its equations and actual states | VV uses co-rotating parallel linear states; θ₀=0°; direct/circular-rule fields are inactive | Angles/phases are degrees. Direct Jones uses (cos θ, exp(iβ) sin θ). Conditional circular-rule charges are integers; phonon charges use comma-separated integers, e.g. `0, 1`; optional absorption charge may be blank. Those rule fields do not rescale the intensity. |
-| **5. Display settings** | 5.1 angular grid; 5.2 normalization; 5.3 Cartesian plots; 5.4 frame; 5.5 notebook mathematical steps | 0.5° / 721 samples; normalization off; Cartesian off; frame and steps on | Normalization is one common scale per mode. Raw CSV retains the unnormalized intensities. |
-| **6. Calculate** | Press after changing any input or loading another example | Initial example is calculated automatically | Confirm “Calculation complete” and inspect the current result. An edited form needs a new calculation. |
-| **7. Results & downloads** | Inspect result tabs; 7.1 complete result archive; 7.2 symbolic LaTeX (web also offers raw CSV) | One silicon T2g curve, full derivation, tables and measurement frame | Downloads become available after a successful calculation. Notebook archive: press 7.1, then follow the link in Downloads. Components are diagnostic powers of one Ag phonon and are not summed in the main plots. |
-| **8. Validation** | Rerun the model/source checks | Automatically run on initial notebook startup | Passing software checks does not establish independent colleague review or sample calibration. |
-| **9. Comparisons** | Save a successful run, change inputs, calculate again, save another, select a common channel | Optional | Snapshots preserve their own inputs. Comparison data are session-local; export before restarting. |
-| **10. Silicon benchmark** | Shared \|d\|=1; choose grid; calculate 18 cases; select a surface/protocol; inspect/export | Six surfaces (500)–(550), VV/VH/σ reference | A separate reference calculation. Its coefficient scale is shared across all 18 cases. |
+## Read the mathematical steps
 
-In the original effective 2D model, tool 2 instead takes real a=1, A=0.4, δ=60° and φ=60°. Crystal orientation is inactive in that model. These are reference inputs, not a crystal tensor inferred from a material.
+The New-san calculation follows:
 
-## Expected output for the unchanged first example
+1. Original Raman tensors — paper (1)–(3).
+2. Surface axes and T — paper (4), SI (S1)–(S2).
+3. Rotated tensors — paper (5), SI (S7)–(S9).
+   GaAs also uses the phonon-polarization projection, paper (8).
+4. Incident and detected Jones states — paper (11).
+5. Raman amplitude and intensity — paper (9)–(13), SI (S17)–(S18).
+6. Substitute d and draw the polar plot.
 
-For d=1 and the declared (500) frame, the silicon VV reference is
+Red marks the **analytical expression for the Raman tensor** and the
+**analytical expression for the Raman intensity**. Other steps and short
+symbol definitions use the normal text color.
+The calculation does not display intermediate K₀, Kc, C, or D aliases.
 
-$$I_{\mathrm{VV}}(\theta)=\sin^2(2\theta).$$
+## Surface convention
 
-| Check | Expected unnormalized T2g intensity |
-| --- | --- |
-| θ=0° and 360° | 0 |
-| θ=45° | 1 |
-| θ=90° and 270° | 0 (within floating-point tolerance) |
-| Maximum on the 0.5° grid | 1 |
-| Continuous maximum | 1 |
+New-san uses the positive (hkl) normal,
+X parallel to [k −h 0], and Y=Z×X. The (001) case uses the original axes.
+These axes determine the plot's zero angle. Review inputs shows the actual unit vectors.
 
-Use an absolute tolerance of 1e-10 for the sampled values and reference curve. The 0.5° grid contains the maxima, so the sampled and continuous maxima agree. Intensities use the relative scale d=1; they are not measured counts. All 22 cells must finish, Cell 22 must report that the silicon startup check passed, and Validation must report passed.
+For the PPT model, the slide example retains its declared frame.
+Enter measured lattice ratios when defining a physical noncubic surface.
+Dr. Kumar's original 2×2 source model has no surface input.
 
-The first run shows VV. To compare VV and VH, choose the paired linear profile (`LINEAR_PAIR`) in 1.2, then press 6. The other examples remain available through 1.3 and 1.4.
+## Files
 
-`silicon_startup_input_v5.json` and `example_input_v5.json` contain the same Silicon (500), VV starting inputs for Python and the website. The other material examples remain available. The (500) label follows the cubic benchmark; its surface-normal direction is parallel to (100).
+The website downloads contain the same notebook code and scientific functions:
+the notebook, Python script, engine, input examples, and documentation.
+The result ZIP contains the calculation steps, symbolic LaTeX, curves, and figures.
 
-## Read the derivation
+Full website:
+https://faizal-07-script.github.io/rotation-raman-tensor-calculation/
 
-Open **Mathematical derivation** in the notebook or **Mathematical steps** on the website.
+Calculator:
+https://faizal-07-script.github.io/raman-tensor-calculator/
 
-1. **Full mathematics**: all derivation equations, then one short list of the symbols and their units.
-2. **Explained derivation**: English explanations and symbol definitions on the left, with complete matrix calculations on the right. Symbols are defined at first use. The LaTeX export uses the same two-column order.
+Reference: P. Paukatong et al., *Journal of Raman Spectroscopy* **57** (2026),
+809–820, DOI **10.1002/jrs.70113**, and its supplementary information.
 
-Both views use the same calculation. The result ZIP includes `calculation_mathematics.md` and `calculation_full.tex`, plus `calculation_explained.md` and `calculation_explained.tex`. `calculation_steps.md` is a copy of Full mathematics. `Symbols_And_References.md` retains the complete reference glossary.
-
-Angles in equations are radians; inputs and angular CSV columns are degrees. Matrix superscript ᵀ means transpose, while the standalone T is the frame matrix. The projector P is distinct from physical polarization density. Unit Jones states are dimensionless; reduced response amplitudes use tensor-coefficient units and their squared magnitudes give the plotted relative intensity (a.u.). Physical SI tensor units depend on the declared normal-coordinate convention. No absolute field strength or detector calibration is supplied by the example.
-
-Reference principles are distinguished from intermediate program algebra: Pimenta et al. (2021), Eqs. (1)–(4), for the physical Raman tensor; Paukatong et al. (2026), Eqs. (1)–(6), (9), (11), for Si tensors, frames and polarization; and the supplied original Kumar notebook for its QWP convention. NIST and IUPAC definitions support the unit notes.
-
-## What the last cells need
-
-- **Cell 17** creates the numbered widgets. Run it unchanged; it does not ask you to type data into Python.
-- **Cell 18** defines handlers that check and update the widgets. Run it unchanged.
-- **Cell 19** defines calculate/export/compare/validate actions. Run it unchanged; button clicks in Cell 22 call these functions.
-- **Cells 20–21** define validation functions. Run them unchanged. Their completion message means the functions are ready; the tests themselves run in Cell 22 or when you press 8.
-- **Cell 22** loads silicon (500), calculates VV, checks the reference equation, shows a short guide above the calculator, runs model validation and displays the interface. Enter your own data only in this interface. The demonstration values and formats are listed above.
-
-## If the result looks unchanged
-
-Check the revision printed by Cell 1 and use a fresh kernel. For the same material, orientation, coefficients and optical states, the numerical intensity curve should remain the same: this revision adds visible execution messages and documentation without changing the scattering calculation. `raman_engine.py` is a reusable library; run the main `.ipynb` to see the notebook messages and controls. The notebooks under `references/` are preserved source documents.
-
-## If output is missing
-
-- A red exception means the cell did not finish; fix the first exception before continuing. For a missing package, install the matching requirement in the active kernel, then restart and Run All.
-- A `NameError` in a later cell usually means earlier cells were skipped or the kernel restarted. Run All from Cell 1.
-- If only text such as `VBox(...)` appears, use a notebook frontend with ipywidgets enabled. An ordinary Python terminal does not render the interface.
-- Wait for Cell 22 to finish its calculation/validation. Text messages in Cells 1–21 are expected. The short guide appears above the calculator. Plots are in the Polar plots tab; the controls require widget support.
-- A disabled download button needs a successful fresh calculation. After 7.1, open the Downloads tab and click its generated file link.
-
-## Reproducibility check by another person
-
-Share the current notebook or program ZIP and this guide with a colleague. Ask them to start a fresh kernel, run the notebook unchanged, compare the silicon values and the polar plot above, check the 22 messages and Validation status, then export a result. Record tester name, date, Python/frontend versions, exact file SHA-256 and any error. This checklist is prepared; an independent person's run and Kumar-san's documentation review are still pending.
-
-## Symbols
-
-| Symbol | Meaning |
-| --- | --- |
-| α | Analyzer or detection-state scan angle |
-| θ | Linear polarization angle |
-| β, β′ | Relative Jones-state phases in the reference convention |
-| βᵢ, βₛ | Incident and detected Jones-state phases in the direct controls |
-| ψ | In-plane frame rotation |
-| δ, φ | Effective-source phases |
-| σ⁺, σ⁻; σ⁺α | Circular basis states; circular-input analyzer scan |
-| Γ; Δ; ∑ | Brillouin-zone center; a difference; summation |
-
-Greek letters are case-sensitive. Internal names such as `theta_i_deg` remain valid Python/JSON identifiers; the interface displays θᵢ. A and a are different source amplitudes.
-
-
-## Understanding the two coefficient inputs
-
-The letter d is a Raman tensor entry. The two inputs specify d = |d| exp(iφd).
-The **size |d|** is nonnegative; **phase φd** is entered in degrees. With size 1,
-phase 0° gives d=1, phase 180° gives d=−1, and phase 90° gives d=i. This phase
-is an angle in the complex plane, not the sample angle ψ or polarization angle θ.
-Use size 1 and phase 0° for the initial real-valued demonstration. A zero entry
-has no defined phase; the form uses 0° as a harmless convention. A common phase
-of the entire tensor does not change intensity; relative phases within one
-tensor can change interference. The value under each pair is what enters R.
-
-The three Si T₂g matrices are identified by their nonzero entries: yz/zy, xz/zx,
-and xy/yx in crystal coordinates. They are orthogonal components of one
-triply degenerate mode. Their intensities add when unresolved. Entries within
-one tensor instead add as amplitudes before squaring.
-
-**Colors:** amber identifies tensor components, teal coefficient size, purple
-coefficient phase, and blue measurement axes. Each term also has a written
-definition; color is not the only way to understand it.
-
-## The common calculation
-
-1. Surface, in-plane X and lattice → X, Y, Z and T. Y = Z × X.
-2. Material symmetry and Raman mode → crystal tensor with your coefficient values.
-3. Transform both tensor indices: R_lab = Tᵀ R_crystal T.
-4. Optical method → incident and detection Jones states at the sample.
-5. Contract to obtain the complex amplitude, then take its squared modulus.
-
-Changing the surface rebuilds T. Changing the material or mode replaces R.
-Changing polarization replaces the Jones states. X/Y/Z are geometry axes,
-not Jones vectors. Automatic X chooses a Cartesian reference; it does not
-fetch the axis from a paper. For silicon, (500) and (100) have the same normal.
-
-## Analytical comparison with New-san
-
-Read Reference_Equation_Checks.md and its matching JSON. The report covers
-the checked main-text real-tensor Eq. (13), its Eq. (14) limit, six proper
-frames, and all 18 Si (5,k,0) configurations. It includes exact symbolic
-identities and numerical residuals. It does not claim all supporting-information
-formulas, other materials, or experimental agreement have been checked.
-In Python, tool 8 displays the same analytical evidence. In the website,
-open Checks, comparisons and benchmark → Validation or Silicon benchmark.
-For Ag, the complete coherent intensity is shown separately from the component
-plots; compare complete_modes_audit.csv with a measured single-mode intensity.
-
-Before the next meeting, ask a colleague to run the current notebook and use
-the checklist above. The software cannot establish that a colleague reviewed it.
+The GaAs projection uses paper (8) and Cartesian SI (S14)–(S16).
+For the SI (S10) YY entry, direct projection gives S₂pC₂q; the printed polar form
+has S₂pC₂p. The intensity is obtained from the matrix contraction.

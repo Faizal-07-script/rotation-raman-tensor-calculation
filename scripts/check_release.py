@@ -107,7 +107,10 @@ assert abs(reference['channels'][0]['points'][90]-1)<1e-10
 assert abs(reference['channels'][0]['points'][180])<1e-10
 equations=[entry for entry in reference['equations'] if entry['kind']=='equation']
 assert len(equations)==reference['equation_count']
-assert all(entry.get('symbols') and entry.get('reference_ids') for entry in equations)
+assert all(entry.get('reference_ids') for entry in equations)
+assert any(entry.get('symbols') for entry in equations)
+assert len(equations)<=30
+assert sum(bool(entry.get('analytical_kind')) for entry in equations)==7
 assert all(s['meaning'] and s['units'] for entry in equations for s in entry['symbols'])
 catalog=json.loads((DIST/'data/catalog.json').read_text())
 assert catalog['default_example']=='SI_500'

@@ -165,5 +165,5 @@
   "total": 22,
   "maximum_numerical_residual": 4.440892098500626e-16,
   "scope": "Checked main-text algebra and 18 Si (5,k,0) configurations. The (5,k,0) formulas are derived reductions using the paper conventions, not quotations of unavailable SI equations. Other surfaces, every SI expression, other materials and experimental agreement are outside this report. Independent lab-member review remains pending.",
-  "engine_sha256": "be409df29083e5beebc28c44b66c3524f2531e88b79e5b425e90fdb597d0dfa4"
+  "engine_sha256": "4660eac31870122b2a0a34579f7d0dfaf60406ad4f1e9313dfe54011fd14c2cd"
 }

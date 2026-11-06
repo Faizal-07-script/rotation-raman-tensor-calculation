@@ -318,3 +318,28 @@ def web_export_benchmark():
     if WEB_STATE['benchmark'] is None:raise ValueError('Calculate the silicon benchmark first.')
     study=WEB_STATE['benchmark']
     return make_cubic_origin_archive(study,dict(status='passed',checks=validate_cubic_fig1(study)))
+
+# Three public calculation models. Older helper functions are retained only for
+# reference checking, not as selectable models.
+_lab_web_form = web_form
+def web_form(cfg):
+    result=_lab_web_form(cfg)
+    result["framework"]=framework_for(cfg)
+    return result
+
+_lab_web_configuration = web_configuration
+def web_configuration(data):
+    cfg=_lab_web_configuration(data)
+    cfg["framework"]=framework_for(data)
+    return prepare_framework_config(cfg)
+
+_lab_web_catalog = web_catalog
+def web_catalog():
+    catalog=_lab_web_catalog()
+    catalog["profiles"]=LAB_PROFILE_LABELS
+    catalog["optical_guide"]={k:v for k,v in catalog["optical_guide"].items() if k in LAB_PROFILE_LABELS}
+    catalog["frameworks"]={key:{**value,"config":web_form(framework_config(key))} for key,value in FRAMEWORKS.items()}
+    catalog["examples"]={name:dict(label=FRAMEWORKS[key]["label"],config=web_form(framework_config(key)))
+        for name,key in [("SLIDE","USER_PPT"),("SI_500","NEW_SAN"),("QWP_2D","DR_KUMAR")]}
+    catalog["default_example"]="SI_500"
+    return catalog

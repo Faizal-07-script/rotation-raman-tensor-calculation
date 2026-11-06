@@ -15,7 +15,7 @@ function opticalGuideDetails(key){
 
 function opticalSelectionSummary(form){
   const g=S.catalog.optical_guide?.[form.optics];if(!g)return '';
-  return '<div class="optical-choice-note" data-selected-optics="'+esc(form.optics)+'"><strong>'+esc(g.family)+'</strong><p>'+esc(g.scan)+'. '+esc(g.detection)+'.</p><p>'+esc(g.use_for)+'</p><a href="#introduction/optical-comparison">Compare states, physics and references →</a></div>';
+  return '<div class="optical-choice-note" data-selected-optics="'+esc(form.optics)+'"><strong>'+esc(g.family)+'</strong><p>'+esc(g.scan)+'. '+esc(g.detection)+'.</p><p>'+esc(g.use_for)+'</p><a href="#introduction/optical-method">Compare states, physics and references →</a></div>';
 }
 
 function renderOpticalGuide(){
@@ -34,7 +34,7 @@ function renderOpticalGuide(){
     math(String.raw`e_s=B^\dagger e_{an},\qquad\mathcal A=e_{an}^\dagger B R_\perp E_i=e_s^\dagger R_\perp E_i,\qquad I=|\mathcal A|^2`)+
     '<p>The same material and surface can give different curves when the preparation, detector, relative phase or scan changes. A change of basis with the same physical states must preserve the intensity.</p>'+
     '<div class="optical-families"><article><h3>Linear input</h3><p><strong>VV · VH · paired VV/VH</strong></p><p>Incident and detected linear states rotate together. The scan can contain second and fourth intensity harmonics.</p></article><article><h3>Circular input</h3><p><strong>Linear · elliptical · return-QWP · fixed circular detection</strong></p><p>The effective detector changes between these choices. A fixed circular channel has no angle scan when the sample stays fixed.</p></article><article><h3>Custom effective states</h3><p><strong>Direct Jones parameters</strong></p><p>The input is fixed and the detector component angle scans at fixed relative phase. Matching preset states gives matching intensity.</p></article></div>'+sourceLinks(['jones','complex','cubic','circular'])+'</div>'+
-    '<details class="card guide-detail"><summary><strong>Compare the nine profiles</strong></summary>'+table(['Menu choice','Scanned quantity','Detection at the sample'],Object.values(catalog).map(g=>[esc(g.label),esc(g.scan),esc(g.detection)]))+'</details>'+
+    '<details class="card guide-detail"><summary><strong>Laboratory polarization choices</strong></summary>'+table(['Menu choice','Scanned quantity','Detection at the sample'],Object.values(catalog).map(g=>[esc(g.label),esc(g.scan),esc(g.detection)]))+'</details>'+
     '<div class="card"><h3>Choosing a reference</h3>'+table(['Comparison target','Optical choice','Inputs that must agree'],targets.map(row=>row.map(rich)))+
     '<div class="callout"><strong>Experimental reference</strong>Use a calibrated optical path to choose the profile for your data. Paper reproduction uses the paper\u2019s explicit states. A successful software check establishes algebraic consistency; it does not calibrate a microscope.</div>'+sourceLinks(['complex','cubic','kumar-original'])+'</div>'+
     '<div class="card"><label class="field-label" for="guide-profile">Choose a profile to read its equations</label><select id="guide-profile" class="guide-select">'+Object.values(catalog).map(g=>'<option value="'+esc(g.key)+'" '+(g.key===selected?'selected':'')+'>'+esc(g.label)+'</option>').join('')+'</select><p class="small-note">This documentation selector does not change calculator inputs or result plots.</p><div id="guide-profile-details">'+opticalGuideDetails(selected)+'</div></div>'+

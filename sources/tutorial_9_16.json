@@ -360,7 +360,7 @@
       },
       {
         "start_line": 713,
-        "end_line": 713,
+        "end_line": 841,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
@@ -448,316 +448,12 @@
     ],
     "blocks": [
       {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
         "start_line": 1,
-        "end_line": 1
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 3,
-        "end_line": 3
-      },
-      {
-        "start_line": 6,
-        "end_line": 17,
-        "title": "display intensity",
-        "explanation": "Suppress only roundoff-sized display terms while retaining raw exported numbers.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 20,
-        "end_line": 39,
-        "title": "final intensity context",
-        "explanation": "Place enough provenance beside every final equation to identify the calculation.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 42,
-        "end_line": 175,
-        "title": "paper steps markdown",
-        "explanation": "Report the paper's actual geometry and algebra, followed by this run's results.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 178,
-        "end_line": 214,
-        "title": "linear figures",
-        "explanation": "Show parallel/crossed curves together, using a common scale for each branch.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 217,
-        "end_line": 217
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 220,
-        "end_line": 220
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 221,
-        "end_line": 221
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 223,
-        "end_line": 273
-      },
-      {
-        "start_line": 276,
-        "end_line": 277,
-        "title": "symbol definition",
-        "explanation": "Prepare this definition for the numbered calculation.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 280,
-        "end_line": 349
-      },
-      {
-        "start_line": 352,
-        "end_line": 364,
-        "title": " without latex labels",
-        "explanation": "Remove formatting words/subscripts, keeping mathematical base symbols.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 367,
-        "end_line": 475,
-        "title": "equation symbol definitions",
-        "explanation": "Select local definitions, separating overloaded symbols and physical units.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 478,
-        "end_line": 500,
-        "title": "annotate equation",
-        "explanation": "Keep references separate from the intermediate algebra implemented here.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 503,
-        "end_line": 512,
-        "title": "equation notes markdown",
-        "explanation": "Prepare this definition for the numbered calculation.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 515,
-        "end_line": 515,
-        "title": "Source note",
-        "explanation": "The explained view retains each equation's complete definitions and sources.",
-        "why": "Read with the adjacent function.",
-        "check": "No calculation is performed by this comment."
-      },
-      {
-        "start_line": 516,
-        "end_line": 516,
-        "title": "Source note",
-        "explanation": "The explained view retains each equation's complete definitions and sources.",
-        "why": "Read with the adjacent function.",
-        "check": "No calculation is performed by this comment."
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 517,
-        "end_line": 517
-      },
-      {
-        "start_line": 520,
-        "end_line": 531,
-        "title": "calculation symbol legend",
-        "explanation": "Collect the symbols used in this calculation, preserving local meanings.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 534,
-        "end_line": 536,
-        "title": "calculation reference ids",
-        "explanation": "List the sources used by this calculation once, in order of appearance.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 539,
-        "end_line": 548,
-        "title": "calculation legend markdown",
-        "explanation": "Put one short symbol-and-unit table after the complete mathematics.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 551,
-        "end_line": 564,
-        "title": "symbols and references markdown",
-        "explanation": "Prepare this definition for the numbered calculation.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 567,
-        "end_line": 617,
-        "title": "CalculationTrace",
-        "explanation": "One numbered, fully substituted mathematical trace for every interface.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 620,
-        "end_line": 636,
-        "title": "latex text",
-        "explanation": "Escape text while retaining Greek notation in a portable LaTeX document.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 639,
-        "end_line": 709,
-        "title": "trace geometry",
-        "explanation": "Expand the direct/reciprocal metric and every frame-construction step.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 640,
-        "end_line": 659,
-        "title": "trace_coefficient_inputs",
-        "explanation": "Define complex entries before they appear in a matrix calculation.",
-        "why": "Keep the displayed source and the calculation instructions together.",
-        "check": "Verify the stated inputs, units and expected result before continuing."
-      },
-      {
-        "start_line": 712,
-        "end_line": 756,
-        "title": "trace optics",
-        "explanation": "Show general states, active optical matrices and effective sample detection.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 759,
-        "end_line": 838,
-        "title": "trace rank one",
-        "explanation": "Derive the slide-style product for each rotated diagonal Ag contribution.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 841,
-        "end_line": 865,
-        "title": "trace tensor definition",
-        "explanation": "Show the complete phonon tensors before displaying their Ag contributions.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 868,
-        "end_line": 923,
-        "title": "trace record",
-        "explanation": "Show the full matrix products without harmonic-coefficient aliases.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 926,
-        "end_line": 956,
-        "title": "trace final",
-        "explanation": "Show physical-coefficient expressions and the substituted final intensity.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 959,
-        "end_line": 1005,
-        "title": "detailed calculation",
-        "explanation": "Generate the same matrix-to-intensity stages for every displayed channel.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 1008,
-        "end_line": 1044,
-        "title": "latex document plain",
-        "explanation": "Create a compilable article; long equations scale only when needed.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 1047,
-        "end_line": 1083,
-        "title": "latex document",
-        "explanation": "Export the explained trace with English on the left and mathematics on the right.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 1087,
-        "end_line": 1118,
-        "title": "paper intensity latex",
-        "explanation": "Export symbolic I(angle) before substitution plus a separate numeric file.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 1122,
-        "end_line": 1179,
-        "title": "equation explanation",
-        "explanation": "Give each operation a short English explanation beside its mathematical result.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "start_line": 1181,
-        "end_line": 1216,
-        "title": "prepare input review",
-        "explanation": "Check geometry, tensor transformations and Jones states without an intensity scan.",
-        "why": "Keep Python, browser and LaTeX outputs consistent.",
-        "check": "Inspect the displayed inputs, matrices and final angular dependence."
-      },
-      {
-        "title": "Module settings",
-        "explanation": "Set the values used by the following functions.",
-        "why": "Used in the calculation and exported steps.",
-        "check": "Compare the matrices and intensity with the selected inputs.",
-        "start_line": 1218,
-        "end_line": 1218
+        "end_line": 477,
+        "title": "Paper-order mathematical steps",
+        "explanation": "Build the original tensors, measurement frame, transformed tensors and polarization states, then derive the intensity. Red identifies analytical tensor and intensity expressions.",
+        "why": "Use the same equations in Python and both websites.",
+        "check": "Compare the symbolic intensity with the sampled polar plot."
       }
     ],
     "pitfalls": [
@@ -949,15 +645,15 @@
       },
       {
         "start_line": 556,
-        "end_line": 576,
+        "end_line": 573,
         "title": "publication_comparison \u2014 Compare frozen component runs with compatible scan definitions",
         "explanation": "The function selects saved runs containing a requested display channel and requires one scan_basis across them. It then overlays that channel from each snapshot using the selected raw or common-per-mode normalization. Case labels and a legend identify the surfaces.",
         "why": "A meaningful overlay needs the same angular definition and the correct component rather than an arbitrary total. Frozen runs retain their original inputs even after controls are edited.",
         "check": "A first-harmonic \u03b1 scan and a second-harmonic \u03b8 scan must be rejected as an automatic overlay. Equal scan_basis alone still does not mean the optical states are identical; inspect the recorded optics."
       },
       {
-        "start_line": 578,
-        "end_line": 578,
+        "start_line": 573,
+        "end_line": 573,
         "title": "Confirm that this cell finished executing",
         "explanation": "The final print statement reports the code-cell number, the phrase \u201cRun completed successfully.\u201d and the functions or controls that are now ready. It is reached only if the preceding statements finish without an uncaught exception.",
         "why": "Definition cells otherwise run silently, which can be confusing for a new user. Execution status is separate from the scientific validation results in Cell 22.",
