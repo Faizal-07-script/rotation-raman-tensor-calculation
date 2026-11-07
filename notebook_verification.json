@@ -1,7 +1,7 @@
 {
   "status": "passed",
   "version": "5",
-  "download_revision": "2026-11-06-r1",
+  "download_revision": "2026-11-07-r1",
   "startup_test": {
     "material": "Si",
     "point_group": "Oh",
@@ -32,13 +32,13 @@
   },
   "success_output": "Each of 22 cells prints Run completed successfully., a Ready explanation and a Next action.",
   "annotated_derivation": {
-    "equations": 24,
+    "equations": 28,
     "all_symbols_have_meanings_and_units": true,
     "source_notes_per_equation": true,
     "shared_notebook_web_and_latex": true
   },
   "inactive_circular_rule_fields": "Retired optical models are absent from the three model selectors.",
-  "elapsed_seconds": 57.28,
+  "elapsed_seconds": 338.46,
   "code_cells": 22,
   "checks_summary": [
     "All 22 code cells execute and print their completion messages.",

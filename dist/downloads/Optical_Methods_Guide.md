@@ -1,11 +1,12 @@
-# Laboratory calculation models
+# Models and polarization
 
-1. My PPT slide model: the slide frame and separate Ag Cartesian contributions.
-2. New-san — Paukatong et al.: Si and GaAs, VV, VH and σ⁺α; paper and supplementary equations.
-3. Dr. Kumar model: the original 2×2 tensor and QWP optical sequence.
+1. **New-san:** tensor rotation and polarization conventions from the paper and supplementary information.
+2. **My PPT slide:** the slide calculation, with separate Ag Cartesian contributions.
+3. **Dr. Kumar:** Jones matrix multiplication, extended to the XY block of the rotated crystal tensor.
 
-New-san order: original tensors → surface axes → transformed tensors → Jones states → intensity → polar plot.
-Red expressions identify the analytical Raman tensor and Raman intensity.
+Every model offers the same material list, orientation inputs, VV, VH and σ⁺α.
+Changing the model keeps these inputs. For identical inputs, the complete-mode intensity must agree.
+X, Y and Z are measurement axes, not Jones vectors. Review them and T before calculating intensity.
 
 
 ### VV: parallel linear states, scan θ
@@ -115,43 +116,5 @@ $$I_E=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha-2\operatorname{Re}(p q^*)\sin\alpha\co
 **Source scope:** Cited effective Jones parameterization; the p/q expansion is derived here from that state.
 
 **References:** [Cubic Raman reference: Sec. 2.2, Eqs. (9), (11)](https://doi.org/10.1002/jrs.70113); [Jones calculus](https://doi.org/10.1364/JOSA.31.000488)
-
-The actual current angles and Jones matrices are shown in the optical-state preview and calculated mathematical steps. A guide identity is not an experimental calibration.
-
-### Input QWP / Raman tensor / return QWP / linear analyzer
-
-**Family:** Circular input / explicit return optics
-
-**Scan:** α: physical linear analyzer after the return plate
-
-**Preparation:** Lab-X input through Q=Rot(-π/4) diag(1,i) Rot(-π/4)^T
-
-**Return optics:** B=Q.T in the uploaded source basis convention
-
-**Detection:** Linear analyzer (-sin α, cos α) after B; effective detector B.H times analyzer
-
-$$R_\perp=PT^TR_cTP^T,\quad e_s=B^\dagger e_{an},\quad I=|e_{an}^\dagger B R_\perp E_i|^2=|e_s^\dagger R_\perp E_i|^2$$
-
-$$p=(\sigma^{+})^\dagger R_\perp E_i,\quad q=(\sigma^{-})^\dagger R_\perp E_i$$
-
-$$Q=\frac12\begin{pmatrix}1+i&-1+i\\-1+i&1+i\end{pmatrix},\quad E_i=Qe_X=e^{i\pi/4}\sigma^{+}$$
-
-$$e_{an}=(-\sin\alpha,\cos\alpha)^T,\quad B=Q^T,\quad e_s=B^\dagger e_{an}$$
-
-$$e_s\sim\cos\alpha\,\sigma^{+}-i\sin\alpha\,\sigma^{-}$$
-
-$$\mathcal A_Q\sim p\cos\alpha+i q\sin\alpha$$
-
-$$I_Q=|p|^2\cos^2\alpha+|q|^2\sin^2\alpha+2\operatorname{Im}(p q^*)\sin\alpha\cos\alpha$$
-
-**Use for:** The uploaded QWP optical sequence, after its axes, return-path convention and analyzer zero are verified.
-
-**Equality check:** At α=0 and π/2 the circular endpoints equal the elliptical reference in power; intermediate intensities generally need not match.
-
-**Physical distinction:** Q.T is a declared source convention, not a universal reverse-path rule. Keep either the explicit B or its effective detector, never both. The crystal tensor remains 3x3 before transverse restriction.
-
-**Source scope:** Exact uploaded optical chain plus a program-derived p/q identity valid for any supplied R_perp under that chain.
-
-**References:** Uploaded original QWP implementation reference (included original notebook); [Jones calculus](https://doi.org/10.1364/JOSA.31.000488)
 
 The actual current angles and Jones matrices are shown in the optical-state preview and calculated mathematical steps. A guide identity is not an experimental calibration.

@@ -1,72 +1,45 @@
 # Raman Tensor Rotation — Version 5
 
-Open **261024 - Raman Tensor Rotation Ver 5.0.ipynb** in Jupyter or Colab.
-Run all 22 cells in order. Each cell prints its number, a success message, and the next action.
-Cell 22 opens the calculator and the Si (500) example.
+Run the 22 notebook cells in order. Each cell prints its number, a completion message, what is ready and the next action. Cell 22 opens Silicon (500), T₂g, d = 1, VV and checks the result.
 
-## Choose a calculation model
+## Choose inputs
 
-1. **My PPT slide model** — the slide frame and polarization convention.
-   Ag Cartesian contributions are displayed separately.
-2. **New-san — Paukatong et al.** — Si T₂g and GaAs TO/LO with **VV**, **VH**, or **σ⁺α**.
-3. **Dr. Kumar model** — the supplied original 2×2 tensor and QWP optical sequence.
+1. Choose **Model 1 — New-san**, **Model 2 — My PPT slide**, or **Model 3 — Dr. Kumar**.
+2. Choose **VV**, **VH**, or **σ⁺α**. These choices are available in every model.
+3. Select a material, Raman mode and tensor values. Silicon and GaAs are separate cubic materials; GaAs is not a silicon variant. All models share the same material list.
+4. Enter the surface **hkl**, an in-plane **uvw** direction, normal side, frame angle **ψ** and lattice. Use one common unit for a₀, b₀, c₀; lattice angles and controls use degrees. The in-plane direction must satisfy hu + kv + ℓw = 0. Automatic X projects a stable Cartesian reference into the surface. A manually supplied T must have orthonormal columns and determinant +1.
+5. Check **X, Y, Z and T** in the frame panel. These are measurement axes, not Jones vectors. **Y = Z × X**. The panel updates before an intensity scan.
+6. Select **Review inputs** to inspect the frame checks, crystal and transformed tensors and actual Jones states without calculating intensity.
+7. Run the calculation. Read the numbered mathematical steps or inspect the polar plots. Download the result ZIP for equations, LaTeX, raw CSV and figures.
 
-These are the three selectable models in Python and both websites.
+The redundant Example selector and Load selected example button have been removed. The first-run example and reproducible input JSON files are still supplied. Changing the calculation model keeps the selected material, optical method and geometry.
 
-## First calculation: New-san
+## Models and source conventions
 
-1. Select **New-san**, **Si**, **T₂g**, and **VV**.
-2. Keep **d=1** and surface **(500)**.
-3. Select **Review inputs**. Check X, Y, Z, T, the tensors, and polarization states.
-4. Select **Run calculation**.
-5. Open **Step-by-step calculation** or **Polar plots**.
+**Model 1 — New-san.** Follow Paukatong et al., DOI 10.1002/jrs.70113: original cubic tensors, the measurement frame, Rⁱ′ = TᵀRⁱT, Jones states and intensity. With the source cubic axes, X ∥ [k −h 0], Y = Z × X and Z ∥ [h k ℓ]. Other in-plane references and noncubic materials use the entered lattice metric and are extensions of the source examples. The program does not silently reset those controls.
 
-For this example, \(I(\theta)=\sin^2(2\theta)\). The maximum relative intensity is 1.
-Choose VH to obtain \(\cos^2(2\theta)\), or σ⁺α to obtain \(\sin^2\alpha\).
-The raw intensity and the equation use the same coefficient values.
+**Model 2 — My PPT slide.** Use the slide calculation with the selected material and frame. For the supplied CaNb₂O₆ slide case, choose Ag, (211), [0 1 −1], negative normal and the slide lattice convention. Actual noncubic lattice ratios are required for a physical tilted-surface normal. The separate Ag(xx), Ag(yy), Ag(zz) plots are Cartesian contributions; their powers are not added as independent phonons. The complete coherent Ag intensity is also derived for comparison.
 
-## Read the mathematical steps
+**Model 3 — Dr. Kumar.** Apply Jones matrix multiplication to the XY block of each rotated crystal tensor. The displayed derivation explains why removing the zero Z components gives the same amplitude as the 3D contraction. This is the program's 3D extension; the unchanged original 2D/QWP notebook remains a separate source download. The selected VV/VH/σ⁺α states are used in the public calculator.
 
-The New-san calculation follows:
+For identical crystal tensors, measurement axes and polarization states, the complete-mode intensity agrees across all three routes. A model name does not by itself change the physical experiment.
 
-1. Original Raman tensors — paper (1)–(3).
-2. Surface axes and T — paper (4), SI (S1)–(S2).
-3. Rotated tensors — paper (5), SI (S7)–(S9).
-   GaAs also uses the phonon-polarization projection, paper (8).
-4. Incident and detected Jones states — paper (11).
-5. Raman amplitude and intensity — paper (9)–(13), SI (S17)–(S18).
-6. Substitute d and draw the polar plot.
+## Expected first result
 
-Red marks the **analytical expression for the Raman tensor** and the
-**analytical expression for the Raman intensity**. Other steps and short
-symbol definitions use the normal text color.
-The calculation does not display intermediate K₀, Kc, C, or D aliases.
+For Silicon (500), X = (0, −1, 0), Y = (0, 0, −1), Z = (1, 0, 0), and d = 1:
 
-## Surface convention
+- VV: I(θ) = sin²(2θ).
+- VH: I(θ) = cos²(2θ).
+- σ⁺α: I(α) = sin²α.
 
-New-san uses the positive (hkl) normal,
-X parallel to [k −h 0], and Y=Z×X. The (001) case uses the original axes.
-These axes determine the plot's zero angle. Review inputs shows the actual unit vectors.
+VV and VH scan θ. The σ⁺α option uses θ = π/4 and β = β′ = π/2 in New-san equation (11), then scans α. This is the paper's detection-state scan. Keep the same axes and angular zero when comparing plots; a different in-plane reference can rotate an angular pattern.
 
-For the PPT model, the slide example retains its declared frame.
-Enter measured lattice ratios when defining a physical noncubic surface.
-Dr. Kumar's original 2×2 source model has no surface input.
+## Read the mathematical output
 
-## Files
+The left column gives a short explanation and definitions; the right column gives the equation. Stages follow crystal tensor → surface axes and T → transformed tensor → Jones states → explicit tensor/vector products → amplitude times conjugate → coefficient substitution and polar plot. Red is reserved for analytical Raman tensor and Raman intensity expressions. No K₀/Kc/C/D calculation aliases are introduced.
 
-The website downloads contain the same notebook code and scientific functions:
-the notebook, Python script, engine, input examples, and documentation.
-The result ZIP contains the calculation steps, symbolic LaTeX, curves, and figures.
+For GaAs, the phonon projection follows paper (8) and SI (S14): TO combines X and Y intensities; LO uses Z. The output identifies the difference between the printed polar entry in SI (S10) and this direct Cartesian projection.
 
-Full website:
-https://faizal-07-script.github.io/rotation-raman-tensor-calculation/
+## Review with a colleague
 
-Calculator:
-https://faizal-07-script.github.io/raman-tensor-calculator/
-
-Reference: P. Paukatong et al., *Journal of Raman Spectroscopy* **57** (2026),
-809–820, DOI **10.1002/jrs.70113**, and its supplementary information.
-
-The GaAs projection uses paper (8) and Cartesian SI (S14)–(S16).
-For the SI (S10) YY entry, direct projection gives S₂pC₂q; the printed polar form
-has S₂pC₂p. The intensity is obtained from the matrix contraction.
+Restart the kernel and Run All. Record the printed revision, chosen model/material/mode, hkl, uvw, lattice, normal side, ψ, polarization, tensor values and the exported result. First check the Silicon expressions above; then change one input at a time. Automated checks do not constitute an independent colleague review. Consultation with Dr. Kumar and discussion with lab members remain tasks for the laboratory.

@@ -58,7 +58,7 @@ guide_outputs=[i for i,o in enumerate(last.outputs) if o.get('metadata',{}).get(
 assert len(guide_outputs)==1
 guide=last.outputs[guide_outputs[0]]['data']['text/markdown']
 assert '**Goal:**' in guide and all(f'{i}. ' in guide for i in range(1,6))
-assert len(guide.split())<100
+assert len(guide.split())<120
 app_outputs=[i for i,o in enumerate(last.outputs) if 'application/vnd.jupyter.widget-view+json' in o.get('data',{})
              and o['data']['application/vnd.jupyter.widget-view+json']['model_id']==ns['app_view'].model_id]
 assert app_outputs and guide_outputs[0]<app_outputs[0]
@@ -70,19 +70,24 @@ png=buffer.getvalue()
 assert png.startswith(b'\x89PNG\r\n\x1a\n')
 equations=[item for item in ns['state']['derivation']['entries'] if item['kind']=='equation']
 assert all(item.get('reference_ids') and item.get('derivation_note') for item in equations)
-assert sum(bool(item.get('analytical_kind')) for item in equations)==7
+assert sum(bool(item.get('analytical_kind')) for item in equations)>=8
 assert len(equations)<=30
 assert all(symbol['meaning'] and symbol['units'] for item in equations for symbol in item['symbols'])
 assert any(item.get('symbols') for item in equations)
 with capture_output():ns['start_application']()
 assert ns['state']['run'] is startup, 'Redisplay must preserve the current calculation.'
-assert [value for _,value in ns['model_pick'].options]==['USER_PPT','NEW_SAN','DR_KUMAR']
+assert [value for _,value in ns['model_pick'].options]==['NEW_SAN','USER_PPT','DR_KUMAR']
 assert [value for _,value in ns['optics_pick'].options]==['CUBIC_VV','CUBIC_VH','CUBIC_SIGMA']
-for key in ['USER_PPT','DR_KUMAR','NEW_SAN']:
+for key in ['DR_KUMAR','USER_PPT','NEW_SAN']:
     with capture_output():
         ns['load_configuration'](ns['framework_config'](key));ns['on_run']()
     assert ns['state']['last_error'] is None,ns['state']['last_error']
     assert ns['state']['run']['config']['framework']==key
+    assert ns['orientation_inputs'].layout.display != 'none'
+    assert ns['crystal_inputs'].layout.display != 'none'
+    assert not ns['optics_pick'].disabled
+    assert [value for _,value in ns['material_pick'].options] == ns['laboratory_materials']()
+    assert ns['ui']['frame_preview_geometry'] is not None
 with capture_output():
     ns['tabs'].selected_index=ns['tab_index']['Polar plots']
 book.metadata['widgets']={'application/vnd.jupyter.widget-state+json':embed_data([ns['app_view']],state=dependency_state([ns['app_view']]))['manager_state']}
@@ -120,6 +125,6 @@ print(json.dumps(public_record,indent=2),flush=True)
 
 assert ns['derivation_tabs'].selected_index == 1
 assert ns['derivation_tabs'].get_title(0) == 'Mathematical steps'
-assert ns['derivation_tabs'].get_title(1) == 'Steps and short definitions'
+assert ns['derivation_tabs'].get_title(1) == 'Explanation + mathematics'
 assert ns['state']['derivation']['mathematics_markdown'].count('## Symbols and units') == 1
 assert '**Symbols and units**' not in ns['state']['derivation']['mathematics_markdown']

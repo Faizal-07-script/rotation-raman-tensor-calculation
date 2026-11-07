@@ -9,13 +9,13 @@
     ],
     "absorption_delta_m": null,
     "thin_2d_assumptions": false,
-    "theta0_deg": 0,
-    "analyzer_zero_deg": 45
+    "theta0_deg": "0",
+    "analyzer_zero_deg": "45"
   },
   "tensor_model": "CRYSTAL_3D",
   "source_parameters": null,
-  "case_label": "New-san \u2014 Paukatong et al.",
-  "input_note": "Illustrative coefficients and lattice ratios; replace with sample-specific inputs.",
+  "case_label": "Model 1 \u2014 New-san",
+  "input_note": "Select a material, surface and polarization. Review X, Y, Z and T before calculating intensity.",
   "material": "Si",
   "point_group": "Oh",
   "modes": [
@@ -45,11 +45,11 @@
     0
   ],
   "uvw": [
-    "0",
-    "-5",
+    0,
+    -5,
     0
   ],
-  "azimuth_deg": 0,
+  "azimuth_deg": "0",
   "normal_sign": 1,
   "allow_reflection": false,
   "T_manual": [

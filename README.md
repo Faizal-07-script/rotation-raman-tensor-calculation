@@ -7,8 +7,8 @@ Current revision: **6 November 2026 — three laboratory models**: My PPT slides
 [Full website](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/)
 · [Calculator-only website](https://faizal-07-script.github.io/raman-tensor-calculator/)
 
-[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.ipynb?sha=e035f0be3aeb)
-· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.zip?sha=2c0ccc0da0ae)
+[Download the current Python notebook](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.ipynb?sha=6526c64fb8ce)
+· [Download all Python programs](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.zip?sha=80033bb09849)
 
 The full website contains the introduction, optical-method notes, references,
 22-cell Python tutorial and calculator. The separate `raman-tensor-calculator`

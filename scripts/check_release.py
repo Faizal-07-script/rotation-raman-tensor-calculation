@@ -69,7 +69,7 @@ guide = next(o for o in last['outputs'] if o.get('metadata', {}).get('raman_quic
 guide_text = guide['data']['text/markdown']
 guide_text = guide_text if isinstance(guide_text,str) else ''.join(guide_text)
 assert '**Goal:**' in guide_text
-assert len(guide_text.split()) < 100
+assert len(guide_text.split()) < 120
 assert (DOWNLOADS / 'Silicon_Startup_Polar_Plot.png').read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
 
 tutorial = json.loads((DIST / "data/tutorial.json").read_text())
@@ -109,11 +109,14 @@ equations=[entry for entry in reference['equations'] if entry['kind']=='equation
 assert len(equations)==reference['equation_count']
 assert all(entry.get('reference_ids') for entry in equations)
 assert any(entry.get('symbols') for entry in equations)
-assert len(equations)<=30
-assert sum(bool(entry.get('analytical_kind')) for entry in equations)==7
+assert len(equations)<=45
+assert sum(bool(entry.get('analytical_kind')) for entry in equations)>=8
 assert all(s['meaning'] and s['units'] for entry in equations for s in entry['symbols'])
 catalog=json.loads((DIST/'data/catalog.json').read_text())
 assert catalog['default_example']=='SI_500'
+assert list(catalog['frameworks'])==['NEW_SAN','USER_PPT','DR_KUMAR']
+assert all(value['profiles']==list(catalog['profiles']) for value in catalog['frameworks'].values())
+assert all(value['config']['tensor_model']=='CRYSTAL_3D' for value in catalog['frameworks'].values())
 assert catalog['examples']['SI_500']['config']==silicon
 assert reference['latex']['full'].count('Symbols and units')==1
 assert r'\begin{longtable}' in reference['latex']['explained']

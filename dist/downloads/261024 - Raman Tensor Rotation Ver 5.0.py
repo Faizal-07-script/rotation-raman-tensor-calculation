@@ -20,7 +20,7 @@
 
 # %% Code cell 1: Setup
 PROGRAM_VERSION = "5"
-NOTEBOOK_REVISION = "2026-11-06-r1"
+NOTEBOOK_REVISION = "2026-11-07-r1"
 print(f"Version {PROGRAM_VERSION} | Revision {NOTEBOOK_REVISION} | Silicon (500) default", flush=True)
 print("This notebook has 22 code cells. Run them in order; each completed cell reports its own success.", flush=True)
 
@@ -2797,130 +2797,104 @@ def protocol_state_comparison():
 
 """The three laboratory calculation models."""
 
-FRAMEWORKS = {
-    "USER_PPT": {"label": "1. My PPT slide model", "profiles": ["CUBIC_SIGMA"]},
-    "NEW_SAN": {"label": "2. New-san — Paukatong et al.", "profiles": ["CUBIC_VV", "CUBIC_VH", "CUBIC_SIGMA"]},
-    "DR_KUMAR": {"label": "3. Dr. Kumar model", "profiles": ["QWP"]},
-}
+"""Three presentation routes for the same declared crystal and optical states."""
+import re
 LAB_PROFILE_LABELS = {
     "CUBIC_VV": "VV — parallel linear polarization",
     "CUBIC_VH": "VH — crossed linear polarization",
-    "CUBIC_SIGMA": "σ⁺α — paper equation (11)",
-    "QWP": "Input QWP → Raman tensor → return QWP → analyzer",
+    "CUBIC_SIGMA": "σ⁺α — New-san detection-state scan",
 }
-MATERIALS["GaAs"] = dict(label="GaAs — zinc blende", group="Td", space_group="F-43m (#216)",
+FRAMEWORKS = {
+    "NEW_SAN": {"label": "Model 1 — New-san", "profiles": list(LAB_PROFILE_LABELS)},
+    "USER_PPT": {"label": "Model 2 — My PPT slide", "profiles": list(LAB_PROFILE_LABELS)},
+    "DR_KUMAR": {"label": "Model 3 — Dr. Kumar", "profiles": list(LAB_PROFILE_LABELS)},
+}
+MATERIALS["GaAs"] = dict(label="GaAs — zinc blende / Td", group="Td", space_group="F-43m (#216)",
     modes={"TO": "T2", "LO": "T2"}, lattice=(1,1,1,90,90,90), surface="(500)",
-    note="New-san equation (8): TO uses X and Y phonon projections; LO uses Z.", sources=["silicon"])
+    note="TO uses the X and Y phonon components; LO uses Z. The surface and in-plane reference determine these axes.", sources=["silicon"])
+for _material in MATERIALS.values():
+    _material["label"] = re.sub(r"\s*\((?:Complex linear|Circular-channel)[^)]*\)", "", _material["label"])
+MATERIALS["Si"]["label"] = "Silicon — diamond / Oh / T₂g"
 
+def laboratory_materials():
+    return ["Si", "GaAs"] + [key for key in MATERIALS if key not in ["Si", "GaAs"]]
 
 def framework_for(cfg):
-    key = cfg.get("framework")
-    if key is not None:
-        if key not in FRAMEWORKS:
-            raise ValueError("Choose My PPT slide model, New-san, or Dr. Kumar.")
-        return key
-    if cfg.get("tensor_model") == "QWP_SOURCE_2D":
-        return "DR_KUMAR"
-    return "NEW_SAN" if cfg.get("material") in ["Si","GaAs"] and cfg.get("optics","").startswith("CUBIC_") else "USER_PPT"
-
+    key=cfg.get("framework", "NEW_SAN")
+    if key not in FRAMEWORKS: raise ValueError("Choose Model 1 — New-san, Model 2 — My PPT slide, or Model 3 — Dr. Kumar.")
+    return key
 
 def framework_config(key):
-    if key == "USER_PPT":
-        cfg = slide_component_config()
-    elif key == "NEW_SAN":
-        cfg = general_config("Si","CUBIC_VV")
-        cfg.update(modes=["T2g"],mode_values={"T2g":{d:sp.S.One}},hkl=(5,0,0),uvw=(0,-5,0),normal_sign=1)
-    elif key == "DR_KUMAR":
-        cfg = qwp_source_config()
-    else:
-        raise ValueError("Unknown laboratory model.")
-    cfg.update(framework=key,case_label=FRAMEWORKS[key]["label"].split(". ",1)[-1])
+    if key not in FRAMEWORKS: raise ValueError("Unknown calculation model.")
+    cfg=slide_component_config() if key=="USER_PPT" else general_config("Si","CUBIC_VV")
+    cfg.update(framework=key,case_label=FRAMEWORKS[key]["label"],
+        input_note="Select a material, surface and polarization. Review X, Y, Z and T before calculating intensity.")
     return prepare_framework_config(cfg)
 
-
 def prepare_framework_config(configuration):
-    cfg = copy.deepcopy(configuration)
-    key = framework_for(cfg)
-    cfg["framework"] = key
-    if cfg["optics"] not in FRAMEWORKS[key]["profiles"]:
-        raise ValueError("The selected optical configuration does not belong to this model.")
-    if key == "DR_KUMAR":
-        if cfg.get("tensor_model") != "QWP_SOURCE_2D":
-            raise ValueError("Dr. Kumar model uses the supplied original 2×2 source tensor.")
-        cfg.update(calculation_method="QWP",ag_rule="COHERENT_SINGLE_TENSOR",show_geometry=False)
-    else:
-        if cfg.get("tensor_model") != "CRYSTAL_3D":
-            raise ValueError("This model requires a 3×3 crystal tensor.")
-        if key == "NEW_SAN":
-            if cfg.get("material") not in ["Si","GaAs"]:
-                raise ValueError("New-san model covers Si and GaAs. Use the PPT model for the other material tensors.")
-            h,k,ell = map(sp.sympify,cfg["hkl"])
-            if h==k==ell==0:
-                raise ValueError("The surface normal cannot be (000).")
-            cfg.update(orientation="hkl",uvw=(k,-h,0) if h*h+k*k else (1,0,0),
-                       normal_sign=1,azimuth_deg=0,allow_reflection=False,lattice=(1,1,1,90,90,90))
-            cfg["paper_parameters"] = {**default_paper_parameters("CIRCULAR"),"theta0_deg":0}
-            for vals in cfg["mode_values"].values():
-                if any(sp.im(sp.expand_complex(v)) != 0 for v in vals.values()):
-                    raise ValueError("Use a real d in the paper model; its coefficient phase is 0° or 180°.")
-        elif cfg.get("material") == "GaAs":
-            raise ValueError("The GaAs LO/TO calculation belongs to the New-san model.")
+    cfg=copy.deepcopy(configuration);key=framework_for(cfg)
+    if cfg.get("case_label") in {value["label"] for value in FRAMEWORKS.values()}:
+        cfg["case_label"]=FRAMEWORKS[key]["label"]
+    if cfg.get("tensor_model")=="QWP_SOURCE_2D":
+        # The untouched original notebook remains available as a source record.
+        # The three public models now all use a rotated crystal tensor.
+        raise ValueError("The public Dr. Kumar route uses a crystal tensor. Open the included original notebook for its effective 2D source example.")
+    if cfg.get("material") not in MATERIALS: raise ValueError("Choose a material or a custom crystal tensor.")
+    if cfg.get("optics") not in LAB_PROFILE_LABELS: raise ValueError("Choose VV, VH, or σ⁺α.")
+    cfg.update(framework=key,tensor_model="CRYSTAL_3D",calculation_method="GENERAL",ag_rule="COHERENT_SINGLE_TENSOR")
+    cfg["paper_parameters"]={**default_paper_parameters("CIRCULAR"),"theta0_deg":0,**(cfg.get("paper_parameters") or {})}
+    # Keep every declared geometry and complex coefficient. A model change
+    # cannot silently replace hkl, uvw, lattice, normal side, or frame angle.
+    validate_lattice_for_group(cfg)
     return cfg
 
-
-_original_calculate_general = calculate_general
-
-
 def newsan_gaas_families(cfg,T):
-    original=definitions_for("Si","Oh")["T2g"]["partners"]
-    families={}
+    original=definitions_for("Si","Oh")["T2g"]["partners"];families={}
     for name in cfg["modes"]:
-        if name not in ["LO","TO"]:raise ValueError("Choose the GaAs LO or TO mode.")
+        if name not in ["LO","TO"]: raise ValueError("Choose the GaAs LO or TO mode.")
         indices=[2] if name=="LO" else [0,1]
         tensors=[tidy(sum((T[j,i]*original[j] for j in range(3)),sp.zeros(3))) for i in indices]
         families[name]=dict(irrep=name,partners=tensors,numeric_partners=[r.subs(cfg["mode_values"][name]) for r in tensors],
-            calculation_tensors=tensors,calculation_labels=["R^"+"XYZ"[i] for i in indices],
-            values=cfg["mode_values"][name],rule="SINGLE_TENSOR" if name=="LO" else "DEGENERATE_PARTNER_SUM",
-            combination_reason="Paper (10): LO is Z; TO is the sum of X and Y intensities.",
-            note="Phonon projection, paper (8).")
+            calculation_tensors=tensors,calculation_labels=["R^"+"XYZ"[i] for i in indices],values=cfg["mode_values"][name],
+            rule="SINGLE_TENSOR" if name=="LO" else "DEGENERATE_PARTNER_SUM",
+            combination_reason="One LO intensity; sum the two orthogonal TO intensities.",note="Phonon projection, New-san paper (8).")
     return families
 
+def laboratory_preparation(configuration):
+    cfg=prepare_framework_config(configuration);geometry=build_orientation(cfg)
+    optics=optical_chain(cfg["optics"],paper=cfg["paper_parameters"])
+    cfg["effective_optical_parameters"]=copy.deepcopy(optics["parameters"])
+    cfg["direct_jones"]=None
+    if not isinstance(cfg["plot_points"],int) or not 361<=cfg["plot_points"]<=3601:
+        raise ValueError("Use between 361 and 3601 angular samples.")
+    families=newsan_gaas_families(cfg,geometry["T"]) if cfg["material"]=="GaAs" else experiment_families(cfg)
+    return cfg,geometry,optics,families
 
 def calculate_general(configuration):
-    cfg = prepare_framework_config(configuration)
-    if cfg["framework"] == "NEW_SAN" and cfg["material"] == "GaAs":
-        geometry = build_orientation(cfg)
-        optical = optical_chain(cfg["optics"],paper=cfg["paper_parameters"])
-        T = geometry["T"]
-        families = newsan_gaas_families(cfg,T)
-        cfg.update(calculation_method="GENERAL",ag_rule="COHERENT_SINGLE_TENSOR",
-                   effective_optical_parameters=copy.deepcopy(optical["parameters"]))
-        run = assemble_calculated_run(cfg,geometry,optical,families,
-            lambda r,o:amplitude_record(r,T,o),["New-san equations (1)–(11); cubic backscattering; one real coefficient per mode."])
-        run = attach_display_channels(attach_physics_audit(run))
-        run["style"] = copy.deepcopy(PLOT_STYLE_STATUS)
-    else:
-        run = _original_calculate_general(cfg)
-    run["config"]["framework"] = cfg["framework"]
+    cfg,geometry,optics,families=laboratory_preparation(configuration)
+    run=assemble_calculated_run(cfg,geometry,optics,families,
+        lambda tensor,selected:amplitude_record(tensor,geometry["T"],selected),
+        ["The three models use the same declared crystal, frame and polarization states.",
+         "New-san's Si/GaAs cases reproduce the source conventions when their source axes are selected; other materials and frames are extensions.",
+         "The Dr. Kumar route extends the notebook's 2D Jones multiplication to the XY block of a rotated crystal tensor."])
+    run=attach_display_channels(attach_physics_audit(run));run["style"]=copy.deepcopy(PLOT_STYLE_STATUS)
     return run
-
 
 _all_optical_method_catalog=optical_method_catalog
 def optical_method_catalog():
     return {key:value for key,value in _all_optical_method_catalog().items() if key in LAB_PROFILE_LABELS}
 
-
 def optical_methods_overview_markdown():
-    return """# Laboratory calculation models
+    return """# Models and polarization
 
-1. My PPT slide model: the slide frame and separate Ag Cartesian contributions.
-2. New-san — Paukatong et al.: Si and GaAs, VV, VH and σ⁺α; paper and supplementary equations.
-3. Dr. Kumar model: the original 2×2 tensor and QWP optical sequence.
+1. **New-san:** tensor rotation and polarization conventions from the paper and supplementary information.
+2. **My PPT slide:** the slide calculation, with separate Ag Cartesian contributions.
+3. **Dr. Kumar:** Jones matrix multiplication, extended to the XY block of the rotated crystal tensor.
 
-New-san order: original tensors → surface axes → transformed tensors → Jones states → intensity → polar plot.
-Red expressions identify the analytical Raman tensor and Raman intensity.
+Every model offers the same material list, orientation inputs, VV, VH and σ⁺α.
+Changing the model keeps these inputs. For identical inputs, the complete-mode intensity must agree.
+X, Y and Z are measurement axes, not Jones vectors. Review them and T before calculating intensity.
 """
-
 
 
 print("Cell 10/22 — Run completed successfully.\nReady: The common material-to-intensity calculation pipeline is ready.\nNext: Run Cell 11.", flush=True)
@@ -3440,151 +3414,190 @@ def paper_intensity_latex(run, derivation):
 
 """Paper-order equations and short symbol definitions shared by Python and both websites."""
 
-LAB_SYMBOLS = {
-    "tensor": [("R","R","Raman tensor in the displayed coordinate frame.","relative tensor units"),
-               ("coefficient","d","Common nonzero off-diagonal element in the cubic tensors.","relative tensor units")],
-    "frame": [("hkl",r"(h,k,\ell)","Surface Miller indices.","dimensionless"),
-              ("MN",r"M,N","Normalization factors in SI (S2).","dimensionless"),
-              ("XYZ",r"X,Y,Z","Measurement unit axes in the crystal coordinates.","dimensionless"),
-              ("frame","T","Matrix with columns X, Y, Z.","dimensionless")],
-    "optics": [("theta",r"\theta","Linear-polarization scan angle.","radians"),
-               ("alpha",r"\alpha","Detection-state scan angle.","radians"),
-               ("phase",r"\beta,\beta'","Jones-state phases in paper (11).","radians"),
-               ("states",r"\hat e_i,\hat e_s^*","Incident column and conjugated detection row.","normalized")],
-    "intensity": [("intensity","I","Relative Raman intensity; plotted before optional normalization.","relative intensity units")],
+"""Connected matrix steps, shared by the notebook, browser and LaTeX exports."""
+LAB_SYMBOLS={
+ "tensor":[("tensor","R","Raman tensor in crystal Cartesian coordinates.","relative tensor units"),
+           ("coefficient","d","Common off-diagonal coefficient of the cubic tensors.","relative tensor units")],
+ "frame":[("hkl",r"(h,k,\ell)","Miller indices of the selected surface.","dimensionless"),
+          ("uvw",r"[u,v,w]","Direct-lattice direction used for the in-plane X reference.","dimensionless"),
+          ("axes",r"X,Y,Z","Measurement unit axes expressed in crystal coordinates.","dimensionless"),
+          ("frame","T","Matrix with X, Y and Z as columns.","dimensionless")],
+ "lattice":[("lattice","L","Direct-lattice vectors as columns; all lengths use one common unit.","selected length unit"),
+            ("normal","g","Reciprocal-lattice surface normal; the common 2π factor cancels on normalization.","inverse length")],
+ "optics":[("theta",r"\theta","Linear-polarization scan angle.","radians; controls use degrees"),
+           ("alpha",r"\alpha","Detection-state scan angle in σ⁺α; fixed at 0 or π/2 for VV or VH.","radians"),
+           ("phase",r"\beta,\beta^{\prime}","Relative Jones-state phases in New-san equation (11).","radians"),
+           ("states",r"\hat e_i,\hat e_s^*","Incident polarization column and conjugated detection row.","normalized")],
+ "intensity":[("intensity","I","Relative intensity. A plotted normalization does not change the raw CSV.","relative intensity units")],
 }
 
-
 def _lab_tex(trace,value,explanation,source="",symbols=(),analytical=None):
-    trace.tex(value.replace(r"\beta'",r"\beta^{\prime}"),explanation=explanation)
-    entry=trace.entries[-1]
-    entry["symbols"]=[dict(id=k,latex=tex,meaning=meaning,units=units) for k,tex,meaning,units in symbols]
-    entry["reference_ids"]=["PAUKATONG2026"] if framework_for(trace.context)=="NEW_SAN" else ["KUMAR_NOTEBOOK"] if framework_for(trace.context)=="DR_KUMAR" else ["PROGRAM_GEOMETRY"]
-    entry["derivation_note"]=source
-    entry["source_equation"]=source
-    entry["analytical_kind"]=analytical
+    value=value.replace(r"\beta'",r"\beta^{\prime}")
+    trace.tex(value,explanation=explanation);entry=trace.entries[-1]
+    entry.update(symbols=[dict(id=k,latex=t,meaning=m,units=u) for k,t,m,u in symbols],
+        reference_ids=["PAUKATONG2026","PROGRAM_GEOMETRY"]+(["KUMAR_NOTEBOOK"] if framework_for(trace.context)=="DR_KUMAR" else []),
+        derivation_note=source,source_equation=source,analytical_kind=analytical)
 
+def _power_expression(amplitudes):
+    result=sp.factor_terms(sp.trigsimp(sp.expand(sum((v*sp.conjugate(v) for v in amplitudes),sp.S.Zero))))
+    for coefficient in sorted(result.free_symbols,key=str):
+        if coefficient not in [alpha,theta_scan]:
+            result=result.subs(coefficient*sp.conjugate(coefficient),sp.Abs(coefficient)**2)
+    return sp.factor_terms(result)
+
+def _paper_frame_matches(cfg,T):
+    if cfg.get("orientation")!="hkl" or cfg.get("normal_sign")!=1 or cfg.get("azimuth_deg")!=0:return False
+    h,k,ell=map(sp.sympify,cfg["hkl"]);m=sp.sqrt(h*h+k*k);n=sp.sqrt(h*h+k*k+ell*ell)
+    expected=sp.eye(3) if m==0 and ell>0 else None
+    if m!=0:expected=sp.Matrix.hstack(sp.Matrix([k,-h,0])/m,sp.Matrix([h*ell,k*ell,-m*m])/(m*n),sp.Matrix([h,k,ell])/n)
+    return expected is not None and np.allclose(numeric(T),numeric(expected),rtol=0,atol=1e-10)
 
 def laboratory_trace(run,preflight=False):
-    cfg,optical=run["config"],run["optical"]
-    key=framework_for(cfg)
-    variable=theta_scan if optical["scan_basis"]=="SECOND" else alpha
+    cfg,g,optics=run["config"],run["geometry"],run["optical"]
+    key=framework_for(cfg);T=g["T"];variable=theta_scan if optics["scan_basis"]=="SECOND" else alpha
     trace=CalculationTrace(variable,cfg)
-    tex=lambda expression:raman_latex(sp.sympify(expression).subs(alpha,variable))
+    tex=lambda x:raman_latex(sp.sympify(x).subs(alpha,variable))
     add=lambda value,why,src="",symbols=(),kind=None:_lab_tex(trace,value,why,src,symbols,kind)
-    original=definitions_for("Si","Oh")["T2g"]["partners"] if key=="NEW_SAN" else None
-    trace.section("Raman tensor")
-    if key=="DR_KUMAR":
-        add("R="+tex(QWP_SOURCE_TENSOR),"Use the complete source tensor from Dr. Kumar's notebook.",
-            "Dr. Kumar: source tensor",[( "source",r"a,A,\delta,\phi","Real source coefficients a, A and phases δ, φ.","relative coefficients; phase in radians")],kind="raman_tensor")
-    elif key=="NEW_SAN":
-        for label,r in zip(["x","y","z"],original):
-            add(r"R^{"+label+"}="+tex(r),"Nonzero entries: "+tensor_component_label(r)+".","Paper ("+str(1+"xyz".index(label))+")",LAB_SYMBOLS["tensor"] if label=="x" else ())
+    aligned=lambda rows:r"\begin{aligned}"+r"\\[4pt]".join(rows)+r"\end{aligned}"
+    cubic=cfg["material"] in ["Si","GaAs"]
+    original=definitions_for("Si","Oh")["T2g"]["partners"] if cubic else None
+    basis=[]
+    trace.section("Crystal Raman tensors")
+    if cubic:
+        for index,(axis,R) in enumerate(zip("xyz",original)):
+            label=r"R^{"+axis+"}"
+            add(label+"="+tex(R),"Crystal tensor: "+tensor_component_label(R)+".","New-san paper (1)–(3)",LAB_SYMBOLS["tensor"] if index==0 else ())
+            if cfg["material"]=="Si":basis.append((label,R,"T₂g"))
     else:
         for name,family in run["families"].items():
-            for r in family["partners"]:
-                coeffs=",".join(raman_latex(v) for v in sorted(r.free_symbols,key=str))
-                definitions=[("R","R","Raman tensor in the crystal frame.","relative tensor units")]
-                if coeffs:definitions.append(("coefficients",coeffs,"Complex tensor coefficients in the displayed matrix.","relative tensor units"))
-                add("R="+tex(r),"Crystal tensor for "+name+".","PPT slide model",definitions)
-    if key!="DR_KUMAR":
-        trace.section("Surface and measurement axes")
-        T=run["geometry"]["T"]
-        if key=="NEW_SAN":
-            add(r"M=\sqrt{h^2+k^2},\quad N=\sqrt{h^2+k^2+\ell^2}",
-                "Normalize the surface axes.","SI (S2)",LAB_SYMBOLS["frame"])
-            add(r"X=\frac1M\begin{pmatrix}k\\-h\\0\end{pmatrix},\quad "
-                r"Y=\frac1{MN}\begin{pmatrix}h\ell\\k\ell\\-M^2\end{pmatrix},\quad "
-                r"Z=\frac1N\begin{pmatrix}h\\k\\\ell\end{pmatrix}",
-                "Use the paper's in-plane reference. For (001), use the original axes.","SI (S1); SI S3")
-        for j,label in enumerate(["X","Y","Z"]):
-            add(label+"="+tex(T[:,j]),"Selected measurement axis in crystal coordinates.","SI (S1)" if key=="NEW_SAN" else "PPT measurement axes",
-                LAB_SYMBOLS["frame"][2:] if j==0 and key=="USER_PPT" else ())
-        add("T=[X\\ Y\\ Z]="+tex(T),"Place the three axes in columns.","Paper (4)" if key=="NEW_SAN" else "Frame matrix")
-        trace.section("Analytical expression for the Raman tensor")
-        add(r"R^{i\prime}=T^{-1}R^iT=T^TR^iT","Express the tensor in the measurement frame.",
-            "Paper (5)" if key=="NEW_SAN" else "Tensor transformation",kind="raman_tensor")
-        if key=="NEW_SAN":
-            for j,r in enumerate(original):
-                add("R^{"+["x","y","z"][j]+r"\prime}="+tex(tidy(T.T*r*T)),
-                    "Rotated tensor; keep d symbolic.","SI (S7)–(S9)",kind="raman_tensor")
-            if cfg["material"]=="GaAs":
-                add(r"\begin{pmatrix}R^X\\R^Y\\R^Z\end{pmatrix}=T^T"
-                    r"\begin{pmatrix}R^{x\prime}\\R^{y\prime}\\R^{z\prime}\end{pmatrix}",
-                    "Project the phonon polarization: TO uses X,Y; LO uses Z.","Paper (8)",kind="raman_tensor")
-                for name,family in run["families"].items():
-                    for label,r in zip(family["calculation_labels"],family["calculation_tensors"]):
-                        add(label+"="+tex(tidy(T.T*r*T)),"Projected "+name+" Raman tensor.","SI (S14)–(S16)",kind="raman_tensor")
-                trace.note("The phonon projection follows paper (8) and Cartesian SI (S14). A printed polar entry in SI (S10) differs from this direct projection.")
-        else:
-            for name,channel in run.get("display_channels",{}).items():
-                for rec in channel["records"]:
-                    add(r"R'="+tex(rec["Rlab"]),name+": transformed Cartesian contribution.","PPT tensor rotation",kind="raman_tensor")
-    trace.section("Polarization states")
-    if key=="NEW_SAN":
-        add(r"\hat e_i=\begin{pmatrix}\cos\theta\\\sin\theta e^{i\beta}\\0\end{pmatrix},\quad "
-            r"\hat e_s^*=\begin{pmatrix}\cos(\theta+\alpha)&\sin(\theta+\alpha)e^{-i\beta'}&0\end{pmatrix}",
-            "Use the incident and detected states from the paper.","Paper (11)",LAB_SYMBOLS["optics"])
-        setting={"CUBIC_VV":r"\alpha=0,\quad\beta=\beta'=0",
-                 "CUBIC_VH":r"\alpha=\pi/2,\quad\beta=\beta'=0",
-                 "CUBIC_SIGMA":r"\theta=\pi/4,\quad\beta=\beta'=\pi/2"}[cfg["optics"]]
-        add(setting,"VV and VH scan θ; σ⁺α scans α.","Paper Section 2.3; SI (S17),(S18)")
-    if key=="DR_KUMAR":
-        add("Q="+tex(QWP_QWP)+r",\quad Q_{\mathrm{back}}="+tex(QWP_RETURN_QWP),
-            "Use the input and return quarter-wave plates.","Dr. Kumar: QWP matrices")
-    add(r"\hat e_i="+tex(P.T*optical["Ein"] if key!="DR_KUMAR" else optical["Ein"]),
-        "Incident state for this calculation.","Selected polarization")
-    add(r"\hat e_s^*="+tex((P.T*optical["effective_analyzer"]).H if key!="DR_KUMAR" else optical["analyzer"].H),
-        "Conjugated detection row.","Selected polarization")
-    finals=[]
-    if not preflight:
-        trace.section("Analytical expression for the Raman intensity")
-        amplitude_lhs=r"\hat e_s^*Q_{\mathrm{back}}R\hat e_i" if key=="DR_KUMAR" else r"\hat e_s^*R\hat e_i"
-        add(r"I(R)=\left|"+amplitude_lhs+r"\right|^2",
-            "Include the return QWP before the analyzer, then take the squared modulus." if key=="DR_KUMAR" else "Contract the transformed tensor with the polarization states, then take the squared modulus.",
-            "Paper (9)–(13)" if key=="NEW_SAN" else "Jones contraction",LAB_SYMBOLS["intensity"],"raman_intensity")
-        for name,channel in run["display_channels"].items():
-            records=channel["records"]
-            for j,rec in enumerate(records):
-                amplitude=tidy((optical["analyzer"].H*optical["B"]*rec["Rperp"]*optical["Ein"])[0])
-                add(amplitude_lhs+"="+tex(sp.trigsimp(amplitude)),
-                    name+": "+(tensor_component_label(rec.get("Rc",rec["Rperp"])) if key!="DR_KUMAR" else "source tensor")+".",
-                    "Substitution in paper (9)" if key=="NEW_SAN" else "Matrix product")
-            summary=symbolic_intensity_summary(records)
-            expression=sp.trigsimp(intensity_expression(summary,variable))
-            if key=="NEW_SAN":
-                expression=sp.trigsimp(expression.xreplace({sp.conjugate(d):d}))
-            numerical=sp.trigsimp(expression.subs(channel["values"]))
-            power="+".join(r"\left|"+tex(sp.trigsimp(rec["amplitude"]))+r"\right|^2" for rec in records)
-            add("I="+power,"Sum intensities of the orthogonal phonon components." if len(records)>1 else "Square this complete amplitude.",
-                "Paper (9)" if cfg.get("material")=="Si" else "Paper (10)" if key=="NEW_SAN" else "Selected component")
-            add("I("+tex(variable)+")="+tex(expression),name+": analytical angular dependence.",
-                "Paper (9)–(13); SI (S17),(S18)" if key=="NEW_SAN" else "Expanded intensity",kind="raman_intensity")
-            add("I("+tex(variable)+")="+tex(numerical),"Insert the selected tensor value. This expression generates the polar plot.",
-                "Plot equation",kind="raman_intensity")
-            finals.append(dict(channel=name,variable=variable,summary=summary,expression=expression,substituted=numerical))
-    return trace,finals
+            for index,R in enumerate(family["partners"]):
+                label=r"R^{("+str(index+1)+")}"
+                symbols=[("coefficients",",".join(tex(v) for v in sorted(R.free_symbols,key=str)),"Complex coefficients of the displayed tensor; each input gives its size and phase.","relative tensor units")]
+                add(label+"="+tex(R),name+": "+tensor_component_label(R)+".","Selected point-group tensor",symbols)
+                basis.append((label,R,name))
+        trace.note("The tensor symmetry comes from the selected material. Applying the rotation and Jones equations to this material is a generalization of New-san's cubic examples.")
 
+    trace.section("Surface, X–Y–Z axes and transformation matrix")
+    if cfg.get("orientation")=="matrix":
+        add(r"T=[X\ Y\ Z]="+tex(T),"Use the supplied frame columns. Surface indices and ψ are inactive in manual-matrix mode.","Manual orthonormal frame",LAB_SYMBOLS["frame"][2:])
+        for j,label in enumerate("XYZ"):add(label+"="+tex(T[:,j]),"Measurement axis in crystal Cartesian coordinates.","Frame column")
+    else:
+        add(r"(h,k,\ell)="+tex(sp.Matrix([list(cfg["hkl"])])),"Start from the surface indices entered in the controls.","Surface input",LAB_SYMBOLS["frame"])
+        if _paper_frame_matches(cfg,T) and cubic:
+            h,k,ell=map(sp.sympify,cfg["hkl"]);M=sp.sqrt(h*h+k*k);N=sp.sqrt(h*h+k*k+ell*ell)
+            add(aligned([r"M&=\sqrt{h^2+k^2}="+tex(M),r"N&=\sqrt{h^2+k^2+\ell^2}="+tex(N)]),
+                "The cubic lattice has one common length, so it cancels from the unit axes.","New-san SI (S2)",[("MN","M,N","Lengths used to normalize the cubic index vectors.","dimensionless")])
+            add(aligned([r"Z&=\frac{1}{N}\begin{pmatrix}h\\k\\\ell\end{pmatrix}","&="+tex(T[:,2])]),"Normalize the positive surface normal.","New-san SI (S1)")
+            if M!=0:
+                add(aligned([r"X&=\frac{1}{M}\begin{pmatrix}k\\-h\\0\end{pmatrix}","&="+tex(T[:,0])]),"Use the in-plane reference of New-san. It satisfies hu + kv + ℓw = 0.","New-san SI (S1)")
+            else:add("X="+tex(T[:,0]),"For the (001) direction, use the original crystal X axis; the M=0 formula is not divided by zero.","New-san SI, (001) limit")
+            add(aligned([r"Y&=Z\times X", "&="+tex(T[:,1])]),"Calculate Y from Z and X, giving a right-handed frame.","New-san SI (S1)")
+        else:
+            add("L="+tex(g["L"]),"Build the direct-lattice matrix from the entered lengths and angles.","Direct and reciprocal lattice geometry",LAB_SYMBOLS["lattice"])
+            add(aligned([r"g&=L^{-T}\begin{pmatrix}h\\k\\\ell\end{pmatrix}","&="+tex(g["g"])]),"Convert Miller indices into a Cartesian normal. This matters for a noncubic lattice.","Reciprocal-lattice normal")
+            sign="-" if cfg["normal_sign"]<0 else ""
+            add(aligned(["Z&="+sign+r"\frac{g}{\sqrt{g^Tg}}", "&="+tex(T[:,2])]),"Normalize the normal and apply the selected normal side.","Normal-side input")
+            if cfg["uvw"] is not None:
+                add(aligned([r"X_0&=\frac{L\begin{pmatrix}u\\v\\w\end{pmatrix}}{\left\|L\begin{pmatrix}u\\v\\w\end{pmatrix}\right\|}","&="+tex(g["X0"])]),"Normalize the chosen in-plane [uvw] direction. X₀ is the axis before the optional ψ rotation.","In-plane reference",[("initial_axes",r"X_0,Y_0","Measurement axes before the entered frame rotation ψ.","dimensionless")])
+            else:add("X_0="+tex(g["X0"]),"Automatic X projects a stable Cartesian reference into the surface. "+" ".join(g.get("notes",[])),"Automatic coordinate reference",[("initial_axes",r"X_0,Y_0","Measurement axes before the entered frame rotation ψ.","dimensionless")])
+            add(aligned([r"Y_0&=Z\times X_0","&="+tex(g["Y0"])]),"Calculate the second in-plane axis.","Right-handed frame")
+            if cfg["azimuth_deg"]!=0:
+                add(aligned([r"X&=\cos\psi\,X_0+\sin\psi\,Y_0="+tex(T[:,0]),r"Y&=-\sin\psi\,X_0+\cos\psi\,Y_0="+tex(T[:,1])]),"Rotate X and Y about Z by the entered ψ. Z remains the surface normal.","Frame-angle input",[("psi",r"\psi","Rotation of the in-plane measurement axes about Z.","radians; input uses degrees")])
+            else:
+                add(aligned(["X&=X_0="+tex(T[:,0]),"Y&=Y_0="+tex(T[:,1])]),"At ψ = 0°, use the in-plane axes directly.","Selected frame angle")
+        add(r"T=[X\ Y\ Z]="+tex(T),"Place X, Y and Z in columns. T converts measurement coordinates into crystal coordinates.","New-san paper (4)")
+    add(aligned([r"T^TT&="+tex(tidy(T.T*T)),r"\det(T)&="+tex(sp.simplify(T.det()))]),"Check orthonormality and handedness before transforming the Raman tensor.","Frame verification")
+
+    trace.section("Analytical Raman tensor in the measurement frame")
+    add(r"R^{i\prime}=T^{-1}R^iT=T^TR^iT","Since T is real and orthogonal, its inverse is its transpose.","New-san paper (5)",kind="raman_tensor")
+    rotating=[(r"R^{"+axis+"}",R,"cubic") for axis,R in zip("xyz",original)] if cubic else basis
+    for label,R,name in rotating:
+        prime=label[:-1]+r"\prime}"
+        rows=[prime+"&=T^T("+label+")T", "&="+tex(tidy(T.T*R*T))]
+        # Show one full numerical matrix substitution to bridge the rule
+        # and its evaluated matrices without repeating it for every tensor.
+        if label==rotating[0][0]:rows.insert(1,"&="+tex(T.T)+tex(R)+tex(T))
+        add(aligned(rows),"Multiply the matrices in this order"+(": "+name if name!="cubic" else "")+".","New-san paper (5); SI (S7)–(S9)" if cubic else "Tensor basis transformation",kind="raman_tensor")
+    if cfg["material"]=="GaAs":
+        add(r"\begin{pmatrix}R^X\\R^Y\\R^Z\end{pmatrix}=T^T\begin{pmatrix}R^{x\prime}\\R^{y\prime}\\R^{z\prime}\end{pmatrix}","Project the phonon displacement onto X, Y and Z. TO uses X and Y; LO uses Z.","New-san paper (8)",kind="raman_tensor")
+        for name,family in run["families"].items():
+            for label,R in zip(family["calculation_labels"],family["calculation_tensors"]):
+                add(label+"="+tex(tidy(T.T*R*T)),name+" tensor after the phonon projection.","New-san SI (S14)–(S16)",kind="raman_tensor")
+        trace.note("The GaAs projection uses paper (8) and Cartesian SI (S14). A polar entry printed in SI (S10) differs from this direct projection.")
+    if key=="DR_KUMAR":
+        trace.note("Dr. Kumar's original notebook multiplies a 2×2 tensor and Jones vectors. Here the upper-left XY block of each rotated crystal tensor supplies that 2×2 tensor; this is the program's 3D extension.")
+        add(r"R^{i\prime}_{\perp}=\begin{pmatrix}R^{i\prime}_{XX}&R^{i\prime}_{XY}\\R^{i\prime}_{YX}&R^{i\prime}_{YY}\end{pmatrix}","Use the XY block with two-component Jones vectors. The zero Z components of the external polarization make this equivalent to the full 3D contraction.","Dr. Kumar Jones implementation; 3D crystal extension",[("transverse_tensor",r"R^{i\prime}_{\perp}","XY block of the rotated Raman tensor.","relative tensor units")],"raman_tensor")
+
+    trace.section("Incident and detected polarization states")
+    add(r"\hat e_i=\begin{pmatrix}\cos\theta\\\sin\theta\,e^{i\beta}\\0\end{pmatrix}","Define the incident polarization before inserting the selected method.","New-san paper (11)",LAB_SYMBOLS["optics"])
+    add(r"\hat e_s^*=\begin{pmatrix}\cos(\theta+\alpha)&\sin(\theta+\alpha)e^{-i\beta^{\prime}}&0\end{pmatrix}","The detection row is complex-conjugated. This sign is needed for elliptical states.","New-san paper (11)")
+    settings={"CUBIC_VV":r"\alpha=0,\qquad\beta=\beta^{\prime}=0", "CUBIC_VH":r"\alpha=\frac{\pi}{2},\qquad\beta=\beta^{\prime}=0", "CUBIC_SIGMA":r"\theta=\frac{\pi}{4},\qquad\beta=\beta^{\prime}=\frac{\pi}{2}"}
+    add(settings[cfg["optics"]],"VV and VH scan θ. In σ⁺α, θ is fixed and α is scanned.","New-san polarization definitions")
+    ei=P.T*optics["Ein"];es=(P.T*optics["effective_analyzer"]).H
+    add(r"\hat e_i="+tex(ei),"Incident column after applying the selected polarization settings.","Substitution into paper (11)")
+    add(r"\hat e_s^*="+tex(es),"Detection row used in the matrix product.","Substitution into paper (11)")
+    if key=="DR_KUMAR":
+        add(aligned([r"\hat e_{i,\perp}&="+tex(optics["Ein"]),r"\hat e_{s,\perp}^*&="+tex(optics["effective_analyzer"].H)]),"Remove the zero Z entries to use two-component Jones vectors. The subscript ⊥ denotes their X and Y components.","Transverse Jones vectors",[("transverse_states",r"\hat e_{i,\perp},\hat e_{s,\perp}^*","Incident column and detection row restricted to X and Y.","normalized")])
+        add(r"\hat e_s^*R^{i\prime}\hat e_i=\hat e_{s,\perp}^*R^{i\prime}_{\perp}\hat e_{i,\perp}","The 2D Jones product and the 3D contraction give the same amplitude because the incident and detected Z components are zero.","3D-to-2D contraction identity")
+    if preflight:return trace,[]
+
+    trace.section("Tensor–polarization products")
+    amplitudes={}
+    for name,channel in run["display_channels"].items():
+        amplitudes[name]=[]
+        for index,rec in enumerate(channel["records"]):
+            R=rec["Rperp"] if key=="DR_KUMAR" else rec["Rlab"]
+            selected_ei=optics["Ein"] if key=="DR_KUMAR" else ei
+            selected_es=optics["effective_analyzer"].H if key=="DR_KUMAR" else es
+            field=tidy(R*selected_ei);amplitude=sp.trigsimp(tidy((selected_es*field)[0]));amplitudes[name].append(amplitude)
+            label=(r"R^{"+"xyz"[index]+r"\prime}" if cfg["material"]=="Si" else channel.get("component") and r"R^{\prime}_{\mathrm{"+channel["component"]+"}}" or r"R^{("+str(index+1)+r")\prime}")
+            if cfg["material"]=="GaAs":label=r"R^{"+("XY"[index] if name=="TO" else "Z")+"}"
+            incident_lhs=r"\hat e_i";detector_lhs=r"\hat e_s^*"
+            if key=="DR_KUMAR":
+                label+=r"_{\perp}";incident_lhs=r"\hat e_{i,\perp}";detector_lhs=r"\hat e_{s,\perp}^*"
+            rows=[label+incident_lhs+r"&="+tex(R)+tex(selected_ei),"&="+tex(field), detector_lhs+label+incident_lhs+r"&="+tex(selected_es)+tex(field),"&="+tex(amplitude)]
+            add(aligned(rows),name+": first multiply the tensor by the incident column, then multiply by the detection row.","New-san paper (9)–(11); explicit matrix substitution")
+
+    trace.section("Analytical Raman intensity")
+    add(r"\left|\hat e_s^*R^{i\prime}\hat e_i\right|^2=(\hat e_s^*R^{i\prime}\hat e_i)(\hat e_s^*R^{i\prime}\hat e_i)^*", "Multiply each complete amplitude by its complex conjugate. Entries within one tensor remain coherent.","Squared-modulus identity",LAB_SYMBOLS["intensity"],"raman_intensity")
+    finals=[];complete_finals=[]
+    for name,channel in run["display_channels"].items():
+        amps=amplitudes[name]
+        powers="+".join(r"\left|"+tex(v)+r"\right|^2" for v in amps)
+        products="+".join("("+tex(v)+")("+tex(sp.conjugate(v))+")" for v in amps if v!=0) or "0"
+        add("I="+powers,name+": add powers of orthogonal phonon components"+"." if len(amps)>1 else name+": square this complete tensor amplitude.","New-san paper (9) for Si; (10) for GaAs; general Raman intensity",kind="raman_intensity")
+        expression=_power_expression(amps).subs(alpha,variable)
+        add(aligned(["I&="+products,"&="+tex(expression)]),"Insert the amplitudes from the preceding section and simplify their conjugate products.","Amplitude-to-intensity expansion",kind="raman_intensity")
+        numerical=sp.simplify(sp.trigsimp(expression.subs(channel["values"])))
+        finals.append(dict(channel=name,variable=variable,summary=symbolic_intensity_summary(channel["records"]),expression=expression,substituted=numerical))
+    for name,result in run["results"].items():
+        if run["families"][name].get("irrep")!="Ag":continue
+        amps=[sp.trigsimp((es*rec["Rlab"]*ei)[0]) for rec in result["terms"]]
+        expression=_power_expression(amps).subs(alpha,variable);values=run["families"][name]["values"]
+        numerical=sp.simplify(expression.subs(values))
+        add(r"I_{\mathrm{"+name+"}}="+tex(expression),"Complete Ag mode: retain interference between its tensor entries. The separate Ag(xx), Ag(yy), Ag(zz) plots are component contributions and are not added as phonon intensities.","Complete coherent Raman mode",kind="raman_intensity")
+        complete_finals.append(dict(channel=name,source_mode=name,variable=variable,summary=symbolic_intensity_summary(result["terms"]),expression=expression,substituted=numerical))
+    trace.section("Selected coefficients and polar plot")
+    for final in finals:
+        name=final["channel"];values=run["display_channels"][name]["values"]
+        add(aligned([tex(symbol)+"&="+tex(value) for symbol,value in values.items()]) if values else r"\text{No free tensor coefficients}",name+": insert the entered tensor values. These values set the scale; they are not fitted to a target polar plot.","Coefficient inputs")
+        add("I("+tex(variable)+")="+tex(final["substituted"]),name+": this numerical angular expression generates the plotted curve.","Polar-plot equation",kind="raman_intensity")
+        sample_rows=["I("+tex(angle)+")&="+tex(sp.simplify(final["substituted"].subs(variable,angle))) for angle in [0,sp.pi/4,sp.pi/2]]
+        add(aligned(sample_rows),"Check a few angles, then evaluate the same expression on the selected 0°–360° grid. The radius is I at each angle.","Plot construction")
+    trace.complete_finals=complete_finals
+    return trace,finals
 
 def detailed_calculation(run):
     trace,finals=laboratory_trace(run)
     return dict(entries=trace.entries,markdown=trace.markdown(False),mathematics_markdown=trace.markdown(False),
-        explained_markdown=trace.markdown(True),symbol_legend=calculation_symbol_legend(trace.entries),
-        reference_ids=calculation_reference_ids(trace.entries),finals=finals,complete_finals=[],
-        references=DERIVATION_REFERENCES)
-
+        explained_markdown=trace.markdown(True),symbol_legend=calculation_symbol_legend(trace.entries),reference_ids=calculation_reference_ids(trace.entries),
+        finals=finals,complete_finals=getattr(trace,"complete_finals",[]),references=DERIVATION_REFERENCES)
 
 def prepare_input_review(configuration):
-    cfg=prepare_framework_config(configuration)
-    source=cfg["tensor_model"]=="QWP_SOURCE_2D"
-    geometry=None if source else build_orientation(cfg)
-    optical=optical_chain(cfg["optics"],paper=cfg.get("paper_parameters"))
-    families={} if source else newsan_gaas_families(cfg,geometry["T"]) if cfg["framework"]=="NEW_SAN" and cfg["material"]=="GaAs" else experiment_families(cfg)
-    skeleton=dict(config=cfg,geometry=geometry,optical=optical,families=families,display_channels={})
+    cfg,geometry,optics,families=laboratory_preparation(configuration)
+    skeleton=dict(config=cfg,geometry=geometry,optical=optics,families=families,display_channels={})
     trace,_=laboratory_trace(skeleton,preflight=True)
-    return dict(config=cfg,geometry=geometry,optical=optical,entries=trace.entries,
-        equation_count=sum(e["kind"]=="equation" for e in trace.entries))
-
+    return dict(config=cfg,geometry=geometry,optical=optics,entries=trace.entries,equation_count=sum(e["kind"]=="equation" for e in trace.entries))
 
 
 print("Cell 12/22 — Run completed successfully.\nReady: Derivation functions, symbol definitions, units and reference notes are ready.\nNext: Run Cell 13.", flush=True)
@@ -4948,7 +4961,7 @@ input_note = widgets.Textarea(
     style=STYLE,
     layout=widgets.Layout(width="800px", height="58px", max_width="100%"),
 )
-material_pick = dropdown([(v["label"], k) for k, v in MATERIALS.items()], "Si", "2.1 Material")
+material_pick = dropdown([(MATERIALS[k]["label"], k) for k in laboratory_materials()], "Si", "2.1 Material")
 group_pick = dropdown(
     [(k + " / " + v["symbol"], k) for k, v in POINT_GROUPS.items()]
     + [("Custom Cartesian 3x3 tensor", "CUSTOM")],
@@ -4987,6 +5000,9 @@ coef_note = widgets.HTML(
 )
 ag_locked = widgets.HTML()
 surface_options = {**SURFACES, **{f"(5{k}0)": ((5, k, 0), (k, -5, 0)) for k in range(6)}}
+orientation_pick = dropdown([("Surface hkl and in-plane uvw","hkl"),("Manual proper frame T","matrix")],"hkl","3.1 Orientation input")
+manual_frame = widgets.Textarea(value="[[1,0,0],[0,1,0],[0,0,1]]",description="3.2 Frame columns X, Y, Z",layout=widgets.Layout(width="800px",max_width="100%"))
+frame_preview = widgets.Output()
 surface_pick = dropdown(list(surface_options) + ["Custom hkl"], "(500)", "3.2 Surface preset")
 hkl_fields = [
     widgets.IntText(value=v, description="3.3 " + k, layout=widgets.Layout(width="130px"))
@@ -5130,7 +5146,7 @@ style_note = widgets.HTML(
 explained_out = widgets.Output()
 derivation_tabs = widgets.Tab(children=[step_out, explained_out])
 derivation_tabs.set_title(0, "Mathematical steps")
-derivation_tabs.set_title(1, "Steps and short definitions")
+derivation_tabs.set_title(1, "Explanation + mathematics")
 derivation_tabs.selected_index = 1
 cubic_out = widgets.Output()
 cubic_d = number(1, "10.1 Shared |d|")
@@ -5384,6 +5400,7 @@ def invalidate(_=None):
     if state["run"] is not None:
         clear_result()
     status.value = "<b>Inputs changed.</b> Calculate again. Saved comparisons retain their inputs."
+    refresh_frame_preview()
 
 
 def lattice_template(group):
@@ -5517,14 +5534,14 @@ def on_optics(_=None):
                 ),
             )
             variable = theta_scan if optical["scan_basis"] == "SECOND" else alpha
-            display(Math(r"E_i=" + raman_latex(optical["Ein"].subs(alpha, variable))))
+            display(Math(r"\hat e_i=" + raman_latex((P.T*optical["Ein"]).subs(alpha, variable))))
             display(
                 Math(
-                    r"e_s=B^\dagger e_{an}="
-                    + raman_latex(optical["effective_analyzer"].subs(alpha, variable))
+                    r"\hat e_s^*="
+                    + raman_latex((P.T*optical["effective_analyzer"]).H.subs(alpha, variable))
                 )
             )
-            display(Markdown("Scan basis: **" + optical["scan_basis"] + "**."))
+            display(Markdown("Scan angle: **θ** for VV/VH; **α** for σ⁺α."))
         except Exception as exception:
             print(str(exception))
     with optical_guide_out:
@@ -5533,25 +5550,44 @@ def on_optics(_=None):
     invalidate()
 
 
-def update_model_visibility():
-    source=model_pick.value=="DR_KUMAR"
-    paper=model_pick.value=="NEW_SAN"
-    crystal_inputs.layout.display="none" if source else ""
-    orientation_inputs.layout.display="none" if source else ""
-    source_box.layout.display="" if source else "none"
-    optics_pick.disabled=source or model_pick.value=="USER_PPT"
-    for widget in [auto_x,normal_pick,psi,*uvw_fields]:
-        widget.layout.display="none" if paper else ""
-    for fields in ui["coefs"].values():
-        for size,phase in fields.values():
-            phase.layout.display="none" if paper else ""
-            phase.disabled=paper
+def refresh_frame_preview(_=None):
+    if ui.get("busy") or "frame_preview" not in globals():return
+    with frame_preview:
+        clear_output(wait=True)
+        try:
+            config=dict(lattice=tuple(exact(w.value) for w in lattice_fields),
+                hkl=tuple(w.value for w in hkl_fields),uvw=None if auto_x.value else tuple(w.value for w in uvw_fields),
+                orientation=orientation_pick.value,T_manual=sp.Matrix(json.loads(manual_frame.value)) if orientation_pick.value=="matrix" else sp.eye(3),
+                normal_sign=normal_pick.value,azimuth_deg=exact(psi.value),allow_reflection=False)
+            g=build_orientation(config);T=g["T"]
+            display(Markdown("**Current measurement axes — before intensity**"))
+            for j,name in enumerate("XYZ"):display(Math(name+"="+raman_latex(T[:,j])))
+            display(Math(r"T=[X\ Y\ Z]="+raman_latex(T)))
+            display(Markdown("Checked: $T^T T=I$, $\\det T=+1$. These are measurement axes, not Jones vectors."))
+            ui["frame_preview_geometry"]=g
+        except Exception as error:
+            display(Markdown("**Check the orientation:** "+str(error)))
+            ui["frame_preview_geometry"]=None
 
+def on_orientation_kind(_=None):
+    manual=orientation_pick.value=="matrix"
+    manual_frame.layout.display="" if manual else "none"
+    for widget in [surface_pick,auto_x,normal_pick,psi,*hkl_fields,*uvw_fields]:widget.layout.display="none" if manual else ""
+    invalidate()
+
+def update_model_visibility():
+    crystal_inputs.layout.display="";orientation_inputs.layout.display="";source_box.layout.display="none"
+    optics_pick.disabled=False
+    for fields in ui["coefs"].values():
+        for size,phase in fields.values():phase.layout.display="";phase.disabled=False
+    on_orientation_kind()
 
 def on_model(_=None):
     if ui["busy"]:return
-    load_configuration(framework_config(model_pick.value))
-    invalidate()
+    # A model change must not replace the selected crystal or optical inputs.
+    if case_label.value in {value["label"] for value in FRAMEWORKS.values()}:
+        case_label.value=FRAMEWORKS[model_pick.value]["label"]
+    update_model_visibility();refresh_frame_preview();invalidate()
 
 
 def load_configuration(cfg):
@@ -5561,7 +5597,9 @@ def load_configuration(cfg):
         example_pick.value={"USER_PPT":"SLIDE","NEW_SAN":"SI_500","DR_KUMAR":"QWP_2D"}[model_pick.value]
         optics_pick.options=[(LAB_PROFILE_LABELS[k],k) for k in FRAMEWORKS[model_pick.value]["profiles"]]
         optics_pick.value = cfg["optics"]
-        material_pick.options=[(v["label"],k) for k,v in MATERIALS.items() if (k in ["Si","GaAs"] if model_pick.value=="NEW_SAN" else k!="GaAs")]
+        material_pick.options=[(MATERIALS[k]["label"],k) for k in laboratory_materials()]
+        orientation_pick.value=cfg.get("orientation","hkl")
+        manual_frame.value=json.dumps([[float(v) for v in row] for row in sp.Matrix(cfg.get("T_manual",sp.eye(3))).tolist()])
         case_label.value = cfg["case_label"]
         input_note.value = cfg.get("input_note", "")
         if cfg["tensor_model"] == "QWP_SOURCE_2D":
@@ -5644,37 +5682,35 @@ print("Cell 18/22 — Run completed successfully.\nReady: Input handlers are rea
 
 
 def collect_config():
-    if model_pick.value == "DR_KUMAR":
-        cfg = qwp_source_config()
-        cfg.update(source_parameters={k: exact(w.value) for k, w in source_widgets.items()})
-    else:
-        cfg = general_config(material_pick.value, optics_pick.value)
-        values = {
-            name: {
-                symbol: complex_parameter(pair[0].value, pair[1].value)
-                for symbol, pair in ui["coefs"][name].items()
-            }
-            for name in mode_pick.value
+    cfg = general_config(material_pick.value, optics_pick.value)
+    values = {
+        name: {
+            symbol: complex_parameter(pair[0].value, pair[1].value)
+            for symbol, pair in ui["coefs"][name].items()
         }
-        tensor = None
-        if group_pick.value == "CUSTOM":
-            entries = json.loads(custom_tensor.value)
-            if len(entries) != 3 or any(len(row) != 3 for row in entries):
-                raise ValueError("The custom tensor requires exactly 3 rows and 3 columns.")
-            tensor = sp.Matrix([[parse_complex(value) for value in row] for row in entries])
-        cfg.update(
-            point_group=group_pick.value,
-            modes=list(mode_pick.value),
-            mode_values=values,
-            custom_tensor=tensor,
-            lattice=tuple(exact(w.value) for w in lattice_fields),
-            hkl=tuple(w.value for w in hkl_fields),
-            uvw=None if auto_x.value else tuple(w.value for w in uvw_fields),
-            normal_sign=normal_pick.value,
-            azimuth_deg=exact(psi.value),
-            paper_parameters=collect_paper_parameters(),
-            direct_jones={key: exact(field.value) for key, field in direct_widgets.items()},
-        )
+        for name in mode_pick.value
+    }
+    tensor = None
+    if group_pick.value == "CUSTOM":
+        entries = json.loads(custom_tensor.value)
+        if len(entries) != 3 or any(len(row) != 3 for row in entries):
+            raise ValueError("The custom tensor requires exactly 3 rows and 3 columns.")
+        tensor = sp.Matrix([[parse_complex(value) for value in row] for row in entries])
+    cfg.update(
+        orientation=orientation_pick.value,
+        T_manual=sp.Matrix(json.loads(manual_frame.value)) if orientation_pick.value=="matrix" else sp.eye(3),
+        point_group=group_pick.value,
+        modes=list(mode_pick.value),
+        mode_values=values,
+        custom_tensor=tensor,
+        lattice=tuple(exact(w.value) for w in lattice_fields),
+        hkl=tuple(w.value for w in hkl_fields),
+        uvw=None if auto_x.value else tuple(w.value for w in uvw_fields),
+        normal_sign=normal_pick.value,
+        azimuth_deg=exact(psi.value),
+        paper_parameters=collect_paper_parameters(),
+        direct_jones={key: exact(field.value) for key, field in direct_widgets.items()},
+    )
     cfg.update(
         case_label=case_label.value,
         input_note=input_note.value,
@@ -6017,7 +6053,7 @@ def display_explained_steps(entries):
             value=item["value"]
             if item.get("analytical_kind"):value=r"\color{red}{"+value+"}"
             display(widgets.HBox([widgets.HTMLMath(value=left,layout=widgets.Layout(width="34%",min_width="240px")),
-                widgets.HTMLMath(value="$$"+value+"$$",layout=widgets.Layout(width="62%",min_width="340px",overflow="auto"))],
+                widgets.HTMLMath(value=r"\["+value+r"\]",layout=widgets.Layout(width="62%",min_width="340px",overflow="auto"))],
                 layout=widgets.Layout(width="100%",flex_flow="row wrap",margin="0 0 15px 0")))
         else:display(Markdown(item["value"]))
 
@@ -7768,69 +7804,71 @@ def reference_analytic_markdown(report=None):
 
 
 def validate_general_upgrade():
-    """Independently contract the three retained laboratory models."""
-    rng_angles=np.linspace(0,2*np.pi,25)
+    """Compare all public model routes with independent NumPy contractions."""
+    angles=np.linspace(0,2*np.pi,25)
     base=np.array([[[0,0,0],[0,0,1],[0,1,0]],[[0,0,1],[0,0,0],[1,0,0]],[[0,1,0],[1,0,0],[0,0,0]]],float)
-    cases=0;largest=0.
     surfaces=[(5,k,0) for k in range(6)]+[(1,1,1),(1,2,3),(0,0,1)]
-    for material in ["Si","GaAs"]:
-        for hkl in surfaces:
-            h,k,ell=hkl;m=np.hypot(h,k);n=np.linalg.norm(hkl)
-            T=np.eye(3) if m==0 else np.array([[k/m,h*ell/(m*n),h/n],[-h/m,k*ell/(m*n),k/n],[0,-m/n,ell/n]])
-            rp=np.array([T.T@r@T for r in base])
-            projected=np.einsum("ji,jab->iab",T,rp)
-            for profile in FRAMEWORKS["NEW_SAN"]["profiles"]:
-                cfg=general_config(material,profile);cfg.update(framework="NEW_SAN",hkl=hkl,show_geometry=False)
-                run=calculate_general(cfg)
-                if profile=="CUBIC_SIGMA":
-                    ei=np.array([1,1j,0])/np.sqrt(2)
-                    es=np.array([np.cos(rng_angles+np.pi/4),-1j*np.sin(rng_angles+np.pi/4),np.zeros_like(rng_angles)])
-                else:
-                    ei=np.array([np.cos(rng_angles),np.sin(rng_angles),np.zeros_like(rng_angles)])
-                    es=ei if profile=="CUBIC_VV" else np.array([-np.sin(rng_angles),np.cos(rng_angles),np.zeros_like(rng_angles)])
-                for name,channel in run["display_channels"].items():
-                    tensors=rp if material=="Si" else projected[:2] if name=="TO" else projected[2:]
-                    amps=np.einsum("a...,iab,b...->i...",es,tensors,ei)
-                    expected=np.sum(np.abs(amps)**2,axis=0)
-                    actual=evaluate_terms(dict(terms=channel["records"]),channel["values"],rng_angles)["total"]
-                    error=float(np.max(np.abs(expected-actual)));largest=max(largest,error)
-                    check(error<2e-11,f"Paper contraction mismatch for {material} {hkl} {profile} {name}.")
-                cases+=1
-    for key in ["USER_PPT","DR_KUMAR"]:
-        run=calculate_general(framework_config(key));trace=detailed_calculation(run)
-        check(sum(row["kind"]=="equation" for row in trace["entries"])<=40,"The compact derivation has become too long.")
-        if key=="USER_PPT":
-            check(len(run["display_channels"])==3,"PPT Ag contributions must be shown separately.")
-            T=numeric(run["geometry"]["T"]);ei=np.array([1,1j])/np.sqrt(2)
-            es=np.array([np.cos(rng_angles+np.pi/4),-1j*np.sin(rng_angles+np.pi/4)])
-            for channel in run["display_channels"].values():
-                tensor=numeric(channel["records"][0]["Rc"].subs(channel["values"]))
-                amp=np.einsum("a...,ab,b->...",es,(T.T@tensor@T)[:2,:2],ei)
-                actual=evaluate_terms(dict(terms=channel["records"]),channel["values"],rng_angles)["total"]
-                check(float(np.max(np.abs(np.abs(amp)**2-actual)))<2e-11,"PPT component contraction differs.")
-        else:
-            vals=run["families"][QWP_MODE]["values"]
-            tensor=numeric(QWP_SOURCE_TENSOR.subs(vals))
-            q=np.array([[1+1j,-1+1j],[-1+1j,1+1j]])/2
-            outgoing=q.T@tensor@q@np.array([1,0])
-            expected=np.abs(-np.sin(rng_angles)*outgoing[0]+np.cos(rng_angles)*outgoing[1])**2
-            actual=evaluate_terms(run["results"][QWP_MODE],vals,rng_angles)["total"]
-            check(float(np.max(np.abs(expected-actual)))<2e-11,"Dr. Kumar QWP contraction differs.")
-    return [f"New-san: {cases} Si/GaAs surface and polarization cases match independent matrix contractions (largest residual {largest:.3g}).",
-            "PPT: the three separate Cartesian Ag contributions match direct contraction.",
-            "Dr. Kumar: the complete QWP–tensor–QWP chain matches direct contraction.",
-            "Exactly three selectable models; compact symbolic tensor-to-intensity steps."]
-
+    largest=0.;cases=0
+    for model in FRAMEWORKS:
+        for material in ['Si','GaAs']:
+            for hkl in surfaces:
+                h,k,ell=hkl;m=np.hypot(h,k);n=np.linalg.norm(hkl)
+                T=np.eye(3) if m==0 else np.array([[k/m,h*ell/(m*n),h/n],[-h/m,k*ell/(m*n),k/n],[0,-m/n,ell/n]])
+                rotated=np.array([T.T@R@T for R in base]);projected=np.einsum('ji,jab->iab',T,rotated)
+                for profile in LAB_PROFILE_LABELS:
+                    cfg=general_config(material,profile);cfg.update(framework=model,hkl=hkl,uvw=(k,-h,0) if m else (1,0,0),normal_sign=1)
+                    run=calculate_general(cfg)
+                    if profile=='CUBIC_SIGMA':
+                        ei=np.array([1,1j,0])/np.sqrt(2);es=np.array([np.cos(angles+np.pi/4),-1j*np.sin(angles+np.pi/4),np.zeros_like(angles)])
+                    else:
+                        ei=np.array([np.cos(angles),np.sin(angles),np.zeros_like(angles)])
+                        es=ei if profile=='CUBIC_VV' else np.array([-np.sin(angles),np.cos(angles),np.zeros_like(angles)])
+                    for name,channel in run['display_channels'].items():
+                        tensors=rotated if material=='Si' else projected[:2] if name=='TO' else projected[2:]
+                        amplitudes=np.einsum('a...,iab,b...->i...',es,tensors,ei)
+                        expected=np.sum(np.abs(amplitudes)**2,axis=0)
+                        actual=evaluate_terms(dict(terms=channel['records']),channel['values'],angles)['total']
+                        residual=float(np.max(np.abs(expected-actual)));largest=max(largest,residual)
+                        check(residual<2e-11,f'Matrix mismatch: {model}, {material}, {hkl}, {profile}, {name}.')
+                    cases+=1
+    # Restore the controls Saito requested: a noncubic cell, opposite normal,
+    # independently chosen in-plane direction and nonzero frame rotation.
+    reference_curves={}
+    for model in FRAMEWORKS:
+        for profile in LAB_PROFILE_LABELS:
+            cfg=general_config('CaNb2O6',profile)
+            cfg.update(framework=model,modes=['Ag'],hkl=(2,1,1),uvw=(0,1,-1),lattice=(2,3,4,90,90,90),normal_sign=-1,azimuth_deg=30)
+            run=calculate_general(cfg);review=prepare_input_review(cfg)
+            T=numeric(run['geometry']['T']).real
+            check(np.allclose(T, numeric(review['geometry']['T']).real,atol=1e-12),'Review and calculation frames differ.')
+            check(run['config']['lattice']==cfg['lattice'] and run['config']['uvw']==cfg['uvw'],'Model silently changed the geometry.')
+            if profile not in reference_curves:reference_curves[profile]=run['display_curves']
+            for name,curve in run['display_curves'].items():
+                check(np.allclose(curve,reference_curves[profile][name],rtol=0,atol=2e-11),'Identical inputs changed intensity across model routes.')
+            trace=detailed_calculation(run)
+            check(trace['complete_finals'],'The complete coherent Ag intensity is missing.')
+            check(any('T^TT' in row.get('value','') for row in review['entries']),'Frame checks missing before intensity.')
+            check(not any(row.get('analytical_kind')=='raman_intensity' for row in review['entries']),'Preflight must not run intensity.')
+    # Every material and custom point-group preset is selectable in each route.
+    for material in laboratory_materials():
+        cfg=general_config(material,'CUBIC_VV');cfg['framework']='DR_KUMAR'
+        validate_lattice_for_group(cfg);prepare_input_review(cfg)
+    return [f'{cases} Si/GaAs surface/polarization/model cases match independent NumPy contractions (maximum residual {largest:.3g}).',
+        'All models preserve the shared material, optical method, noncubic lattice, hkl, uvw, normal side and frame angle.',
+        'Preflight shows X, Y, Z, T, orthogonality, determinant, rotated tensors and Jones states without an intensity scan.',
+        'Separate Ag contributions retain the complete coherent Ag intensity for comparison.']
 
 def validate_optical_method_guide():
+    check(list(FRAMEWORKS)==['NEW_SAN','USER_PPT','DR_KUMAR'],'Model order differs from the controls.')
     for key,definition in FRAMEWORKS.items():
-        for profile in definition["profiles"]:
+        check(definition['profiles']==list(LAB_PROFILE_LABELS),'Every model needs VV, VH and σ⁺α.')
+        for profile in definition['profiles']:
             optics=optical_chain(profile)
+            check(zero(sp.Matrix([(optics['Ein'].H*optics['Ein'])[0]-1])),'Incident state not normalized.')
             for angle in [0,sp.pi/7,sp.pi/2]:
-                check(zero(sp.Matrix([(optics["Ein"].H*optics["Ein"])[0]-1])),"Incident Jones state is not normalized.")
-                detector=optics["effective_analyzer"].subs(alpha,angle)
-                check(zero(sp.Matrix([(detector.H*detector)[0]-1])),"Detection state is not normalized.")
-    return ["Jones states of all three selected models are normalized."]
+                row=optics['effective_analyzer'].subs(alpha,angle)
+                check(zero(sp.Matrix([(row.H*row)[0]-1])),'Detection state not normalized.')
+    return ['All three models offer normalized VV, VH and σ⁺α states.']
 
 
 print("Cell 21/22 — Run completed successfully.\nReady: General-model and source-reference checks are ready; the tests execute in Cell 22 or with tool 8.\nNext: Run Cell 22.", flush=True)
@@ -7843,10 +7881,10 @@ NOTEBOOK_QUICK_GUIDE = """### Quick start
 
 **Goal:** Calculate Raman intensity for a chosen material, surface and polarization.
 
-1. Choose the model and polarization in **1**.
+1. Choose **Model 1 — New-san**, **Model 2 — My PPT slide**, or **Model 3 — Dr. Kumar**, then the polarization in **1**.
 2. Select the material and tensor coefficients in **2**.
 3. Set the surface, optical settings and plot options in **3–5**.
-4. Review the axes and inputs, then click **6. Calculate** and inspect the result tabs.
+4. Check X, Y, Z and T. Review the inputs, then click **6. Calculate**.
 5. Use **7** to save the results.
 
 **First run:** Silicon (500), VV is loaded and checked automatically.
@@ -7866,6 +7904,8 @@ crystal_inputs = widgets.VBox(
 )
 orientation_inputs = widgets.VBox(
     [
+        orientation_pick,
+        manual_frame,
         surface_pick,
         widgets.HBox(hkl_fields),
         widgets.HBox(uvw_fields),
@@ -7879,6 +7919,7 @@ orientation_inputs = widgets.VBox(
             "ψ rotates X and Y about Z; it does not change the surface normal. "
             "Lengths use one common unit; replace illustrative noncubic lattice ratios."
         ),
+        frame_preview,
         widgets.HBox(lattice_fields[:3]),
         widgets.HBox(lattice_fields[3:]),
     ]
@@ -7904,9 +7945,6 @@ for i, title in enumerate(
 optical_overview_out = widgets.Output()
 with optical_overview_out:
     display(Markdown(optical_methods_overview_markdown()))
-    overview_figure = optical_profile_comparison_figure()
-    display(overview_figure)
-    plt.close(overview_figure)
 optical_guide_panel = widgets.Accordion(children=[optical_overview_out, optical_guide_out])
 optical_guide_panel.set_title(0, "Optical profiles: comparison, physics and references")
 optical_guide_panel.set_title(1, "Selected optical profile: equations and source scope")
@@ -7920,8 +7958,6 @@ app_view = widgets.VBox(
         model_pick,
         optics_pick,
         optical_guide_panel,
-        example_pick,
-        load_example_button,
         settings,
         style_note,
         widgets.HTMLMath(value="<details><summary><b>How the calculation works</b></summary>"
@@ -7953,6 +7989,7 @@ def start_application():
     ordinary = [
         case_label,
         input_note,
+        manual_frame,
         *uvw_fields,
         normal_pick,
         psi,
@@ -7978,6 +8015,7 @@ def start_application():
         (model_pick, on_model),
         (optics_pick, on_optics),
         (surface_pick, on_surface),
+        (orientation_pick, on_orientation_kind),
         (mode_pick, update_visible_modes),
         (ag_relation, on_coefficient_change),
         (auto_x, on_auto_x),

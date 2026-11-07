@@ -138,9 +138,12 @@ Open 261024 - Raman Tensor Rotation Ver 5.0.ipynb. Run all 22 cells in order.
 Each cell prints a success message. Cell 22 opens Si (500), VV.
 
 Choose one model:
-1. My PPT slide model.
-2. New-san — Paukatong et al.: VV, VH, or σ⁺α; Si T₂g and GaAs TO/LO.
-3. Dr. Kumar: the original 2×2 tensor and QWP sequence.
+1. New-san.
+2. My PPT slide.
+3. Dr. Kumar: the Jones implementation extended to the rotated crystal XY tensor.
+
+Every model offers the same materials, orientation/lattice inputs, VV, VH and σ⁺α.
+X, Y, Z and T are shown before intensity. Review also shows the tensors and Jones states.
 
 New-san order: original tensors, surface axes, transformed tensors, Jones states,
 intensity, and polar plot. Analytical tensor and intensity expressions are red.

@@ -1,44 +1,37 @@
-# Saito-sensei’s Feedback — Version 5
+# Saito-sensei’s feedback and laboratory discussion — Version 5
 
-Updated 2 November 2026. Version 5, revision 2026-11-02-r1.
+Revision 2026-11-07-r1. The table separates implemented software from consultation or independent review that still requires a person.
 
-| Feedback | Status and where to check |
+| Request from Saito-sensei | Implementation and location |
 | --- | --- |
-| Print a message after every cell | Done. All 22 cells print “Run completed successfully.”, the cell number, what is ready and the next step. |
-| Explain what to enter, especially in the last cells | Done. Each cell has short input and output notes. QUICKSTART.md lists the controls, units and expected starting values. |
-| Supply an example that runs without editing the code | Done. Cell 22 loads silicon (500), T2g, d=1, VV and shows its polar plot. Matching input JSON files are included. |
-| Show X, Y and Z, and construct the complete transformation matrix | Done. X is selected in the surface; Y is calculated from Z × X. Input review shows all three axes, T, TᵀT and det(T)=+1. |
-| Show the preparation before the long intensity calculation | Done. Review inputs checks the geometry, tensors and optical states without running an intensity scan. |
-| Number the operations so they can be discussed in a meeting | Done. Input groups and mathematical operations have step numbers. |
-| Define symbols before they are used | Done. The explained view defines new symbols beside their first equation. The complete symbol list is also exported. |
-| Make the analytical intensity easy to find | Done. The final equation appears beside the plots and in the last mathematical section. The derivation uses the original tensor coefficients, without K/C/D aliases. |
-| Compare numerical and analytical results | Exact symbolic checks compare the main-text general real-tensor intensity and (001) limit with the matrix contraction. All 18 Si (5,k,0) cases are checked symbolically and at 361 numerical angles. Open Checks, comparisons and benchmark → Validation or Silicon benchmark, or download Reference_Equation_Checks.md. A comparison with every supporting-information expression remains pending. |
-| Ask other people to test the program | Pending independent review. QUICKSTART.md contains the fresh-kernel test and the information each tester should record. Automated checks do not replace a colleague’s run. |
-| Ask Kumar-san about program documentation | Pending consultation. The current documentation is ready for review; no consultation or approval is claimed. |
+| Ask other people to test the program and its output. | **Pending independent review.** QUICKSTART.md gives a fresh-kernel test and the inputs/results to record. Automated checks are reported separately. |
+| Ask Dr. Kumar how to document the program. | **Pending consultation.** The current QUICKSTART, per-cell tutorial and mathematical explanations are ready for review; no consultation is claimed. |
+| Print a success message whenever a cell finishes. | All 22 code cells print their number, “Run completed successfully.”, what is ready and the next action. |
+| Clarify the required inputs, especially in the final cells. | Python cells 17–19 and 22, the website Python tutorial, numbered controls and QUICKSTART explain the controls, units and run order. |
+| Supply a runnable starting example. | Silicon (500), T₂g, d=1, VV runs in Cell 22 without editing code. The matching JSON inputs remain in the download. The redundant Example/Load controls are removed. |
+| Show X, Y and Z, calculate Y from Z × X, and form T. | A visible measurement-frame panel updates X, Y, Z and T before intensity. Orientation/lattice controls and the 3D frame remain available in every model. Python cells 3 and 18 contain the frame construction and preview. |
+| Show the preparation before the long intensity calculation. | Review inputs shows original tensors, the actual frame, TᵀT=I, det(T)=+1, transformed tensors and Jones states without an intensity scan. Python cell 12 defines the review; cell 19 displays it. |
+| Give the steps numbers so they can be discussed. | Input cards and every mathematical operation are numbered in Python and both websites. |
+| Define symbols before using them and explain the results. | Definitions and units appear beside first use. Tensor/vector products show the intermediate matrices and the amplitude-to-intensity conjugate product. |
+| Make the analytical intensity easy to find and compare it with New-san. | The final equation is beside the plots. Analytical tensor/intensity expressions are red. Si/GaAs reference cases are checked by independent matrix contractions. Source notes distinguish paper benchmarks, geometry extensions and the SI(S10)/SI(S14) difference. |
 
-The two websites and Python download use the same scientific functions.
-The calculator-only website has the numbered input cards, optional guide,
-input review, plots and both mathematical views. The full website also keeps
-the introduction, tutorials and references.
-
-
-## Feedback from 2 November
+## Additional requests in the later laboratory discussion
 
 | Request | Implementation or next action |
 | --- | --- |
-| Explain d before continuing | Material / tensors: d is a Raman tensor entry. Size and coefficient phase are defined beside the inputs; the actual complex value is displayed below them. Input review defines each value before it enters a matrix. |
-| Clarify coefficient phase | d = abs(d) exp(iφd). Size 1 with 0°, 180°, 90° gives 1, −1, i. These phases are not sample-rotation angles. At zero size, phase is undefined and has no effect. |
-| Replace unclear terminology | Si matrices are labeled yz/zy, xz/zx and xy/yx in crystal coordinates. Standard terms have short definitions. Color distinguishes tensor components, coefficient size, coefficient phase and measurement axes; wording supplies the meaning too. |
-| Distinguish geometry from polarization | Input review and 3D frame identify X, Y, Z as measurement axes in crystal coordinates. Jones states describe polarization. T is real orthogonal; TᵀT=I and det(T)=+1. |
-| Show amplitude-to-intensity algebra | Step-by-step calculation shows tensor products, fields, analyzer contraction, amplitude, conjugate, product and final angular law. Complete coherent Ag derivations accompany its separate Cartesian contribution diagnostics. |
-| Explain the common calculation | “How does the calculation work?” shows what changes when material, surface or polarization changes. The same explanation is in Python and Physics & equations. |
-| Discuss with lab members before the next meeting | Pending a real discussion and independent run. Share the current notebook and test checklist before the 9 November meeting. No colleague review is claimed by this software. |
-| Present only the updates | Suggested order: coefficient input; axes; one complete intensity derivation; reference-equation comparison. Show one example of each. |
+| Explain the coefficient before continuing; do not say “normal phase”. | The input shows d = abs(d) exp(iφd), the actual complex value and short examples: size 1 with 0°, 180°, 90° gives 1, −1, i. Coefficient phase is distinguished from sample/frame rotation. |
+| Replace “tensor partner” with names people recognize. | Visible cubic matrices use yz/zy, xz/zx and xy/yx. Other tensors use their material/mode and displayed nonzero components. Internal compatibility keys are not presented as physical terminology. |
+| Show the analytical intensity derivation, not just its final value. | Cell 12 and Step-by-step calculation show R′eᵢ, then eₛ*R′eᵢ, the conjugate product, the appropriate orthogonal-component sum, coefficient substitution and sample plot angles. |
+| Explain the common program steps. | Surface/lattice/reference build T; material and mode supply R; the optical method supplies Jones states. The same physical contraction is used. The Dr. Kumar presentation explicitly connects the 3D tensor to its 2D XY block. |
+| Discuss updates with lab members before a group meeting. | **Pending a real discussion.** Share the notebook, input case and exported evidence before the meeting. No colleague’s approval is claimed. |
+| Present only the changes. | Suggested order: shared model/material/optical controls; restored X–Y–Z/T panel; one connected intensity derivation; reference comparison. |
 
-Internal JSON keys used by older saved inputs are preserved for compatibility.
-They are implementation details, not names for new physical quantities.
+## Controls restored in this revision
 
+1. Model 1 — New-san; Model 2 — My PPT slide; Model 3 — Dr. Kumar.
+2. VV, VH and σ⁺α in every model.
+3. One shared material list, with Silicon and GaAs as separate cubic entries.
+4. hkl, uvw, automatic X, normal side, ψ, lattice lengths/angles and manual proper T in every model.
+5. X, Y, Z, T and pre-intensity checks; source definitions; complete coherent Ag comparison; per-cell messages, examples, documentation, exports and optional user guides.
 
-## 6 November 2026 revision
-
-Exactly three calculation models: My PPT slides, New-san, and Dr. Kumar. New-san uses VV, VH and σ⁺α and follows the paper/SI order. Analytical transformed tensors and intensity expressions are red; symbol definitions are brief. Python, both websites and their downloads use the same calculation functions. See LAB_MODEL_REVISION.md.
+The notebook, Python downloads and both websites use the same current scientific functions.

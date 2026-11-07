@@ -94,3 +94,21 @@ body:has(.calc-layout) .page-title-row{margin-bottom:10px}body:has(.calc-layout)
 .paper-hidden-input{display:none!important}
 
 .coefficient-entry .term-phase,.coefficient-entry .term-size,.term-key .technical-term{color:inherit;background:transparent}
+
+/* Keep the frame visible before intensity and give matrix products room to read. */
+.live-frame{margin:0 0 20px;padding:20px 22px;background:#fff}
+.live-frame h3{font-size:17px;margin:3px 0 0}.live-frame .kicker{font-size:10px}
+.live-frame-grid{display:grid;grid-template-columns:minmax(160px,1fr) minmax(230px,1fr);align-items:center;gap:22px;margin:14px 0}
+.live-axis-list .equation{padding:5px 0;margin:0;font-size:14px;background:transparent;border:0}
+.live-axis-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.live-frame-grid>div>.equation{font-size:16px;overflow:auto;background:transparent;border:0}
+.live-frame .small-note{font-size:11px;line-height:1.65;margin:8px 0}.live-frame .text-button{font-size:11px}
+.worked-row,.worked-columns-label{grid-template-columns:minmax(180px,30%) minmax(0,1fr)}
+.worked-row{padding:26px 0;gap:24px}.worked-mathematics{padding-left:20px}
+.worked-mathematics .equation{font-size:16px;padding:12px 4px;line-height:1.7}
+.worked-mathematics .katex-display{text-align:left;margin:.65em 0}
+.worked-explanation>p{font-size:13px;line-height:1.85}.worked-definition p{font-size:11px;line-height:1.7}
+.paper-equation-ref{font-size:11px;line-height:1.65;margin-top:12px}
+.worked-note{padding:17px 0;line-height:1.85}.analytical-color-key{font-size:12px}
+@media(max-width:1180px){.live-frame-grid{grid-template-columns:1fr}.worked-row,.worked-columns-label{grid-template-columns:minmax(155px,30%) minmax(0,1fr);gap:16px}}
+@media(max-width:620px){.worked-row{grid-template-columns:1fr;gap:10px}.worked-mathematics{padding-left:0;border-left:0}.worked-mathematics .equation{font-size:15px}.live-frame{padding:17px}.live-frame-grid{gap:10px}.worked-columns-label{display:none}}

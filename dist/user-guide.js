@@ -22,9 +22,9 @@
   const tour = (id, title, route, steps, description = '') => ({id,title,route,steps,description});
   const route = () => location.hash || '#home';
   const introCopy = {
-    'tensor-model':'Choose My PPT slide model, New-san — Paukatong et al., or Dr. Kumar. Each model shows its own inputs and polarization choices.',
+    'tensor-model':'Choose Model 1 — New-san, Model 2 — My PPT slide, or Model 3 — Dr. Kumar. Every model offers the same materials, orientation inputs, VV, VH and σ⁺α.',
     'optical-method':'The optical profile defines prepared and detected polarization states and the scanned angle. Use VV or VH for co-rotating linear states, and select a circular profile only when its actual optics match your comparison.',
-    'examples':'Selecting an example does not load it. Use Load selected example, review all populated inputs, and calculate. Loading replaces the current form, so export useful results first.',
+    'examples':'Silicon (500), T₂g, d=1, VV is supplied on the first run. Other reproducible input examples are included in the download.',
     'material-tensor':'A material preset supplies a stated symmetry and axis convention. It does not infer measured complex coefficients, sample temperature, microscopic resonance, or lattice constants.',
     'coefficients':'A tensor entry is d = |d| exp(iφd). Size 1 and phase 0° give d = 1; phase 180° gives d = −1. Phase is not a sample-rotation angle. Optional equality constraints copy both. The Ag(xx), Ag(yy), and Ag(zz) plots remain separate Cartesian contribution powers.',
     'orientation':'Specify the reciprocal-lattice surface normal, a valid in-plane reference, and lattice metric. The program forms a proper orthonormal frame before rotating the full tensor.',
@@ -49,55 +49,49 @@
       step('Calculator: enter your physical configuration','#navigation a[href="#calculator"]','Choose a model, material, optical profile, coefficients, orientation, and display options. Calculate explicitly, then inspect the resulting figures, equations, and data.',{menu:true}),
       step('Physics & equations: inspect assumptions','#navigation a[href="#physics"]','Read the tensor-rotation convention, Jones states, coherent amplitude, interference, and scientific limits. The page-specific guide highlights the actual topics available.',{menu:true}),
       step('References & downloads: inspect sources','#navigation a[href="#references"]','Find primary physics references, the current notebook, complete Python code, runtime adapter, plot style, and original implementation references.',{menu:true}),
-      step('Choose the optical reference','.cards-grid','Home compares the physical meaning of the three laboratory models. Match the actual preparation, detector state, angle zero, and geometry before comparing polar plots.',{route:'#home',menu:false}),
+      step('Three laboratory models','.cards-grid','Home compares the physical meaning of the three laboratory models. Match the actual preparation, detector state, angle zero, and geometry before comparing polar plots.',{route:'#home',menu:false}),
       step('Guidance whenever you need it','#user-guide-open','This button opens all tours, the guide for your current page, saved progress, and optional section prompts. Each page also has a Guide this page button.',{tip:'Use Next and Back, jump to any step, or close the guide at any time. Nothing starts automatically after you dismiss an offer.'})
     ],'A short tour of Home, the hamburger menu, and all six main sections.');
   }
 
   function homeTour() {
-    return tour('page:#home','Home in detail','#home',[
-      step('From crystal orientation to intensity','.page-title-row','The opening panel describes the complete calculation: rotate the crystal tensor, prepare the actual optical states, contract the complex amplitude, and form its squared modulus.'),
-      step('Open the calculator','.hero a[href="#calculator"]','This opens the input form and a stored reference example. A saved example is identified as such; press Calculate rotation + Raman to generate a result in this browser.'),
-      step('Inspect the Python code','.hero a[href="#tutorial"]','Read the current notebook cell by cell. The website tutorial and Python downloads are generated from the same source and record its fingerprint.'),
-      step('Understand the library scope','.cards-grid','The counters describe 21 point-group templates, three laboratory models, and 22 code cells. They do not mean that every material has experimentally determined tensor coefficients.'),
-      step('Why the optical profiles differ','.cards-grid','The optical guide distinguishes incoming preparation, scattering tensor, return optics, and detection. Selection of a different physical state can legitimately change a curve.'),
-      step('Read the three models','.cards-grid','This selector changes the explanation on Home. It does not change calculator inputs. Read the selected profile’s effective states, scan meaning, equations, and source scope.'),
-      step('Compare a fixed tensor','.guide-comparison','The side-by-side example holds the tensor and intensity scale fixed while changing detection. It isolates the role of the detector and interference.'),
-      step('Choose your next section','.paths','Use Introduction for tool meanings, the Python tutorial for implementation, and Physics & equations for conventions. The hamburger menu provides the same destinations.'),
-      step('Follow the calculation stages','.workflow-strip','The four stages connect lattice and surface geometry to the rotated 3D tensor, optical amplitude, intensity, and exported evidence.'),
-      step('Open or dismiss help','#user-guide-open','Start another guide, resume a paused one, or change section-prompt preferences. Guidance stays optional; Home and the calculator work without it.')
-    ],'Home controls, optical comparison, library scope, and navigation.');
+    return tour('page:#home','Home','#home',[
+      step('Three calculation models','.cards-grid','Model 1 is New-san, Model 2 is My PPT slide, and Model 3 is Dr. Kumar. All three retain the material, orientation, VV, VH and σ⁺α controls.'),
+      step('Open the calculator','.button-row a[href="#calculator"]','Start with Silicon (500), check X, Y, Z and T, then press Run calculation to calculate your inputs.'),
+      step('Read the Python program','.button-row a[href="#tutorial"]','The tutorial explains all 22 cells. The notebook and Python downloads use the same scientific functions as the website.'),
+      step('Find documentation','#menu-toggle','Use the menu for Introduction, the Python tutorial, Physics & equations, and References & downloads.'),
+      step('Open help when needed','#user-guide-open','Reopen a guide, continue a tour, or close it at any time. The calculator works without the guide.')
+    ],'The three models, calculator, Python tutorial and optional help.');
   }
 
   function calculatorTour() {
     const r = '#calculator';
     return tour('calculator-inputs','Calculator: inputs and workflow',r,[
-      step('1.1 Choose the calculation model','#framework','Choose one of the three laboratory models. New-san offers VV, VH and σ⁺α. Dr. Kumar uses its original 2×2 source tensor.'),
-      step('1.2 Choose the optical method','#optical-method','VV means parallel linear input and detection; VH means crossed linear detection. Both linear states co-rotate. Circular, elliptical, QWP, and custom Jones profiles represent different actual states.',{tip:'A material name does not choose the experimental optics for you.'}),
-      step('1.3–1.4 Select and load an example','#example','Choose an example here, then press Load selected example when you want to replace the form. This tour never presses that loading button.'),
+      step('1.1 Choose the calculation model','#framework','Choose Model 1 — New-san, Model 2 — My PPT slide, or Model 3 — Dr. Kumar. Changing the model keeps your material, orientation and polarization inputs.'),
+      step('1.2 Choose the optical method','#optical-method','VV uses parallel linear states and VH uses crossed linear states; both scan θ. The σ⁺α option scans the detected state using New-san equation (11). All three choices are available in every model.',{tip:'A material name does not choose the experimental optics for you.'}),
       step('1.5–1.6 Label and document the run','#case-label','Give the run a useful case label and record experimental context in Input note. The exported configuration carries these values.'),
       step('2.1–2.2 Material and point group','#material','A material fixes its stated parent symmetry. Select General point group / custom tensor if you need another symmetry or an explicit custom tensor.',{optional:true}),
       step('2.3 Select phonon modes','.modes-grid','Choose the Raman modes or branches to compute. Orthogonal unresolved degenerate phonon components add as intensities; this differs from adding entries within one coherent phonon tensor.',{optional:true}),
       step('2.4–2.5 Enter the tensor value','.coefficient-row','Use the supplied coefficient size and phase. The line below each input pair shows the complex value used. Size is zero or positive; phase is in degrees. Open What do the two inputs mean? for examples. Optional Ag equality constraints copy both.',{optional:true}),
-      step('2. Original source parameters','[data-section-key="02"]','The effective 2D source exposes its source parameters in this section. A material frame is intentionally absent in that model.',{only:()=>!!q('#source-a')}),
       step('3.1 Choose the orientation input','#orientation-kind','Use surface hkl plus in-plane uvw, or a proper manual frame. A manual frame must be real, orthonormal, and have determinant +1.',{optional:true}),
-      step('3.2–3.5 Surface and in-plane reference','#surface','Choose a surface preset or enter custom integer h,k,l. New-san calculates X and Y from SI (S1). The PPT model retains its selected in-plane reference.',{optional:true}),
+      step('3.2–3.5 Surface and in-plane reference','#surface','Choose a surface preset or enter custom integer h,k,l. Every model keeps hkl, the in-plane [uvw] reference, normal side, frame angle and lattice inputs. Y is calculated from Z × X. The frame panel updates before intensity is calculated.',{optional:true}),
       step('3.6–3.7 Normal side and frame angle','#frame-angle','The normal sign and in-plane frame angle define the measurement axes. Matching only hkl is insufficient when comparing an angular pattern with another convention.',{optional:true}),
       step('3.8–3.9 Supply the lattice metric','#lattice-0','Lengths use one common unit and lattice angles use degrees. A tilted noncubic plane normal is a reciprocal-lattice quantity; unity ratios are only the declared reference geometry.',{optional:true}),
-      step('4. Jones states and active controls','[data-section-key="04"]','Expand this section to see the selected incident/detection states and relevant zero angles or phases. New-san uses the phases of paper (11). Dr. Kumar uses the original QWP matrices.'),
+      step('4. Jones states and active controls','[data-section-key="04"]','Expand this section to see the selected incident/detection states and relevant zero angles or phases. VV, VH and σ⁺α use the states shown in the derivation. The Dr. Kumar route uses the XY block of the rotated crystal tensor.'),
       step('5. Sampling and normalization','#angular-grid','The angular grid sets the plotted samples. Optional normalization uses a declared common scale. Raw CSV remains unnormalized, and continuous extrema are calculated separately.'),
+      step('See X, Y, Z and T','#live-frame','These measurement axes and the frame matrix update from the current inputs before an intensity calculation. They are not Jones vectors.'),
       step('Review the axes and optical states','[data-preview-inputs]','Review inputs prepares X, Y, Z, the frame matrix, rotated tensors and Jones states before the intensity scan. Check det(T)=+1 and the declared zero angle. This tour never starts that calculation.'),
       step('6. Calculate the current inputs','[data-calculate]','Run the intensity calculation after checking your inputs. The first preparation or calculation loads scientific Python in the browser. Stop terminates that worker and clears its session snapshots.',{tip:'The interactive guide never runs a calculation on your behalf.'}),
       step('Check result freshness','#calculation-status','A stored example or a previous run is not automatically the result of edited inputs. Review the status and recalculate after changes before exporting or comparing.'),
-      step('7. Inspect the result tabs','.result-tabs','Use plots for figures, Mathematical steps for the derivation, Intensity values for numerical summaries, and 3D frame for axes. Checks and benchmarks have separate scopes.'),
+      step('7. Inspect the result tabs','.result-tabs','Use Polar plots for figures, Step-by-step calculation for the derivation, Intensity values for numerical summaries, and 3D frame for axes. Checks and benchmarks have separate scopes.'),
       step('7. Export results with their inputs','.results-toolbar','Download the complete result archive, unnormalized CSV, or a comparison snapshot after calculating. Disabled controls explain which outputs require a fresh runtime result.')
     ],'Every input group, the physical configuration, calculation, result status, and exports.');
   }
 
   function resultsTour() {
     const tabs = [
-      ['plots','Polar plots','Main Ag curves show separate Cartesian powers. Each figure offers SVG, PNG, and PDF export after a fresh calculation. The complete coherent-mode response remains in the audit.'],
-      ['math','Step-by-step calculation','English explanations appear on the left and full matrix calculations on the right. Symbols are defined at first use. The displayed equations use the original tensor elements directly. Use Jump to final intensity to reach the analytical result.'],
+      ['plots','Polar plots','Inspect the selected Raman-mode intensity. Ag Cartesian contributions are labelled separately, with the complete coherent-mode intensity retained in the derivation and audit. Figures offer SVG, PNG and PDF export after calculating.'],
+      ['math','Step-by-step calculation','English explanations appear on the left and full matrix calculations on the right. Symbols are defined at first use. The displayed equations use the original tensor elements directly. Follow the numbered stages through the analytical intensity.'],
       ['values','Intensity values','Inspect the calculated continuous extrema and channel summaries. The raw CSV export contains angular samples rather than only fitted extrema.'],
       ['frame','3D frame','Inspect crystal and measurement axes, the selected surface normal, and the orientation matrix. This view requires the relevant 3D geometry output.'],
       ['procedures','Checking procedures','Read each procedure’s purpose, scope, expected equation, and evidence. A stored reference report is identified until a new calculation regenerates current evidence.'],
