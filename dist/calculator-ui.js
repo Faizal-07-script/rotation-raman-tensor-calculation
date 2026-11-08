@@ -81,8 +81,6 @@ renderControls = () => {
       tuckAway([...new Set(nodes)], 'Crystal lattice and units', !['Oh', 'Td'].includes(S.form.point_group));
     }
     orientation.insertAdjacentHTML('afterbegin','<p class="field-help">For Si, (500) and (100) have the same surface normal.</p>');
-    const automatic = orientation.querySelector('[for="automatic-x"]');
-    if (automatic) automatic.insertAdjacentHTML('afterend', '<p class="field-help">The surface sets Z. Set X using [uvw], or let the program choose it. Y = Z × X.</p>');
   }
   const optical = host.querySelector('[data-section-key="04"] .form-section-body');
   const conditional = optical?.querySelector('.field-label');
@@ -310,12 +308,10 @@ function measurementFrame(form){
     const [h,k,l]=form.hkl;
     const gx=h/a,gy=(k-L[0][1]*gx)/L[1][1],gz=(l-L[0][2]*gx-L[1][2]*gy)/L[2][2];
     const Z=scale(unit([gx,gy,gz]),form.normal_sign);
-    let tangent;
-    if(form.uvw===null){const i=Z.map(Math.abs).indexOf(Math.min(...Z.map(Math.abs)));const ref=[0,0,0];ref[i]=1;tangent=plus(ref,scale(Z,-dot(Z,ref)));}
-    else{
-      if(Math.abs(dot(form.hkl,form.uvw))>1e-10)throw Error('The in-plane direction must satisfy hu + kv + ℓw = 0.');
-      tangent=L.map(row=>dot(row,form.uvw));
-    }
+    const uvw=form.uvw;
+    if(!Array.isArray(uvw)||uvw.length!==3||!uvw.every(Number.isInteger)||uvw.every(value=>value===0))throw Error('Enter a nonzero integer direction [uvw].');
+    if(Math.abs(dot(form.hkl,uvw))>1e-10)throw Error('The in-plane direction must satisfy hu + kv + ℓw = 0.');
+    const tangent=L.map(row=>dot(row,uvw));
     const X0=unit(tangent),Y0=cross(Z,X0),angle=(form.azimuth_deg||0)*rad;
     const X=plus(scale(X0,Math.cos(angle)),scale(Y0,Math.sin(angle)));
     const Y=plus(scale(X0,-Math.sin(angle)),scale(Y0,Math.cos(angle)));

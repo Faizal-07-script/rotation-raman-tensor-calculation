@@ -187,13 +187,13 @@ function optionList(options,selected){return options.map(([value,label])=>'<opti
 function numberedControl(id,label){
   const numbers={'framework':'1.1','optical-method':'1.2',
     'material':'2.1','point-group':'2.2','ag-relation':'2.4','source-a':'2.1','source-A':'2.2','source-delta':'2.3','source-phi':'2.4',
-    'orientation-kind':'3.1','surface':'3.2','automatic-x':'3.5','normal-side':'3.6','frame-angle':'3.7',
+    'orientation-kind':'3.1','surface':'3.2','normal-side':'3.5','frame-angle':'3.6',
     'direct-theta_i_deg':'4.1','direct-beta_i_deg':'4.2','direct-theta_s0_deg':'4.3','direct-beta_s_deg':'4.4','theta-zero':'4.5','analyzer-zero':'4.6',
     'circular-spin':'4.7','circular-order':'4.8','circular-ell':'4.9','circular-charges':'4.10','circular-absorption':'4.11','circular-scope':'4.12',
     'angular-grid':'5.1','normalize':'5.2','cartesian':'5.3','show-frame':'5.4',
     'comparison-channel':'9.3','comparison-normalized':'9.4',
     'benchmark-d':'10.1','benchmark-grid':'10.2','benchmark-surface':'10.5','benchmark-protocol':'10.6'};
-  const number=numbers[id]||(/^index-[hkl]$/.test(id)?'3.3':/^index-[uvw]$/.test(id)?'3.4':/^lattice-[012]$/.test(id)?'3.8':/^lattice-[345]$/.test(id)?'3.9':null);
+  const number=numbers[id]||(/^index-[hkl]$/.test(id)?'3.3':/^index-[uvw]$/.test(id)?'3.4':/^lattice-[012]$/.test(id)?'3.7':/^lattice-[345]$/.test(id)?'3.8':null);
   return number?number+' '+label:label;
 }
 function selectField(id,label,options,value,help='',disabled=false){return '<div class="field"><label for="'+id+'">'+numberedControl(id,label)+'</label><select id="'+id+'" '+(disabled?'disabled':'')+'>'+optionList(options,value)+'</select>'+(help?'<span class="field-help">'+help+'</span>':'')+'</div>';}
@@ -256,9 +256,9 @@ function renderControls(){
     if(manual)orientation+='<div class="field"><label for="manual-frame">3.2 Frame columns X, Y, Z in crystal coordinates</label><textarea id="manual-frame" rows="5">'+esc(JSON.stringify(f.T_manual||[[1,0,0],[0,1,0],[0,0,1]],null,2))+'</textarea><span class="field-help">Real, orthonormal, determinant +1. hkl, uvw and ψ are inactive.</span></div>';
     else orientation+=selectField('surface','Surface (hkl)',Object.keys(S.catalog.surfaces).concat('Custom hkl').map(x=>[x,x]),surface)+
       '<div class="field-row">'+['h','k','l'].map((name,i)=>numberField('index-'+name,name==='l'?'ℓ':name,f.hkl[i],{integer:true})).join('')+'</div>'+
-      checkbox('automatic-x','Choose X automatically',f.uvw===null)+
-      '<div class="field-row">'+['u','v','w'].map((name,i)=>numberField('index-'+name,name,f.uvw?.[i]??[0,1,-1][i],{integer:true,disabled:f.uvw===null})).join('')+'</div>'+
-      '<p class="field-help">In-plane condition: hu + kv + ℓw = 0.</p>'+
+      '<span class="field-label">In-plane direction [uvw]</span>'+
+      '<div class="field-row">'+['u','v','w'].map((name,i)=>numberField('index-'+name,name,f.uvw?.[i]??'',{integer:true})).join('')+'</div>'+
+      '<p class="field-help">Enter a nonzero [uvw] with hu + kv + ℓw = 0. Changing the surface keeps these values.</p>'+
       selectField('normal-side','Direction of Z',[['1','Along the (hkl) normal'],['-1','Opposite to the (hkl) normal']],String(f.normal_sign))+
       numberField('frame-angle','Rotation about Z: ψ (°)',f.azimuth_deg);
     orientation+='<hr><span class="field-label">Lattice lengths · one common unit</span><div class="field-row">'+['a₀','b₀','c₀'].map((name,i)=>numberField('lattice-'+i,name,f.lattice[i],{min:0})).join('')+'</div><span class="field-label">Lattice angles · degrees</span><div class="field-row">'+['α','β','γ'].map((name,i)=>numberField('lattice-'+(i+3),name,f.lattice[i+3])).join('')+'</div><p class="field-help">Illustrative ratios must be replaced for a physical tilted noncubic surface.</p>';
@@ -309,7 +309,7 @@ function readForm(){
   if(f.orientation==='matrix')f.T_manual=JSON.parse($('#manual-frame').value);
   else{
     f.hkl=['h','k','l'].map((id,i)=>valueNumber('index-'+id,f.hkl[i],true));
-    f.uvw=$('#automatic-x')?.checked?null:['u','v','w'].map((id,i)=>valueNumber('index-'+id,f.uvw?.[i]??[0,1,-1][i],true));
+    f.uvw=['u','v','w'].map((id,i)=>valueNumber('index-'+id,f.uvw?.[i],true));
     f.normal_sign=Number($('#normal-side')?.value||f.normal_sign);f.azimuth_deg=valueNumber('frame-angle',f.azimuth_deg||0);
   }
   if(f.point_group==='CUSTOM')f.custom_tensor=JSON.parse($('#custom-tensor').value);
@@ -493,7 +493,7 @@ window.RamanGuideHost={
 
 document.addEventListener('input',event=>{
   const target=event.target;
-  const structural=['framework','material','point-group','surface','ag-relation','automatic-x','optical-method','orientation-kind'];
+  const structural=['framework','material','point-group','surface','ag-relation','optical-method','orientation-kind'];
   if(target.closest('#calculator-form')&&!structural.includes(target.id)&&!target.hasAttribute('data-mode-select'))readAndInvalidate();
   if(target.id==='site-search')search(target.value);
 });
@@ -509,12 +509,14 @@ document.addEventListener('change',event=>{
   if(target.id==='material'){materialChange(target.value);return;}
   if(target.id==='point-group'){groupChange(target.value);return;}
   if(target.id==='surface'){
-    try{S.form=readForm();}catch{}
-    if(target.value!=='Custom hkl'){S.form.hkl=clone(S.catalog.surfaces[target.value][0]);S.form.uvw=clone(S.catalog.surfaces[target.value][1]);}
-    invalidate();replaceControls();return;
+    const preset=S.catalog.surfaces[target.value];
+    if(preset){
+      S.form.hkl=clone(preset[0]);
+      ['h','k','l'].forEach((name,i)=>{$('#index-'+name).value=S.form.hkl[i];});
+    }
+    readAndInvalidate();return;
   }
   if(target.id==='ag-relation'){S.relation=target.value;try{S.form=readForm();}catch{}applyRelation(S.form);invalidate();replaceControls();return;}
-  if(target.id==='automatic-x'){try{S.form=readForm();}catch{}if(!target.checked&&S.form.uvw===null)S.form.uvw=[1,0,0];invalidate();replaceControls();return;}
   if(target.id==='optical-method'){S.form.optics=target.value;invalidate();replaceControls();return;}
   if(target.id==='orientation-kind'){S.form.orientation=target.value;invalidate();replaceControls();return;}
   if(target.hasAttribute('data-mode-select')){try{S.form=readForm();}catch{}invalidate();replaceControls();return;}
