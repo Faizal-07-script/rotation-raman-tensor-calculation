@@ -14,8 +14,12 @@ function opticalGuideDetails(key){
 }
 
 function opticalSelectionSummary(form){
-  const g=S.catalog.optical_guide?.[form.optics];if(!g)return '';
-  return '<div class="optical-choice-note" data-selected-optics="'+esc(form.optics)+'"><strong>'+esc(g.family)+'</strong><p>'+esc(g.scan)+'. '+esc(g.detection)+'.</p><p>'+esc(g.use_for)+'</p><a href="#introduction/optical-method">Compare states, physics and references →</a></div>';
+  const description={
+    CUBIC_VV:'Parallel linear polarization; scan θ.',
+    CUBIC_VH:'Crossed linear polarization; scan θ.',
+    CUBIC_SIGMA:'Scan α with θ = 45° and β = β′ = 90° (Eq. 11).'
+  }[form.optics];
+  return description?'<p class="field-help">'+esc(description)+'</p>':'';
 }
 
 function renderOpticalGuide(){
@@ -59,14 +63,14 @@ function renderOpticalGuide(){
       ['Circular input / linear detector vs custom Jones (45,90,α₀,0 degrees)','Equal for σ⁺ input and the same analyzer zero.'],
       ['Elliptical reference vs explicit source QWP','Circular endpoint powers agree at 0 and 90 degrees; intermediate states generally differ. Special tensor coefficients can conceal that difference.'],
       ['Fixed circular channels vs analyzer scans','Fixed channels are constants; they are not sample-rotation measurements.'],
-      ['Different states accidentally giving the same curve','Possible for a particular tensor or incoherent partner sum. Equal curves alone do not prove equal experiments.']].map(r=>r.map(rich)))+
+      ['Different states accidentally giving the same curve','Possible for a particular tensor or a sum of intensities from orthogonal phonon components. Equal curves alone do not prove equal experiments.']].map(r=>r.map(rich)))+
     math(String.raw`\Pi_i=E_iE_i^\dagger,\quad\Pi_s=e_se_s^\dagger,\qquad I=\operatorname{Tr}(\Pi_s R_\perp\Pi_i R_\perp^\dagger)`)+
     '<p>Identical normalized projectors and scan laws give identical raw intensities for any tensor. The Validation tab tests the guide identities for a general complex, nonsymmetric tensor, as well as special limits.</p><p><strong>Compare raw CSV values first.</strong> Figure normalization depends on the displayed channel family. Adding a paired channel can change the shared maximum without changing either raw curve. Match the normalization, angle zero and positive-angle convention when comparing figures.</p>'+math(String.raw`I_j^{plot}(\alpha)=I_j^{raw}(\alpha)/M_{\mathcal F},\quad M_{\mathcal F}=\max_{\alpha,\,j\in\mathcal F}I_j^{raw}(\alpha)`)+sourceLinks(['jones','complex'])+'</details>'+
     '<details class="card guide-detail"><summary><strong>What the circular-selection-rule reference establishes</strong></summary><p>The cited rule combines optical absorption, phonon emission and scattered-photon emission under its rotational-symmetry and electronic assumptions. With the stated outgoing-orbital assumption, its necessary condition is</p>'+math(String.raw`s_s-s_i-\ell_i=-m_{ph}+Np,\qquad p\in\mathbb Z`)+
     '<p>Spin labels and phonon charges must use the reference\u2019s conventions consistently. Satisfying this congruence does not supply a Raman tensor, its complex phases, or a quantitative vortex-intensity curve. In this program the optional rule check is separate from the plotted plane-wave intensities, which use '+rich('`ℓ=0`')+'. The absorption and phonon selection conditions must also be satisfied.</p>'+sourceLinks(['circular'])+'</details>'+
     '<details class="card guide-detail"><summary><strong>Keep optics, tensor symmetry and Ag presentation distinct</strong></summary><p>Changing material changes symmetry-allowed tensor entries and physical coefficients; it can also change the lattice metric. Changing the surface changes the rotation. Changing the optical profile changes the states or scan. None of these alone determines the other inputs.</p>'+
     math(String.raw`\mathcal A_{Ag}=\mathcal A_{xx}+\mathcal A_{yy}+\mathcal A_{zz},\quad I_{Ag}^{full}=|\mathcal A_{Ag}|^2,\qquad I_j=|\mathcal A_j|^2`)+
-    '<p>Separate Ag component powers are retained in the main figures as requested. A measured complete single-phonon intensity can contain cross terms; inspect the complete-mode audit when making that comparison. Orthogonal unresolved phonon partners are a sum of complete-mode powers instead.</p>'+sourceLinks(['complex','cubic'])+'</details>'+
+    '<p>Separate Ag component powers are retained in the main figures as requested. A measured complete single-phonon intensity can contain cross terms; inspect the complete-mode audit when making that comparison. Orthogonal unresolved phonon components are a sum of complete-mode powers instead.</p>'+sourceLinks(['complex','cubic'])+'</details>'+
     '<div class="button-row"><a class="button secondary" href="./downloads/Optical_Methods_Guide.md?v=5" download>Download the mathematical guide</a><a class="text-link" href="#calculator">Open calculator →</a><a class="text-link" href="#references">Read full references →</a></div></section>';
 }
 

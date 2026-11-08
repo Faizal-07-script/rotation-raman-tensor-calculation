@@ -6,6 +6,18 @@ const clone = value => JSON.parse(JSON.stringify(value));
 const math = value => '<div class="equation" data-tex="' + esc(value) + '"></div>';
 const rich = value => esc(value).replace(/\x60([^\x60]+)\x60/g, '<code>$1</code>').replace(/\n/g, '<br>');
 const compact = value => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(Number(value).toPrecision(7)).toString() : '—';
+const MODEL_LABELS = Object.freeze({NEW_SAN:'Model 1',USER_PPT:'Model 2',DR_KUMAR:'Model 3'});
+const POLARIZATION_LABELS = Object.freeze({CUBIC_VV:'VV',CUBIC_VH:'VH',CUBIC_SIGMA:'σ⁺α'});
+const modelLabel = key => MODEL_LABELS[key] || MODEL_LABELS.NEW_SAN;
+const polarizationLabel = key => POLARIZATION_LABELS[key] || key;
+function resultLabel(form){
+  const material = form.material === 'Si' ? 'Si' : form.material === 'GENERAL'
+    ? (form.point_group === 'CUSTOM' ? 'Custom Raman tensor' : form.point_group)
+    : (S.catalog.materials[form.material]?.label.split(/ — | \/ /)[0] || form.material);
+  const hkl = form.orientation !== 'matrix' && form.hkl;
+  const surface = hkl ? ' (' + hkl.join(hkl.some(index=>Math.abs(index)>9 || index<0)?', ':'') + ')' : '';
+  return [modelLabel(form.framework),material+surface,polarizationLabel(form.optics)].filter(Boolean).join(' · ');
+}
 const S = {catalog:null,release:null,cells:[],tutorial:[],form:null,result:null,dirty:false,busy:false,tab:'plots',derivationMode:'mathematics',
   error:null,comparisons:[],comparison:null,benchmark:null,validation:null,runtimeHasRun:false,
   selectedExample:'SI_500',relation:'free',lastCrystal:null,openGroups:new Set(),searchIndex:[]};
@@ -51,7 +63,7 @@ function renderNavigation(){
   const groups=[
     ['introduction','1','Introduction',Object.entries(RAMAN_DOCS.tools).map(([key,d])=>['#introduction/'+key,d.title])],
     ['tutorial','3','Python tutorial',S.cells.map(c=>['#tutorial/cell/'+c.number,'Cell '+c.number+' · '+c.title])],
-    ['calculator','4','Calculator',[['#calculator','Inputs & results'],['#calculator/procedures','Checking procedures'],['#calculator/validation','Reference validation'],['#calculator/benchmark','Silicon benchmark'],['#calculator/comparisons','Comparison snapshots']]],
+    ['calculator','4','Calculator',[['#calculator','Inputs & results'],['#calculator/procedures','Checking procedures'],['#calculator/validation','Reference validation'],['#calculator/benchmark','Si reference calculation'],['#calculator/comparisons','Compare results']]],
     ['physics','5','Physics & equations',Object.entries(RAMAN_DOCS.physics).map(([key,d])=>['#physics/'+key,d.title])],
     ['references','6','References & downloads',[['#references','Sources'],['#references/downloads','Python downloads']]]
   ];
@@ -173,7 +185,7 @@ function renderReferences(downloadOnly=false){
 
 function optionList(options,selected){return options.map(([value,label])=>'<option value="'+esc(value)+'" '+(value===selected?'selected':'')+'>'+esc(label)+'</option>').join('');}
 function numberedControl(id,label){
-  const numbers={'framework':'1.1','tensor-model':'1.1','optical-method':'1.2','example':'1.3','case-label':'1.5','input-note':'1.6',
+  const numbers={'framework':'1.1','optical-method':'1.2',
     'material':'2.1','point-group':'2.2','ag-relation':'2.4','source-a':'2.1','source-A':'2.2','source-delta':'2.3','source-phi':'2.4',
     'orientation-kind':'3.1','surface':'3.2','automatic-x':'3.5','normal-side':'3.6','frame-angle':'3.7',
     'direct-theta_i_deg':'4.1','direct-beta_i_deg':'4.2','direct-theta_s0_deg':'4.3','direct-beta_s_deg':'4.4','theta-zero':'4.5','analyzer-zero':'4.6',
@@ -216,13 +228,9 @@ function opticalPreview(form){
 }
 function renderControls(){
   const f=S.form,source=f.tensor_model==='QWP_SOURCE_2D';ensureValues(f);
-  let start=selectField('tensor-model','Tensor model',[['CRYSTAL_3D','General crystal: full 3D tensor'],['QWP_SOURCE_2D','Original effective 2D optical reference']],f.tensor_model)+
-    selectField('optical-method','Optical method',Object.entries(S.catalog.profiles),f.optics,'Choose actual optical states independently of material.',source)+
-    opticalSelectionSummary(f)+
-    selectField('example','Example',Object.entries(S.catalog.examples).map(([key,x])=>[key,x.label]),S.selectedExample)+
-    '<button type="button" class="button secondary small" data-load-example>1.4 Load selected example</button><hr>'+
-    textField('case-label','Case label',f.case_label)+
-    '<div class="field"><label for="input-note">1.6 Input note</label><textarea id="input-note" rows="2">'+esc(f.input_note||'')+'</textarea></div>';
+  const start=selectField('framework','Calculation model',Object.keys(S.catalog.frameworks).map(key=>[key,modelLabel(key)]),f.framework||'NEW_SAN')+
+    selectField('optical-method','Polarization',Object.keys(S.catalog.profiles).map(key=>[key,polarizationLabel(key)]),f.optics)+
+    opticalSelectionSummary(f);
   let material='';
   if(source){
     const p=f.source_parameters||{a:1,A:.4,delta_deg:60,phi_deg:60};
@@ -244,21 +252,21 @@ function renderControls(){
   let orientation='';
   if(!source){
     const manual=f.orientation==='matrix',surface=Object.entries(S.catalog.surfaces).find(([,v])=>v[0].every((x,i)=>x===f.hkl[i]))?.[0]||'Custom hkl';
-    orientation=selectField('orientation-kind','Orientation input',[['hkl','Surface hkl and in-plane uvw'],['matrix','Manual proper frame T']],f.orientation||'hkl');
+    orientation=selectField('orientation-kind','Orientation input',[['hkl','Surface (hkl) and in-plane direction [uvw]'],['matrix','Enter matrix T']],f.orientation||'hkl');
     if(manual)orientation+='<div class="field"><label for="manual-frame">3.2 Frame columns X, Y, Z in crystal coordinates</label><textarea id="manual-frame" rows="5">'+esc(JSON.stringify(f.T_manual||[[1,0,0],[0,1,0],[0,0,1]],null,2))+'</textarea><span class="field-help">Real, orthonormal, determinant +1. hkl, uvw and ψ are inactive.</span></div>';
-    else orientation+=selectField('surface','Surface preset',Object.keys(S.catalog.surfaces).concat('Custom hkl').map(x=>[x,x]),surface)+
-      '<div class="field-row">'+['h','k','l'].map((name,i)=>numberField('index-'+name,name,f.hkl[i],{integer:true})).join('')+'</div>'+
-      checkbox('automatic-x','Automatic in-plane X reference',f.uvw===null)+
+    else orientation+=selectField('surface','Surface (hkl)',Object.keys(S.catalog.surfaces).concat('Custom hkl').map(x=>[x,x]),surface)+
+      '<div class="field-row">'+['h','k','l'].map((name,i)=>numberField('index-'+name,name==='l'?'ℓ':name,f.hkl[i],{integer:true})).join('')+'</div>'+
+      checkbox('automatic-x','Choose X automatically',f.uvw===null)+
       '<div class="field-row">'+['u','v','w'].map((name,i)=>numberField('index-'+name,name,f.uvw?.[i]??[0,1,-1][i],{integer:true,disabled:f.uvw===null})).join('')+'</div>'+
-      '<p class="field-help">Zone condition: h·u + k·v + l·w = 0.</p>'+
-      selectField('normal-side','Normal side',[['1','+ normal: Z along g(hkl)'],['-1','− normal: Z opposite g(hkl)']],String(f.normal_sign))+
-      numberField('frame-angle','Rotate X/Y about Z: ψ (°)',f.azimuth_deg);
+      '<p class="field-help">In-plane condition: hu + kv + ℓw = 0.</p>'+
+      selectField('normal-side','Direction of Z',[['1','Along the (hkl) normal'],['-1','Opposite to the (hkl) normal']],String(f.normal_sign))+
+      numberField('frame-angle','Rotation about Z: ψ (°)',f.azimuth_deg);
     orientation+='<hr><span class="field-label">Lattice lengths · one common unit</span><div class="field-row">'+['a₀','b₀','c₀'].map((name,i)=>numberField('lattice-'+i,name,f.lattice[i],{min:0})).join('')+'</div><span class="field-label">Lattice angles · degrees</span><div class="field-row">'+['α','β','γ'].map((name,i)=>numberField('lattice-'+(i+3),name,f.lattice[i+3])).join('')+'</div><p class="field-help">Illustrative ratios must be replaced for a physical tilted noncubic surface.</p>';
   }
   const p=f.paper_parameters||{},dj=f.direct_jones||{theta_i_deg:45,beta_i_deg:90,theta_s0_deg:45,beta_s_deg:0};
   let optics=opticalPreview(f);
   if(f.optics==='DIRECT_JONES')optics+='<div class="field-row two">'+numberField('direct-theta_i_deg','Input θᵢ (degree)',dj.theta_i_deg)+numberField('direct-beta_i_deg','Input βᵢ (degree)',dj.beta_i_deg)+numberField('direct-theta_s0_deg','Detector θₛ₀ (degree)',dj.theta_s0_deg)+numberField('direct-beta_s_deg','Detector βₛ (degree)',dj.beta_s_deg)+'</div>';
-  if(['CUBIC_VV','CUBIC_VH','LINEAR_PAIR'].includes(f.optics))optics+=numberField('theta-zero','Linear scan zero (degree)',p.theta0_deg||0);
+  if(['CUBIC_VV','CUBIC_VH','LINEAR_PAIR'].includes(f.optics))optics+=numberField('theta-zero','θ zero (°)',p.theta0_deg||0);
   if(f.optics==='CIRCULAR_LINEAR')optics+=numberField('analyzer-zero','Direct analyzer zero (degree)',p.analyzer_zero_deg??45);
   if(f.optics.startsWith('CIRCULAR_'))optics+=selectField('circular-spin','Input circular basis label',[['1','σ⁺ (sᵢₙ=+1): (1, +i)/√2'],['-1','σ⁻ (sᵢₙ=−1): (1, −i)/√2']],String(p.s_in||1))+
     '<hr><span class="field-label">Conditional rule · separate from intensity</span>'+
@@ -272,12 +280,12 @@ function renderControls(){
     checkbox('normalize','Use one common maximum per mode, including components and paired VV/VH',f.normalize)+
     checkbox('cartesian','Also generate Cartesian plots',f.cartesian_plots)+
     checkbox('show-frame','Show the 3D measurement frame',f.show_geometry!==false)+
-    '<p class="field-help">Raw CSV is unnormalized. Mathematical steps and continuous extrema are always calculated.</p>';
+    '<p class="field-help">CSV contains the unnormalized intensities.</p>';
   return '<div class="calc-controls"><fieldset id="calculator-form" '+(S.busy?'disabled':'')+'>'+
-    section('01','Model, optics & example',start,true,true)+
-    section('02',source?'Source tensor parameters':'Material & tensor coefficients',material,true)+
-    (!source?section('03','Orientation & lattice',orientation,false):'')+
-    section('04','Jones states & optical controls',optics,false)+
+    section('01','Model and polarization',start,true,true)+
+    section('02',source?'Source tensor parameters':'Material and Raman tensor',material,true)+
+    (!source?section('03','Crystal orientation and lattice',orientation,false):'')+
+    section('04','Jones vectors',optics,false)+
     section('05','Display settings',display,false)+
     '<div class="calc-action-bar"><button class="button" type="button" data-calculate '+(S.busy?'disabled':'')+'>6. Calculate rotation + Raman <span aria-hidden="true">→</span></button></div></fieldset>'+
     '<p class="small-note">The first run loads Python in your browser and may take a little longer.</p></div>';
@@ -289,8 +297,7 @@ function valueNumber(id,fallback,integer=false){
   const number=element.valueAsNumber;if(integer&&!Number.isInteger(number))throw new Error(id+' must be an integer.');return number;
 }
 function readForm(){
-  const f=clone(S.form);f.tensor_model=$('#tensor-model')?.value||f.tensor_model;f.optics=$('#optical-method')?.value||f.optics;
-  f.case_label=$('#case-label')?.value||'Raman tensor calculation';f.input_note=$('#input-note')?.value||'';
+  const f=clone(S.form);f.framework=$('#framework')?.value||f.framework||'NEW_SAN';f.optics=$('#optical-method')?.value||f.optics;
   f.plot_points=Number($('#angular-grid')?.value||f.plot_points);f.normalize=!!$('#normalize')?.checked;f.cartesian_plots=!!$('#cartesian')?.checked;f.show_geometry=!!$('#show-frame')?.checked;
   if(f.tensor_model==='QWP_SOURCE_2D'){
     f.source_parameters={a:valueNumber('source-a',1),A:valueNumber('source-A',.4),delta_deg:valueNumber('source-delta',60),phi_deg:valueNumber('source-phi',60)};return f;
@@ -337,7 +344,7 @@ function replaceControls(){const node=$('.calc-controls');if(node){const opened=
 function readAndInvalidate(){try{S.form=readForm();applyRelation(S.form);}catch{/* Keep incomplete edits visible until calculate validates them. */}invalidate();}
 function materialChange(material){
   const old=clone(S.form),info=S.catalog.materials[material];const group=material==='GENERAL'&&S.catalog.groups[old.point_group]?old.point_group:info.group;
-  S.form={...old,material,point_group:group,lattice:material==='GENERAL'?(['trigonal','hexagonal'].includes(S.catalog.groups[group]?.system)?[1,1,1,90,90,120]:[1,1,1,90,90,90]):clone(info.lattice),case_label:material+' / selected surface and optical states',input_note:'Illustrative tensor coefficients and lattice ratios; replace with sample-specific inputs.'};
+  S.form={...old,material,point_group:group,lattice:material==='GENERAL'?(['trigonal','hexagonal'].includes(S.catalog.groups[group]?.system)?[1,1,1,90,90,120]:[1,1,1,90,90,90]):clone(info.lattice)};
   S.form.modes=Object.keys(definitions(S.form));S.form.mode_values=material==='GENERAL'?{}:clone(info.defaults.mode_values);S.relation='free';ensureValues(S.form);invalidate();replaceControls();
 }
 function groupChange(group){
@@ -373,7 +380,7 @@ function derivationHtml(entries,explained=false){
 function renderValues(result){
   const rows=result.channels.map(c=>[esc(c.name),compact(c.summary.Imin),compact(c.summary.Imax),c.summary.alpha_max===null?'constant / zero':compact(c.summary.alpha_max)+'°']);
   const indices=Array.from({length:25},(_,i)=>Math.round(i*(result.angles.length-1)/24));
-  return '<div class="card"><h3>Continuous extrema</h3>'+table(['Channel','Imin','Imax','Maximum angle'],rows)+'<p class="small-note" style="margin-top:15px">Extrema come from the harmonic equations. The values below are raw intensities, even when figures are normalized.</p></div>'+
+  return '<div class="card"><h3>Maximum and minimum intensity</h3>'+table(['Channel','Imin','Imax','Maximum angle'],rows)+'<p class="small-note" style="margin-top:15px">Extrema come from the harmonic equations. The values below are raw intensities, even when figures are normalized.</p></div>'+
     table(['Angle (degree)',...result.channels.map(x=>x.name)],indices.map(i=>[compact(result.angles[i]),...result.channels.map(x=>compact(x.points[i]))]))+
     '<p class="small-note" style="margin-top:12px">Preview: 15-degree intervals. Download CSV for every point on the selected grid.</p>';
 }
@@ -404,7 +411,7 @@ function renderProcedureRows(rows,catalogOnly=false){
 }
 function renderCheckingReport(report,reference=false){
   if(!report)return '<div class="empty-state"><p>Calculate a case to generate its checking procedures.</p></div>';
-  return '<div class="card"><div class="card-header"><div><h3>'+esc(report.kind)+'</h3><p>'+esc(report.case||'Reference identities from the uploaded notebook')+'</p></div><span class="tag '+(report.status==='passed'?'success':'failed')+'">'+esc(report.status)+' · '+report.passed+'/'+report.total+'</span></div><p class="small-note">'+esc(report.scope)+'</p>'+(!reference&&(S.dirty||!S.runtimeHasRun)?'<div class="callout warning">'+(S.dirty?'This evidence belongs to the previous calculated inputs. Calculate to update it.':'Stored result. Calculate to regenerate this evidence in the current browser session.')+'</div>':'')+(report.not_applicable?'<p class="small-note">'+report.not_applicable+' source/model-specific check'+(report.not_applicable===1?' is':'s are')+' explicitly not applicable.</p>':'')+(report.notation_note?'<div class="callout warning">'+esc(report.notation_note)+'</div>':'')+'<div class="button-row">'+(reference?'<button class="button secondary small" data-download-validation '+(S.busy?'disabled':'')+'>Download reference validation JSON</button>':'<button class="button secondary small" data-result-download="checking" '+(S.dirty?'disabled':'')+'>Download checking report JSON</button>')+'<a class="text-link" href="#introduction/checking-procedures">Read the validation guide →</a></div>'+sourceLinks(['kumar-original','sympy-validation'])+'</div>'+renderProcedureRows(report.rows);
+  return '<div class="card"><div class="card-header"><div><h3>'+esc(report.kind)+'</h3><p>'+esc(!reference&&S.result?resultLabel(S.result.configuration):(report.case||'Reference equations from the notebook'))+'</p></div><span class="tag '+(report.status==='passed'?'success':'failed')+'">'+esc(report.status)+' · '+report.passed+'/'+report.total+'</span></div><p class="small-note">'+esc(report.scope)+'</p>'+(!reference&&(S.dirty||!S.runtimeHasRun)?'<div class="callout warning">'+(S.dirty?'This evidence belongs to the previous calculated inputs. Calculate to update it.':'Stored result. Calculate to regenerate this evidence in the current browser session.')+'</div>':'')+(report.not_applicable?'<p class="small-note">'+report.not_applicable+' source/model-specific check'+(report.not_applicable===1?' is':'s are')+' explicitly not applicable.</p>':'')+(report.notation_note?'<div class="callout warning">'+esc(report.notation_note)+'</div>':'')+'<div class="button-row">'+(reference?'<button class="button secondary small" data-download-validation '+(S.busy?'disabled':'')+'>Download reference validation JSON</button>':'<button class="button secondary small" data-result-download="checking" '+(S.dirty?'disabled':'')+'>Download checking report JSON</button>')+'<a class="text-link" href="#introduction/checking-procedures">Read the validation guide →</a></div>'+sourceLinks(['kumar-original','sympy-validation'])+'</div>'+renderProcedureRows(report.rows);
 }
 function renderValidation(){
   return '<div class="card"><h3>Run the full model-validation suite</h3><p class="small-note">Checks source algebra, symmetry, complex rotations, independent reference equations, all implemented point groups and numerical edge cases. It also executes 25 procedures based on QWP source reference, including explicitly identified extensions, and records their purpose, expected identity and measured residual.</p><div class="button-row"><button class="button secondary" data-run-validation '+(S.busy?'disabled':'')+'>8. Run full validation</button><a class="text-link" href="#introduction/checking-procedures">Procedures and purposes →</a></div>'+
@@ -413,14 +420,14 @@ function renderValidation(){
 }
 function renderComparisons(){
   const channels=[...new Set(S.comparisons.flatMap(x=>x.channels))];
-  return '<div class="card"><div class="card-header"><div><h3>Comparison snapshots</h3><p>Keep up to six calculated cases with their original physical inputs.</p></div><button class="button secondary small" data-clear-comparisons '+(!S.comparisons.length||S.busy?'disabled':'')+'>9.2 Clear</button></div>'+
-    '<div class="snapshot-list">'+S.comparisons.map((x,i)=>'<div><strong>'+(i+1)+'. '+esc(x.label)+'</strong><small>'+esc(x.optics)+'</small></div>').join('')+'</div>'+
+  return '<div class="card"><div class="card-header"><div><h3>Compare results</h3><p>Keep up to six calculated cases with their original physical inputs.</p></div><button class="button secondary small" data-clear-comparisons '+(!S.comparisons.length||S.busy?'disabled':'')+'>9.2 Clear</button></div>'+
+    '<div class="snapshot-list">'+S.comparisons.map((x,i)=>'<div><strong>'+(i+1)+'. '+esc(x.label)+'</strong><small>'+esc(polarizationLabel(x.optics))+'</small></div>').join('')+'</div>'+
     (channels.length?selectField('comparison-channel','Common channel',channels.map(x=>[x,x]),S.comparisonChannel||channels[0])+checkbox('comparison-normalized','Use common per-mode normalization',true)+'<button class="button secondary small" data-render-comparison '+(S.busy?'disabled':'')+'>9.5 Render comparison</button>':'<p class="small-note">Calculate a case, then use Save comparison above the result.</p>')+'</div>'+
-    (S.comparison?'<figure class="result-figure"><figcaption><strong>Frozen input snapshots</strong><button class="text-button" data-download-comparison>SVG ↓</button></figcaption><img src="'+S.comparison.png+'" alt="Polar overlay of saved calculation snapshots"></figure>':'');
+    (S.comparison?'<figure class="result-figure"><figcaption><strong>Saved results</strong><button class="text-button" data-download-comparison>SVG ↓</button></figcaption><img src="'+S.comparison.png+'" alt="Polar plots of saved results"></figure>':'');
 }
 function renderBenchmark(){
-  return '<div class="card"><h3>Silicon · six surfaces · three protocols</h3><p class="small-note">The benchmark locks Si T2g, the reference frame and one common d for all 18 cases.</p><div class="field-row two">'+numberField('benchmark-d','Shared |d|',S.benchmarkMagnitude??1,{min:0})+selectField('benchmark-grid','Angular grid',[['721','0.5 degree'],['361','1 degree'],['3601','0.1 degree']],'721')+'</div><div class="button-row"><button class="button" data-run-benchmark '+(S.busy?'disabled':'')+'>10.3 Calculate all 18 cases</button><button class="button secondary" data-export-benchmark '+(!S.benchmark||S.busy?'disabled':'')+'>10.4 Download OriginLab ZIP</button></div></div>'+
-    (S.benchmark?'<div class="card"><span class="tag success">18 cases checked</span>'+S.benchmark.checks.map(x=>'<div class="check-item">'+esc(x)+'</div>').join('')+'<hr><div class="field-row two">'+selectField('benchmark-surface','Inspect surface',Array.from({length:6},(_,k)=>[String(k),'(5'+k+'0)']),'3')+selectField('benchmark-protocol','Inspect protocol',[['VV','VV'],['VH','VH'],['SIGMA','σ⁺α reference']],'VV')+'</div><button class="button secondary small" data-inspect-benchmark>10.7 Load selected case into calculator</button></div><figure class="result-figure wide"><figcaption><strong>Si T2g · common I/|d|² scale</strong></figcaption><img src="'+S.benchmark.figure.png+'" alt="Calculated six-surface VV, VH and σ⁺α silicon benchmark"></figure>':'<div class="empty-state"><p>Calculate to compare (500), (510), (520), (530), (540) and (550).</p><a class="text-link" href="#introduction/benchmark">Read the benchmark guide →</a></div>');
+  return '<div class="card"><h3>Si: six surfaces, VV, VH and σ⁺α</h3><p class="small-note">The benchmark locks Si T2g, the reference frame and one common d for all 18 cases.</p><div class="field-row two">'+numberField('benchmark-d','Shared |d|',S.benchmarkMagnitude??1,{min:0})+selectField('benchmark-grid','Angular grid',[['721','0.5 degree'],['361','1 degree'],['3601','0.1 degree']],'721')+'</div><div class="button-row"><button class="button" data-run-benchmark '+(S.busy?'disabled':'')+'>10.3 Calculate all 18 cases</button><button class="button secondary" data-export-benchmark '+(!S.benchmark||S.busy?'disabled':'')+'>10.4 Download OriginLab ZIP</button></div></div>'+
+    (S.benchmark?'<div class="card"><span class="tag success">18 cases checked</span>'+S.benchmark.checks.map(x=>'<div class="check-item">'+esc(x)+'</div>').join('')+'<hr><div class="field-row two">'+selectField('benchmark-surface','Inspect surface',Array.from({length:6},(_,k)=>[String(k),'(5'+k+'0)']),'3')+selectField('benchmark-protocol','Polarization',[['VV','VV'],['VH','VH'],['SIGMA','σ⁺α']],'VV')+'</div><button class="button secondary small" data-inspect-benchmark>10.7 Load selected case into calculator</button></div><figure class="result-figure wide"><figcaption><strong>Si T2g · common I/|d|² scale</strong></figcaption><img src="'+S.benchmark.figure.png+'" alt="Calculated six-surface VV, VH and σ⁺α silicon benchmark"></figure>':'<div class="empty-state"><p>Calculate to compare (500), (510), (520), (530), (540) and (550).</p><a class="text-link" href="#introduction/benchmark">Read the benchmark guide →</a></div>');
 }
 function resultBody(){
   if(S.tab==='benchmark')return renderBenchmark();
@@ -440,10 +447,10 @@ function renderCalculator(section){
   const r=S.result;
   return heading('CALCULATOR','Raman intensity calculator','Choose your inputs in tools 1–5, then press 6. View the plots, equations and data in the result tabs.')+
     '<details class="card doc-section" id="calculator-quickstart"><summary><strong>First run: numbered tools &amp; Silicon (500) inputs</strong></summary><p>Follow <strong>1 → 2 → 3 → 4 → 5 → 6</strong>, then inspect results and use <strong>7</strong> to download. Optional: <strong>8</strong> validates, <strong>9</strong> compares and <strong>10</strong> benchmarks silicon.</p><p>The initial example is <strong>Silicon (500), VV</strong>: full 3D tensor, Si / Oh / T2g, shared d = 1 with zero phase, hkl = (5,0,0), uvw = (0,−5,0), normal +1, ψ = 0°, equal lattice lengths and 90° lattice angles. Tool 1.3 also offers the other reference examples; press 1.4 to load the selected example and then 6 to calculate.</p><p>Expected: one T2g curve combining three orthogonal phonon components, 721 samples, zero at θ = 0° and 90°, and a maximum of 1 at θ = 45° (absolute tolerance 1e-10). For a VV/VH pair, change 1.2 to the paired linear profile and calculate again.</p><p>Mathematical steps offers 1. Full mathematics, with one short symbol list at the bottom, and 2. Explained derivation, with detailed definitions and sources after each equation. The downloaded notebook calculates the silicon example automatically after all 22 cells run, and every cell prints its own success message. On this webpage the first result is labeled as a saved reference; press 6 to run it in your browser.</p><div class="button-row"><a class="button secondary small" href="./downloads/QUICKSTART.md?v=5-si500-symbols" download>Download input guide</a><a class="text-link" href="./downloads/example_input_v5.json?v=5-si500-symbols" download>Silicon input JSON ↓</a><a class="text-link" href="./downloads/Symbols_And_References.md?v=5-si500-symbols" download>Symbols &amp; references ↓</a></div></details>'+
-    '<div class="calc-layout">'+renderControls()+'<section class="calc-results" id="calculator-results"><div class="calc-status" id="calculation-status">'+(S.dirty?'<strong>Inputs changed — calculate to update the result.</strong><p>Previous figures describe previous inputs. Current-result downloads are disabled.</p>':r?'<strong>'+esc(r.case)+'</strong><p>'+esc(S.catalog.profiles[r.configuration.optics]||r.configuration.optics)+(!S.runtimeHasRun?' · Example result. Run calculation to use your inputs.':' · Calculation complete.')+'</p>':'<strong>Ready for your inputs.</strong><p>Start a calculation to generate all outputs.</p>')+'</div>'+
+    '<div class="calc-layout">'+renderControls()+'<section class="calc-results" id="calculator-results"><div class="calc-status" id="calculation-status">'+(S.dirty?'<strong>Inputs changed — calculate to update the result.</strong><p>Previous figures describe previous inputs. Current-result downloads are disabled.</p>':r?'<strong>'+esc(resultLabel(r.configuration))+'</strong><p>'+(!S.runtimeHasRun?'Example result. Run calculation to update it.':'Calculation complete.')+'</p>':'<strong>Ready for your inputs.</strong><p>Start a calculation to generate all outputs.</p>')+'</div>'+
     (S.error?'<div class="engine-error"><strong>Calculation could not complete.</strong><p>'+esc(S.error.split('\n').filter(Boolean).at(-1))+'</p><details><summary>Show diagnostic details</summary><pre>'+esc(S.error)+'</pre></details></div>':'')+
     '<div class="results-toolbar"><div class="button-row"><button class="button small" data-result-download="zip" '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>7.1 Download complete result ↓</button><button class="button secondary small" data-result-download="csv" '+(!r||S.dirty||S.busy?'disabled':'')+'>7.2 Raw CSV ↓</button><button class="button secondary small" data-add-comparison '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>9.1 Save comparison</button></div></div>'+
-    '<div class="result-tabs" role="tablist" aria-label="Calculation outputs">'+[['plots','Polar plots'],['math','Mathematical steps'],['values','Intensity values'],['frame','3D frame'],['procedures','Checking procedures'],['checks','Protocol checks'],['latex','LaTeX'],['validation','Validation'],['comparisons','Comparisons'],['benchmark','Silicon benchmark']].map(([key,label])=>'<button class="result-tab" role="tab" data-result-tab="'+key+'" aria-selected="'+(S.tab===key)+'" tabindex="'+(S.tab===key?'0':'-1')+'">'+label+'</button>').join('')+'</div><div class="result-pane" role="tabpanel" id="result-pane">'+resultBody()+'</div></section></div>';
+    '<div class="result-tabs" role="tablist" aria-label="Calculation outputs">'+[['plots','Polar plots'],['math','Mathematical steps'],['values','Intensity values'],['frame','Measurement axes'],['procedures','Checking procedures'],['checks','Calculation checks'],['latex','LaTeX'],['validation','Validation'],['comparisons','Comparisons'],['benchmark','Si reference calculation']].map(([key,label])=>'<button class="result-tab" role="tab" data-result-tab="'+key+'" aria-selected="'+(S.tab===key)+'" tabindex="'+(S.tab===key?'0':'-1')+'">'+label+'</button>').join('')+'</div><div class="result-pane" role="tabpanel" id="result-pane">'+resultBody()+'</div></section></div>';
 }
 function syncCalculatorTabRoute(){
   if(!location.hash.startsWith('#calculator'))return;
@@ -470,7 +477,7 @@ function renderRoute(scroll=true){
   else if(page==='calculator'){S.openGroups.add(page);if(scroll&&['benchmark','comparisons','procedures','validation'].includes(parts[1]))S.tab=parts[1];html=renderCalculator(parts[1]);breadcrumb='Calculator';}
   else if(page==='references'){S.openGroups.add(page);html=renderReferences(parts[1]==='downloads');breadcrumb='References & downloads';}
   else{html=notFound();breadcrumb='Not found';}
-  const previousScroll=window.scrollY;$('#main-content').innerHTML=html;$('#breadcrumbs').textContent='Workspace / '+breadcrumb;renderNavigation();typeset($('#main-content'));updateStaleStatus();
+  const previousScroll=window.scrollY;$('#main-content').innerHTML=html;$('#breadcrumbs').textContent=breadcrumb;renderNavigation();typeset($('#main-content'));updateStaleStatus();
   if(scroll){window.scrollTo({top:0,behavior:'instant'});if(matchMedia('(max-width:850px)').matches)setMenu(false);}else window.scrollTo({top:previousScroll,behavior:'instant'});
   document.title=(page==='home'?'':breadcrumb+' · ')+'Rotation Raman Tensor Calculation';
   document.dispatchEvent(new CustomEvent('raman:route',{detail:{page,parts,breadcrumb}}));
@@ -486,7 +493,7 @@ window.RamanGuideHost={
 
 document.addEventListener('input',event=>{
   const target=event.target;
-  const structural=['example','tensor-model','material','point-group','surface','ag-relation','automatic-x','optical-method','orientation-kind'];
+  const structural=['framework','material','point-group','surface','ag-relation','automatic-x','optical-method','orientation-kind'];
   if(target.closest('#calculator-form')&&!structural.includes(target.id)&&!target.hasAttribute('data-mode-select'))readAndInvalidate();
   if(target.id==='site-search')search(target.value);
 });
@@ -549,16 +556,16 @@ document.addEventListener('click',async event=>{
   if(button.hasAttribute('data-run-validation')){await runOperation('validate',{},'Running the full validation suite',result=>{S.validation=result;S.tab='validation';toast(result.status==='passed'?'Model and source-reference procedures passed.':'Validation contains failed or unresolved checks.');});return;}
   if(button.hasAttribute('data-download-validation')&&S.validation){download(JSON.stringify(S.validation,null,2),'optical_reference_validation.json','application/json');return;}
   if(button.hasAttribute('data-add-comparison')&&!S.dirty){await runOperation('addComparison',{},'Saving a calculation snapshot',result=>{S.comparisons=result;S.tab='comparisons';});return;}
-  if(button.hasAttribute('data-clear-comparisons')){await runOperation('clearComparisons',{},'Clearing comparison snapshots',()=>{S.comparisons=[];S.comparison=null;S.tab='comparisons';});return;}
-  if(button.hasAttribute('data-render-comparison')){S.comparisonChannel=$('#comparison-channel').value;const normalized=$('#comparison-normalized').checked;await runOperation('compare',{channel:S.comparisonChannel,normalized},'Comparing frozen input snapshots',result=>{S.comparison=result;S.tab='comparisons';});return;}
+  if(button.hasAttribute('data-clear-comparisons')){await runOperation('clearComparisons',{},'Clearing saved results',()=>{S.comparisons=[];S.comparison=null;S.tab='comparisons';});return;}
+  if(button.hasAttribute('data-render-comparison')){S.comparisonChannel=$('#comparison-channel').value;const normalized=$('#comparison-normalized').checked;await runOperation('compare',{channel:S.comparisonChannel,normalized},'Comparing saved results',result=>{S.comparison=result;S.tab='comparisons';});return;}
   if(button.hasAttribute('data-download-comparison')&&S.comparison){download(S.comparison.svg,'comparison.svg','image/svg+xml');return;}
   if(button.hasAttribute('data-run-benchmark')){
     let magnitude;try{magnitude=valueNumber('benchmark-d',1);}catch(error){toast(error.message);return;}const points=Number($('#benchmark-grid').value);S.benchmarkMagnitude=magnitude;
-    await runOperation('benchmark',{magnitude,points},'Calculating the 18-case silicon benchmark',result=>{S.benchmark=result;S.tab='benchmark';});return;
+    await runOperation('benchmark',{magnitude,points},'Calculating the Si reference curves',result=>{S.benchmark=result;S.tab='benchmark';});return;
   }
-  if(button.hasAttribute('data-export-benchmark')){await runOperation('exportBenchmark',{},'Exporting the silicon benchmark',buffer=>download(buffer,'Silicon_Fig1_OriginLab.zip','application/zip'));return;}
+  if(button.hasAttribute('data-export-benchmark')){await runOperation('exportBenchmark',{},'Exporting the Si reference curves',buffer=>download(buffer,'Silicon_Fig1_OriginLab.zip','application/zip'));return;}
   if(button.hasAttribute('data-inspect-benchmark')){
-    const protocol=$('#benchmark-protocol').value,k=Number($('#benchmark-surface').value),entry=S.benchmark.cases.find(x=>x.protocol===protocol&&x.k===k);S.form=clone(entry.config);S.relation='free';invalidate();
+    const protocol=$('#benchmark-protocol').value,k=Number($('#benchmark-surface').value),entry=S.benchmark.cases.find(x=>x.protocol===protocol&&x.k===k);S.form=clone(entry.config);S.form.case_label=resultLabel(S.form);S.form.input_note='';S.relation='free';invalidate();
     await runOperation('calculate',S.form,'Inspecting the selected silicon case',result=>{S.result=result;S.dirty=false;S.runtimeHasRun=true;S.tab='math';});return;
   }
 });
@@ -580,6 +587,6 @@ async function initialize(){
       ...S.cells.map(c=>({href:'#tutorial/cell/'+c.number,label:'Cell '+c.number+' · '+c.title,category:'Python tutorial',text:('cell '+c.number+' cell'+c.number+' '+c.title+' '+c.source).toLowerCase()})),
       ...Object.entries(RAMAN_DOCS.physics).map(([key,d])=>({href:'#physics/'+key,label:d.title,category:'Physics & equations',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()}))];
     renderNavigation();setMenu(false);renderRoute();
-  }catch(error){$('#main-content').innerHTML='<div class="card"><h1>Workspace could not load.</h1><p>'+esc(error.message)+'</p><button class="button" onclick="location.reload()">Reload workspace</button></div>';}
+  }catch(error){$('#main-content').innerHTML='<div class="card"><h1>The page could not load.</h1><p>'+esc(error.message)+'</p><button class="button" onclick="location.reload()">Reload page</button></div>';}
 }
 initialize();

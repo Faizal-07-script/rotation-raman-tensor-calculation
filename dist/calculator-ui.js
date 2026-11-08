@@ -20,12 +20,12 @@ S.previewDirty = false;
 function technicalTerm(text, kind='tensor', definition='') {
   return '<span class="technical-term term-'+kind+'" title="'+esc(definition)+'">'+esc(text)+'</span>';
 }
-function coefficientHelp(name) {
-  return '<p class="field-help">Each letter is a Raman tensor entry. Size and phase set its value.</p><details class="coefficient-help"><summary>What do the two inputs mean?</summary><p>'+technicalTerm('Coefficient size','size','The nonnegative modulus of a tensor entry')+' is the size of a tensor entry. '+technicalTerm('Coefficient phase','phase','The angle of a complex tensor entry, entered in degrees')+' gives its angle in the complex plane.</p>'+
-    math(String.raw`d=|d|e^{i\phi_d}`)+'<p>Size 1 with phase 0° gives d = 1; 180° gives d = −1; 90° gives d = i. Use 1 and 0° for the simple real example. Other letters follow the same rule. These are relative tensor values, not a sample-rotation angle.</p><p>A common phase of a whole tensor does not change intensity. Phase differences between entries of the same tensor can change interference. At size zero, phase has no effect.</p></details>';
+function coefficientHelp() {
+  return '<details class="coefficient-help"><summary>Modulus and phase</summary>'+
+    math(String.raw`d=|d|e^{i\phi_d}`)+'<p>Enter |d| in relative tensor units and φ<sub>d</sub> in degrees. For |d| = 1, the phases 0°, 180°, and 90° give d = 1, −1, and i, respectively. The same rule applies to the other tensor coefficients.</p></details>';
 }
 function complexValueText(symbol, size, phase) {
-  if(!Number.isFinite(size)||!Number.isFinite(phase)||size<0)return 'Enter a zero or positive size and a finite phase.';
+  if(!Number.isFinite(size)||!Number.isFinite(phase)||size<0)return 'Enter a nonnegative modulus and a finite phase.';
   const angle=phase*Math.PI/180;
   const clean=value=>Math.abs(value)<1e-12?0:Number(value.toPrecision(10));
   const real=clean(size*Math.cos(angle)),imag=clean(size*Math.sin(angle));
@@ -34,7 +34,7 @@ function complexValueText(symbol, size, phase) {
 }
 function coefficientEntryHtml(name,symbol,value,locked) {
   const id='coefficient-'+name.replace(/[^a-z0-9]/gi,'_')+'-'+symbol;
-  return '<div class="coefficient-entry"><div class="coefficient-row"><span class="coefficient-symbol">'+esc(symbol)+'</span><div class="field"><label class="term-size" for="'+id+'-size">2.5 Size |'+esc(symbol)+'|</label><input id="'+id+'-size" aria-label="'+esc(name+' '+symbol+' coefficient size')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="magnitude" type="number" min="0" step="any" value="'+esc(value.magnitude)+'" '+(locked?'disabled':'')+'></div><div class="field"><label class="term-phase" for="'+id+'-phase">2.5 Phase φ'+esc(symbol)+' (°)</label><input id="'+id+'-phase" aria-label="'+esc(name+' '+symbol+' coefficient phase in degrees')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="phase" type="number" step="any" value="'+esc(value.phase)+'" '+(locked?'disabled':'')+'></div></div><p class="coefficient-value" aria-live="polite" data-coefficient-value>Used in the tensor: <strong>'+esc(complexValueText(symbol,Number(value.magnitude),Number(value.phase)))+'</strong></p><p class="field-help">Size: relative tensor units. Phase: degrees; 0° gives a positive real entry when size is positive.</p></div>';
+  return '<div class="coefficient-entry"><div class="coefficient-row"><span class="coefficient-symbol">'+esc(symbol)+'</span><div class="field"><label class="term-size" for="'+id+'-size">2.5 |'+esc(symbol)+'|</label><input id="'+id+'-size" aria-label="'+esc(name+' |'+symbol+'|')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="magnitude" type="number" min="0" step="any" value="'+esc(value.magnitude)+'" '+(locked?'disabled':'')+'></div><div class="field"><label class="term-phase" for="'+id+'-phase">2.5 φ<sub>'+esc(symbol)+'</sub> (°)</label><input id="'+id+'-phase" aria-label="'+esc(name+' '+symbol+' coefficient phase in degrees')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="phase" type="number" step="any" value="'+esc(value.phase)+'" '+(locked?'disabled':'')+'></div></div><p class="coefficient-value" aria-live="polite" data-coefficient-value><strong>'+esc(complexValueText(symbol,Number(value.magnitude),Number(value.phase)))+'</strong></p></div>';
 }
 function calculationExplanation() {
   return '<details class="card common-calculation"><summary>How does the calculation work?</summary><ol><li><b>Set the axes.</b> The surface, in-plane X and lattice determine X, Y, Z and the matrix T. Y = Z × X.</li><li><b>Choose the tensor.</b> The material symmetry and Raman mode determine its allowed entries; you supply their values.</li><li><b>Transform the tensor.</b> '+math(String.raw`R_{\mathrm{lab}}=T^{\mathsf T}R_{\mathrm c}T`)+'</li><li><b>Set polarization.</b> The optical method supplies the incident and detection Jones states at the sample.</li><li><b>Calculate the amplitude, then intensity.</b> '+math(String.raw`\mathcal A=\mathbf e_s^\dagger R_\perp\mathbf E_i,\qquad I=|\mathcal A|^2`)+'</li></ol><p>Changing the surface rebuilds T. Changing the material or mode replaces the tensor. Changing the optical method replaces the polarization states. X/Y/Z describe geometry; Jones vectors describe polarization.</p><p>Within one tensor, add amplitudes before squaring. For unresolved orthogonal components of a degenerate mode, add their intensities.</p><div class="term-key"><span>Defined terms:</span>'+technicalTerm('Tensor components','tensor')+technicalTerm('Coefficient size','size')+technicalTerm('Coefficient phase','phase')+technicalTerm('Measurement axes','geometry')+'</div></details>';
@@ -42,7 +42,7 @@ function calculationExplanation() {
 function referenceEquationChecks() {
   const report=S.referenceChecks;
   if(!report)return '';
-  return '<section class="card reference-equation-checks"><h3>New-san reference: analytical equation checks</h3><p>Build-time checks for Paukatong et al., '+esc(report.reference.doi)+'. These are algebra and numerical checks of the stated model, not an independent laboratory review.</p><span class="tag success">'+report.passed+' / '+report.total+' checks passed</span>'+table(['Equation or case','What was checked','Residual'],report.checks.map(row=>[esc(row.label),esc(row.detail),esc(String(row.residual))]))+'<p class="small-note">'+esc(report.scope)+'</p><a class="text-link" href="./downloads/Reference_Equation_Checks.md" download>Read the analytical comparison ↓</a> · <a class="text-link" href="./data/reference-equation-checks.json" download>Download evidence JSON ↓</a></section>';
+  return '<section class="card reference-equation-checks"><h3>Reference equation checks</h3><p>Build-time checks for Paukatong et al., '+esc(report.reference.doi)+'. These are algebra and numerical checks of the stated model, not an independent laboratory review.</p><span class="tag success">'+report.passed+' / '+report.total+' checks passed</span>'+table(['Equation or case','What was checked','Residual'],report.checks.map(row=>[esc(row.label),esc(row.detail),esc(String(row.residual))]))+'<p class="small-note">'+esc(report.scope)+'</p><a class="text-link" href="./downloads/Reference_Equation_Checks.md" download>Read the analytical comparison ↓</a> · <a class="text-link" href="./data/reference-equation-checks.json" download>Download evidence JSON ↓</a></section>';
 }
 
 
@@ -72,11 +72,6 @@ function tuckAway(nodes, label, open = false) {
 renderControls = () => {
   const host = document.createElement('div');
   host.innerHTML = originalControls();
-  const first = host.querySelector('[data-section-key="01"] .form-section-body');
-  if (first) {
-    tuckAway([first.querySelector('#case-label')?.closest('.field'), first.querySelector('#input-note')?.closest('.field')], 'Label and notes');
-    tuckAway([first.querySelector('.optical-choice-note')], 'About this optical method');
-  }
   host.querySelectorAll('.mode-card .tensor-preview').forEach(node => tuckAway([node], 'View tensor matrices'));
   const orientation = host.querySelector('[data-section-key="03"] .form-section-body');
   if (orientation) {
@@ -85,9 +80,9 @@ renderControls = () => {
       const nodes = [lengths.previousElementSibling, lengths, lengths.nextElementSibling, lengths.nextElementSibling?.nextElementSibling, orientation.lastElementChild];
       tuckAway([...new Set(nodes)], 'Crystal lattice and units', !['Oh', 'Td'].includes(S.form.point_group));
     }
-    orientation.insertAdjacentHTML('afterbegin','<p class="field-help">These inputs define measurement axes, not polarization vectors. For silicon, (500) and (100) have the same normal direction.</p>');
+    orientation.insertAdjacentHTML('afterbegin','<p class="field-help">For Si, (500) and (100) have the same surface normal.</p>');
     const automatic = orientation.querySelector('[for="automatic-x"]');
-    if (automatic) automatic.insertAdjacentHTML('afterend', '<p class="field-help">The surface sets Z. Choose X within that surface, or let Automatic X choose a Cartesian reference. It does not read an axis from a paper. Y = Z × X is calculated automatically. Grey u/v/w fields are inactive while Automatic X is on.</p>');
+    if (automatic) automatic.insertAdjacentHTML('afterend', '<p class="field-help">The surface sets Z. Set X using [uvw], or let the program choose it. Y = Z × X.</p>');
   }
   const optical = host.querySelector('[data-section-key="04"] .form-section-body');
   const conditional = optical?.querySelector('.field-label');
@@ -105,7 +100,7 @@ renderControls = () => {
 };
 
 function calculationToolbar() {
-  return '<div class="calculator-toolbar" aria-label="Calculation actions"><div><strong>Set inputs. Review the axes. Calculate.</strong><small>Default example: Silicon (500), VV</small></div><div class="button-row">' +
+  return '<div class="calculator-toolbar" aria-label="Calculation actions"><div><strong>Review the inputs, then calculate.</strong><small>Default: Si (500), VV</small></div><div class="button-row">' +
     '<button class="button secondary" data-preview-inputs ' + (S.busy ? 'disabled' : '') + '>Review inputs</button>' +
     '<button class="button" data-calculate ' + (S.busy ? 'disabled' : '') + '><span aria-hidden="true">▶</span> Run calculation</button>' +
     '<button class="button secondary" data-reset-defaults ' + (S.busy ? 'disabled' : '') + '>Reset example</button>' +
@@ -128,7 +123,7 @@ function extremaCards(result) {
   if (!result?.channels?.length) return '';
   const channel = result.channels.find(c => c.name === S.focusChannel) || result.channels[0];
   const summary = channel.summary;
-  return '<section class="extrema-summary"><div class="summary-label"><strong>Continuous extrema</strong><select id="summary-channel" aria-label="Channel for the intensity extrema">' + result.channels.map(c => '<option ' + (c.name === channel.name ? 'selected' : '') + ' value="' + esc(c.name) + '">' + esc(c.name) + '</option>').join('') + '</select></div><div class="extrema-grid">' +
+  return '<section class="extrema-summary"><div class="summary-label"><strong>Maximum and minimum intensity</strong><select id="summary-channel" aria-label="Raman mode or tensor component">' + result.channels.map(c => '<option ' + (c.name === channel.name ? 'selected' : '') + ' value="' + esc(c.name) + '">' + esc(c.name) + '</option>').join('') + '</select></div><div class="extrema-grid">' +
     [['Maximum intensity', compact(summary.Imax)], ['Minimum intensity', compact(summary.Imin)], ['Maximum at', summary.alpha_max === null ? 'Every angle' : compact(summary.alpha_max) + '°'], ['Minimum at', summary.alpha_min === null ? 'Every angle' : compact(summary.alpha_min) + '°']].map(([label, value]) => '<div><span>' + label + '</span><strong>' + value + '</strong></div>').join('') + '</div></section>';
 }
 
@@ -217,7 +212,7 @@ renderCalculator = sectionName => {
   tabs.children[1].before(inputTab);
   tabs.querySelector('[data-result-tab="math"]').textContent = 'Step-by-step calculation';
   const advanced = document.createElement('details'); advanced.className = 'advanced-results';
-  advanced.innerHTML = '<summary>Checks, comparisons and benchmark</summary><div class="result-tabs" role="tablist" aria-label="Additional calculation outputs"></div>';
+  advanced.innerHTML = '<summary>Checks and comparisons</summary><div class="result-tabs" role="tablist" aria-label="Additional calculation outputs"></div>';
   const extraTabs = advanced.querySelector('.result-tabs');
   for (const tab of [...tabs.children]) {
     if (!['plots', 'inputs', 'math', 'values', 'frame'].includes(tab.dataset.resultTab)) extraTabs.append(tab);
@@ -254,7 +249,7 @@ document.addEventListener('change', event => { if (event.target.id === 'summary-
 if (calculatorOnly) {
   document.body.classList.add('calculator-only');
   $('.brand').href = fullWebsiteUrl;
-  $('.brand').setAttribute('aria-label', 'Open the full Raman Tensor Lab website');
+  $('.brand').setAttribute('aria-label', 'Open the full Rotation Raman Tensor Calculation website');
   $('.header-calculator').href = fullWebsiteUrl; $('.header-calculator').textContent = 'Full website ↗';
 }
 if (S.catalog) renderRoute(false);
@@ -265,27 +260,17 @@ document.addEventListener('input', event=>{
   const row=input.closest('.coefficient-entry');
   const size=Number(row.querySelector('[data-part="magnitude"]').value);
   const phase=Number(row.querySelector('[data-part="phase"]').value);
-  row.querySelector('[data-coefficient-value]').textContent='Used in the tensor: '+complexValueText(input.dataset.coefficient,size,phase);
+  row.querySelector('[data-coefficient-value]').textContent=complexValueText(input.dataset.coefficient,size,phase);
 });
 
 
 
 // A model selects the calculation presentation; crystal and optical inputs stay independent.
-function labFramework(form=S.form){return form.framework||'NEW_SAN';}
 const labReadForm=readForm;
-readForm=()=>{const f=labReadForm();f.framework=document.querySelector('#framework')?.value||labFramework();f.tensor_model='CRYSTAL_3D';return f;};
+readForm=()=>{const f=labReadForm();f.tensor_model='CRYSTAL_3D';f.case_label=resultLabel(f);f.input_note='';return f;};
 const labRenderControls=renderControls;
 renderControls=()=>{
   const host=document.createElement('div');host.innerHTML=labRenderControls();
-  const model=host.querySelector('#tensor-model')?.closest('.field');
-  if(model)model.outerHTML=selectField('framework','Calculation model',Object.entries(S.catalog.frameworks).map(([key,v])=>[key,v.label]),labFramework());
-  const optical=host.querySelector('#optical-method');
-  if(optical){optical.innerHTML=optionList(Object.entries(S.catalog.profiles),S.form.optics);optical.disabled=false;
-    const help=optical.closest('.field').querySelector('.field-help');if(help)help.textContent='All three models offer VV, VH and σ⁺α.';}
-  host.querySelector('#example')?.closest('.field')?.remove();
-  host.querySelector('[data-load-example]')?.remove();
-  const first=host.querySelector('[data-section-key="01"] summary');
-  if(first)first.innerHTML='<span class="setup-number">01</span><span>Calculation model and polarization</span>';
   const material=host.querySelector('#material');
   if(material){
     const order=['Si','GaAs',...Object.keys(S.catalog.materials).filter(k=>!['Si','GaAs'].includes(k))];
@@ -298,8 +283,7 @@ renderControls=()=>{
 };
 document.addEventListener('change',event=>{
   if(event.target.id!=='framework')return;
-  try{const next=event.target.value;S.form=readForm();S.form.framework=next;
-    if(Object.values(S.catalog.frameworks).some(model=>model.label===S.form.case_label))S.form.case_label=S.catalog.frameworks[next].label;
+  try{S.form=readForm();
     S.preview=null;invalidate();replaceControls();renderLiveFrame();}
   catch(error){toast(error.message);}
   event.stopImmediatePropagation();
@@ -347,7 +331,7 @@ function liveFrameContents(form){
   try{
     const frame=measurementFrame(form),fmt=x=>Math.abs(x)<5e-11?'0':Number(x.toPrecision(5)).toString();
     const matrix=rows=>String.raw`\begin{pmatrix}`+rows.map(row=>row.map(fmt).join('&')).join(String.raw`\\`)+String.raw`\end{pmatrix}`;
-    return '<div class="card-header"><div><span class="kicker">BEFORE INTENSITY</span><h3>X, Y, Z and T</h3></div><span class="tag success">Frame checked</span></div>'+
+    return '<div class="card-header"><div><h3>X, Y, Z and T</h3></div><span class="tag success">Frame checked</span></div>'+
       '<div class="live-frame-grid"><div class="live-axis-list">'+frame.axes.map((axis,i)=>'<div>'+math('XYZ'[i]+'='+matrix(axis.map(value=>[value])))+'</div>').join('')+'</div><div>'+math(String.raw`T=[X\ Y\ Z]=`+matrix(frame.T))+'</div></div>'+
       '<p class="small-note">Measurement axes in crystal coordinates. Y = Z × X. Checked: TᵀT = I and det(T) = +1.</p>'+
       '<button class="text-button" data-preview-inputs>Review tensors and Jones states before calculating →</button><span hidden data-frame-matrix="'+esc(JSON.stringify(frame.T))+'"></span>';
@@ -382,22 +366,21 @@ derivationModeHtml=()=>'<div class="derivation-view-picker"><div class="button-r
 const labIntensityCard=finalIntensityCard;
 finalIntensityCard=result=>{const host=document.createElement('div');host.innerHTML=labIntensityCard(result);host.querySelector('.final-intensity-card')?.classList.add('analytical-expression');return host.innerHTML;};
 calculationExplanation=()=>'<details class="card common-calculation"><summary>Common calculation</summary><p>Material → crystal tensor. Surface and in-plane reference → X, Y, Z and T. Rotate the tensor, insert the incident and detected states, multiply the amplitude by its conjugate, then draw I at each angle.</p><p>Changing the model keeps the declared material, orientation and optical method. For identical inputs, the complete-mode intensity agrees.</p></details>';
-calculationPipeline=()=>'<div class="calculation-pipeline" aria-label="Calculation stages">'+['Tensor','X, Y, Z and T','Rotated tensor','Polarization','Intensity','Polar plot'].map((label,i)=>'<div><span>0'+(i+1)+'</span><strong>'+label+'</strong></div>').join('')+'</div>';
-RAMAN_DOCS.tools['tensor-model']={title:'Calculation model',lead:'The material, orientation and polarization choices are shared by all three models.',sections:[
- {title:'Model 1 — New-san',paragraphs:['Follow the tensor rotation and Jones-state conventions of Paukatong et al. Si and GaAs provide the paper examples; the same transformation can be applied to the other library tensors.'],sources:['cubic']},
- {title:'Model 2 — My PPT slide',paragraphs:['Use the slide calculation with the selected material and measurement frame. Ag Cartesian contributions remain separate.']},
- {title:'Model 3 — Dr. Kumar',paragraphs:['Use Jones matrix multiplication on the XY block of the rotated crystal tensor. The added 3D rotation extends the original 2D notebook. The original notebook is included in the downloads.'],sources:['optical-source']}]};
-RAMAN_DOCS.tools['optical-method']={title:'Optical method',lead:'VV, VH and σ⁺α are available in every model.',sections:[
+calculationPipeline=()=>'<div class="calculation-pipeline" aria-label="Calculation stages">'+['Raman tensor','X, Y, Z and T','Rotated tensor','Polarization','Intensity','Polar plot'].map((label,i)=>'<div><span>0'+(i+1)+'</span><strong>'+label+'</strong></div>').join('')+'</div>';
+RAMAN_DOCS.tools['tensor-model']={title:'Calculation model',lead:'All three models use the selected material, orientation and polarization.',sections:[
+ {title:modelLabel('NEW_SAN'),paragraphs:['Raman tensor rotation and polarization states for Si and GaAs. See Eqs. (4), (5), and (11) and the supplementary information.'],sources:['cubic']},
+ {title:modelLabel('USER_PPT'),paragraphs:['Raman tensor rotation with separate Ag(xx), Ag(yy), and Ag(zz) contributions.']},
+ {title:modelLabel('DR_KUMAR'),paragraphs:['Multiply the Jones vectors using the XY block of the rotated Raman tensor. The original two-component calculation is available in the references.'],sources:['optical-source']}]};
+RAMAN_DOCS.tools['optical-method']={title:'Polarization',lead:'VV, VH and σ⁺α are available in every model.',sections:[
  {title:'VV and VH',paragraphs:['VV uses parallel linear polarization states; VH uses crossed linear states. Both scan θ.'],sources:['cubic']},
- {title:'σ⁺α',paragraphs:['Use θ=π/4 and β=β′=π/2 in New-san equation (11), then scan α. This is the paper’s detection-state scan.'],sources:['cubic']}]};
+ {title:'σ⁺α',paragraphs:['Use θ=π/4 and β=β′=π/2 in Eq. (11), then scan α.'],sources:['cubic']}]};
 RAMAN_DOCS.tools.examples={title:'Starting inputs',lead:'Silicon (500), T₂g, d=1, VV is ready on the first run.',sections:[{title:'Choose your own case',paragraphs:['Select the model and optical method, material, mode, tensor coefficients, surface and in-plane reference. Check the axes and T before calculating. The input JSON files in the download provide reproducible examples.']}]};
-RAMAN_DOCS.tools['jones-controls']={title:'Jones states',lead:'The optical method sets the normalized incident and detected polarization states.',sections:[{title:'New-san equation (11)',paragraphs:['θ is the linear-polarization angle; α is the detection-state angle; β and β′ are the relative Jones phases. Their selected values are shown before intensity is calculated.'],sources:['cubic']}]};
+RAMAN_DOCS.tools['jones-controls']={title:'Jones vectors',lead:'Incident and detected polarizations.',sections:[{title:'Equation (11)',paragraphs:['θ is the linear-polarization angle; α is the detection-state angle; β and β′ are the relative Jones phases. Their selected values are shown before intensity is calculated.'],sources:['cubic']}]};
 for(const key of Object.keys(RAMAN_DOCS.tools))if(/circular|conditional|interference|selection-rules|optical-comparison/.test(key))delete RAMAN_DOCS.tools[key];
 RAMAN_DOCS.physics={'paper-order':{title:'Tensor rotation and intensity',lead:'Follow the same connected sequence used in the results.',sections:[
  {title:'Frame and tensor',paragraphs:['Start with the crystal Raman tensors. Construct X, Y, Z and T from the chosen surface, in-plane reference and lattice, then check TᵀT=I and det(T)=+1. Calculate R′=TᵀRT.'],sources:['cubic']},
  {title:'Amplitude and intensity',paragraphs:['Insert the Jones states. Show R′eᵢ, then eₛ*R′eᵢ. Multiply the complete amplitude by its complex conjugate. Sum intensities only for orthogonal unresolved phonon components, then evaluate the angular expression for the polar plot.'],sources:['cubic']}]}};
-const descriptions={NEW_SAN:'Tensor rotation and polarization states from the paper and supplementary information.',USER_PPT:'The slide calculation, with separate Ag Cartesian contributions.',DR_KUMAR:'Jones matrix multiplication with the rotated crystal tensor; 3D extension of the original notebook.'};
-renderHome=()=>heading('RAMAN TENSOR LAB · VERSION 5','Rotation Raman Tensor Calculation','Choose one of three calculation models. The material, orientation and optical choices stay available in each model.')+
- '<div class="button-row"><a class="button" href="#calculator">Open calculator →</a><a class="button secondary" href="'+esc(calculatorWebsiteUrl)+'">Calculator-only website ↗</a><a class="text-link" href="#tutorial">Python tutorial</a></div><div class="cards-grid">'+Object.entries(S.catalog.frameworks).map(([key,model])=>'<section class="card"><h2>'+esc(model.label)+'</h2><p>'+esc(descriptions[key])+'</p></section>').join('')+'</div>';
+const descriptions={NEW_SAN:'Tensor rotation and polarization states from the paper and supplementary information.',USER_PPT:'Separate Ag(xx), Ag(yy), and Ag(zz) contributions.',DR_KUMAR:'Jones vectors and the XY block of the rotated Raman tensor.'};
+renderHome=()=>heading('VERSION 5','Rotation Raman Tensor Calculation','Calculate Raman intensity for a selected material, orientation, and polarization.')+
+ '<div class="button-row"><a class="button" href="#calculator">Open calculator →</a><a class="button secondary" href="'+esc(calculatorWebsiteUrl)+'">Calculator-only website ↗</a><a class="text-link" href="#tutorial">Python tutorial</a></div><div class="cards-grid">'+Object.keys(S.catalog.frameworks).map(key=>'<section class="card"><h2>'+esc(modelLabel(key))+'</h2><p>'+esc(descriptions[key])+'</p></section>').join('')+'</div>';
 renderOpticalGuide=()=>'<section class="card optical-guide"><h2>VV, VH and σ⁺α</h2><p>Each model offers all three polarization choices. Review X, Y, Z, T, the rotated tensors and the Jones states before intensity is calculated.</p>'+sourceLinks(['cubic','optical-source'])+'</section>';
-const sidebarNote=document.querySelector('.sidebar-footer small');if(sidebarNote)sidebarNote.textContent='1 New-san · 2 My PPT slide · 3 Dr. Kumar';
