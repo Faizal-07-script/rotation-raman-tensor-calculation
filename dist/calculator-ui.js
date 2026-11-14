@@ -34,7 +34,7 @@ function complexValueText(symbol, size, phase) {
 }
 function coefficientEntryHtml(name,symbol,value,locked) {
   const id='coefficient-'+name.replace(/[^a-z0-9]/gi,'_')+'-'+symbol;
-  return '<div class="coefficient-entry"><div class="coefficient-row"><span class="coefficient-symbol">'+esc(symbol)+'</span><div class="field"><label class="term-size" for="'+id+'-size">2.5 |'+esc(symbol)+'|</label><input id="'+id+'-size" aria-label="'+esc(name+' |'+symbol+'|')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="magnitude" type="number" min="0" step="any" value="'+esc(value.magnitude)+'" '+(locked?'disabled':'')+'></div><div class="field"><label class="term-phase" for="'+id+'-phase">2.5 φ<sub>'+esc(symbol)+'</sub> (°)</label><input id="'+id+'-phase" aria-label="'+esc(name+' '+symbol+' coefficient phase in degrees')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="phase" type="number" step="any" value="'+esc(value.phase)+'" '+(locked?'disabled':'')+'></div></div><p class="coefficient-value" aria-live="polite" data-coefficient-value><strong>'+esc(complexValueText(symbol,Number(value.magnitude),Number(value.phase)))+'</strong></p></div>';
+  return '<div class="coefficient-entry"><div class="coefficient-row"><span class="coefficient-symbol">'+esc(symbol)+'</span><div class="field"><label class="term-size" for="'+id+'-size">'+numberedControl('coefficient-value','|'+esc(symbol)+'|')+'</label><input id="'+id+'-size" aria-label="'+esc(name+' |'+symbol+'|')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="magnitude" type="number" min="0" step="any" value="'+esc(value.magnitude)+'" '+(locked?'disabled':'')+'></div><div class="field"><label class="term-phase" for="'+id+'-phase">'+numberedControl('coefficient-value','φ<sub>'+esc(symbol)+'</sub> (°)')+'</label><input id="'+id+'-phase" aria-label="'+esc(name+' '+symbol+' coefficient phase in degrees')+'" data-coefficient="'+esc(symbol)+'" data-mode="'+esc(name)+'" data-part="phase" type="number" step="any" value="'+esc(value.phase)+'" '+(locked?'disabled':'')+'></div></div><p class="coefficient-value" aria-live="polite" data-coefficient-value><strong>'+esc(complexValueText(symbol,Number(value.magnitude),Number(value.phase)))+'</strong></p></div>';
 }
 function calculationExplanation() {
   return '<details class="card common-calculation"><summary>How does the calculation work?</summary><ol><li><b>Set the axes.</b> The surface, in-plane X and lattice determine X, Y, Z and the matrix T. Y = Z × X.</li><li><b>Choose the tensor.</b> The material symmetry and Raman mode determine its allowed entries; you supply their values.</li><li><b>Transform the tensor.</b> '+math(String.raw`R_{\mathrm{lab}}=T^{\mathsf T}R_{\mathrm c}T`)+'</li><li><b>Set polarization.</b> The optical method supplies the incident and detection Jones states at the sample.</li><li><b>Calculate the amplitude, then intensity.</b> '+math(String.raw`\mathcal A=\mathbf e_s^\dagger R_\perp\mathbf E_i,\qquad I=|\mathcal A|^2`)+'</li></ol><p>Changing the surface rebuilds T. Changing the material or mode replaces the tensor. Changing the optical method replaces the polarization states. X/Y/Z describe geometry; Jones vectors describe polarization.</p><p>Within one tensor, add amplitudes before squaring. For unresolved orthogonal components of a degenerate mode, add their intensities.</p><div class="term-key"><span>Defined terms:</span>'+technicalTerm('Tensor components','tensor')+technicalTerm('Coefficient size','size')+technicalTerm('Coefficient phase','phase')+technicalTerm('Measurement axes','geometry')+'</div></details>';
@@ -54,7 +54,7 @@ renderHome = () => {
 
 numberedControl = (id, label) => originalNumberedControl(id, label).replace(/^(\d+\.\d+)\s+/, '<span class="control-number">$1</span> ');
 section = (number, title, content, open = false, full = false) =>
-  '<details data-section-key="' + esc(number) + '" class="form-section setup-card ' + (full ? 'full-width' : '') + '" open><summary><span class="setup-number">' + esc(number) + '</span><span>' + title + '</span></summary><div class="form-section-body">' + content + '</div></details>';
+  '<details data-section-key="' + esc(number) + '" class="form-section setup-card ' + (full ? 'full-width' : '') + '" open><summary><span class="setup-number">' + Number(number) + '</span><span>' + title + '</span></summary><div class="form-section-body">' + content + '</div></details>';
 
 function tuckAway(nodes, label, open = false) {
   const items = nodes.filter(Boolean);
@@ -80,7 +80,6 @@ renderControls = () => {
       const nodes = [lengths.previousElementSibling, lengths, lengths.nextElementSibling, lengths.nextElementSibling?.nextElementSibling, orientation.lastElementChild];
       tuckAway([...new Set(nodes)], 'Crystal lattice and units', !['Oh', 'Td'].includes(S.form.point_group));
     }
-    orientation.insertAdjacentHTML('afterbegin','<p class="field-help">For Si, (500) and (100) have the same surface normal.</p>');
   }
   const optical = host.querySelector('[data-section-key="04"] .form-section-body');
   const conditional = optical?.querySelector('.field-label');
@@ -92,23 +91,19 @@ renderControls = () => {
   }
   const displayCard = host.querySelector('[data-section-key="05"]');
   if (displayCard) displayCard.open = false;
-  const action = host.querySelector('[data-calculate]');
-  if (action) action.innerHTML = 'Run calculation <span aria-hidden="true">→</span>';
   return host.innerHTML;
 };
 
 function calculationToolbar() {
-  return '<div class="calculator-toolbar" aria-label="Calculation actions"><div><strong>Review the inputs, then calculate.</strong><small>Default: Si (500), VV</small></div><div class="button-row">' +
-    '<button class="button secondary" data-preview-inputs ' + (S.busy ? 'disabled' : '') + '>Review inputs</button>' +
+  return '<div class="calculator-toolbar" aria-label="Calculation actions"><div><strong>Run the intensity scan</strong><small>The first run loads Python.</small></div><div class="button-row">' +
     '<button class="button" data-calculate ' + (S.busy ? 'disabled' : '') + '><span aria-hidden="true">▶</span> Run calculation</button>' +
     '<button class="button secondary" data-reset-defaults ' + (S.busy ? 'disabled' : '') + '>Reset example</button>' +
     '<button class="button secondary" data-result-download="csv" ' + (!S.result || S.dirty || S.busy ? 'disabled' : '') + '>Export CSV</button></div></div>';
 }
 
 function calculationPipeline() {
-  return calculationExplanation()+'<div class="calculation-pipeline" aria-label="Calculation stages">' +
-    [['01', 'Model'], ['02', 'Tensor'], ['03', 'Measurement axes'], ['04', 'Polarization'], ['05', 'Sampling'], ['06', 'Intensity']].map(([number, label]) =>
-      '<div><span>' + number + '</span><strong>' + label + '</strong></div>').join('') + '</div>';
+  return '<div class="calculation-pipeline" aria-label="Calculation overview">'+
+    ['Raman tensor','X, Y, Z and T','Rotated tensor','Polarization','Intensity','Polar plot'].map(label=>'<div><strong>'+label+'</strong></div>').join('')+'</div>';
 }
 
 function finalIntensityCard(result) {
@@ -152,31 +147,13 @@ function localDefinitions(symbols, seen) {
   }).map(symbol => '<div class="worked-definition"><span class="technical-term term-'+(symbol.id.includes('phase')?'phase':symbol.id==='coefficient_magnitude'?'size':['frame','frame_axes'].includes(symbol.id)?'geometry':'tensor')+'" data-inline data-tex="' + esc(symbol.latex) + '"></span><p>' + esc(symbol.meaning) + '<small>' + esc(symbol.units) + '</small></p></div>').join('');
 }
 
-derivationHtml = (entries, explained = true) => {
-  const groups = [];
-  const seen = new Set();
-  for (const entry of entries) {
-    if (entry.kind === 'section') groups.push({ title: entry.value, step: entry.step || String(groups.length + 1).padStart(2, '0'), entries: [] });
-    else { if (!groups.length) groups.push({ title: 'Calculation', step: '01', entries: [] }); groups.at(-1).entries.push(entry); }
-  }
-  return '<div class="worked-navigation">'+(groups.some(group=>group.title.startsWith('Final intensity'))?'<button class="button secondary small" data-open-final>Jump to final intensity</button>':'')+'<button class="text-button" data-expand-math>Expand all steps</button><button class="text-button" data-collapse-math>Collapse all steps</button></div>' +
-    '<div class="worked-columns-label"><span>Explanation and symbol definitions</span><span>Complete mathematical calculation</span></div>' +
-    groups.map(group => '<details class="result-math-section worked-section ' + (group.title.startsWith('Final intensity') ? 'is-final' : '') + '" id="worked-step-' + esc(group.step) + '" open><summary><span class="step-badge">' + esc(group.step) + '</span>' + esc(group.title) + '</summary><div class="result-math-body">' +
-      group.entries.map(entry => entry.kind === 'equation' ? '<article class="worked-row ' + (explained ? '' : 'mathematics-only') + '">' +
-        (explained ? '<div class="worked-explanation"><span class="operation-number">STEP ' + esc(entry.step || '') + '</span><p>' + esc(entry.explanation || 'Evaluate the displayed expression using the selected inputs.') + '</p>' + localDefinitions(entry.symbols, seen) +
-          '<details class="worked-source"><summary>Source and conventions</summary><p>' + esc(entry.derivation_note || '') + '</p>' + sourceLinks(entry.reference_ids) + '</details></div>' : '') +
-        '<div class="worked-mathematics">' + math(entry.value) + '<button class="text-button copy-step" data-copy-equation="' + esc(entry.value) + '">Copy LaTeX</button></div></article>' : '<p class="worked-note">' + rich(entry.value) + '</p>').join('') + '</div></details>').join('') +
-    (explained || !S.result ? '' : derivationLegendHtml(S.result));
-};
-
-derivationModeHtml = () => '<div class="derivation-view-picker"><div class="button-row" role="group" aria-label="Derivation view">' +
-  [['explained', 'Explanation + mathematics'], ['mathematics', 'Mathematics only']].map(([key, label]) => '<button class="button ' + (S.derivationMode === key ? '' : 'secondary ') + 'small" data-derivation-mode="' + key + '" aria-pressed="' + (S.derivationMode === key) + '">' + label + '</button>').join('') + '</div><p class="small-note">Read each numbered operation from left to right. The original tensor coefficients are kept in the equations.</p></div>';
-
 function renderInputReview() {
-  const preview = S.preview || (!S.dirty ? S.result?.input_review : null);
-  if (!preview || S.previewDirty) return '<div class="card input-review-empty"><span class="kicker">BEFORE CALCULATING</span><h3>Review your measurement frame</h3><p>Check the surface normal, the in-plane axes, the rotated tensors and the actual Jones states.</p><button class="button secondary" data-preview-inputs ' + (S.busy ? 'disabled' : '') + '>Review current inputs</button></div>';
-  return '<section class="card"><div class="card-header"><div><span class="kicker">INPUT REVIEW</span><h3>Measurement axes and optical states</h3></div><span class="tag success">Geometry checked</span></div><p>Check these axes, tensors and polarization states before running the intensity calculation.</p>' +
-    (preview.axes?.length ? '<div class="axes-preview">' + preview.axes.map(axis => '<div><strong>' + esc(axis.label) + '</strong>' + math(axis.latex) + '</div>').join('') + '</div><p class="small-note">Measurement unit axes expressed in crystal Cartesian coordinates. These are not Jones vectors. Y = Z × X. T has these axes as columns; TᵀT = I and det(T) = +1.</p>' : '<p>This effective 2D source has no crystal-orientation input.</p>') + '</section>' + derivationHtml(preview.equations, true);
+  const currentCheck=S.previewDirty?null:S.preview;
+  const preview=currentCheck||(!S.dirty?S.result?.input_review:null);
+  const message=preview?(currentCheck||S.runtimeHasRun?'Review is up to date.':'Showing the axes and states for the displayed case.'):'Select Check current inputs to refresh the review.';
+  return '<section class="card input-review-card"><div class="card-header"><h3>Before calculating</h3><button class="button secondary small" data-preview-inputs '+(S.busy?'disabled':'')+'>Check current inputs</button></div><p>Check the measurement axes, rotated tensors and Jones states without running the intensity scan.</p><p class="small-note" data-review-status role="status">'+message+'</p>' +
+    (preview?.axes?.length ? '<div class="input-review-details"><div class="axes-preview">' + preview.axes.map(axis => '<div><strong>' + esc(axis.label) + '</strong>' + math(axis.latex) + '</div>').join('') + '</div><p class="small-note">X and Y span the measurement plane. Z is perpendicular to it. T has X, Y and Z as columns.</p></div>' : '') + '</section>' +
+    (preview ? '<div class="input-review-details">'+derivationHtml(preview.equations,true,'review')+'</div>' : '');
 }
 
 resultBody = () => {
@@ -189,26 +166,17 @@ resultBody = () => {
 };
 
 renderCalculator = sectionName => {
-  if (!S.dirty && S.result?.input_review) { S.preview=S.result.input_review;S.previewDirty=false; }
   const host = document.createElement('div');
   host.innerHTML = originalCalculator(sectionName);
   const headingNode = host.querySelector('.page-title-row');
   if (headingNode) {
-    headingNode.querySelector('.page-lead').textContent = 'Choose the crystal, surface and polarization. Review the axes, then run the calculation.';
     headingNode.insertAdjacentHTML('beforeend', '<a class="text-link calculator-page-link" href="' + esc(calculatorOnly ? fullWebsiteUrl : calculatorWebsiteUrl) + '">' + (calculatorOnly ? 'Full website ↗' : 'Calculator-only website ↗') + '</a>');
   }
-  const quickstart = host.querySelector('#calculator-quickstart');
-  if (quickstart) quickstart.remove();
   const layout = host.querySelector('.calc-layout');
   layout.insertAdjacentHTML('beforebegin', calculationToolbar());
   const results = host.querySelector('.calc-results');
-  results.insertAdjacentHTML('afterbegin', calculationPipeline());
+  results.querySelector('.calc-column-title').insertAdjacentHTML('afterend', calculationPipeline());
   const tabs = host.querySelector('.result-tabs');
-  const inputTab = document.createElement('button');
-  inputTab.className = 'result-tab'; inputTab.dataset.resultTab = 'inputs'; inputTab.textContent = 'Input review';
-  inputTab.setAttribute('role', 'tab'); inputTab.setAttribute('aria-selected', String(S.tab === 'inputs')); inputTab.tabIndex = S.tab === 'inputs' ? 0 : -1;
-  tabs.children[1].before(inputTab);
-  tabs.querySelector('[data-result-tab="math"]').textContent = 'Step-by-step calculation';
   const advanced = document.createElement('details'); advanced.className = 'advanced-results';
   advanced.innerHTML = '<summary>Checks and comparisons</summary><div class="result-tabs" role="tablist" aria-label="Additional calculation outputs"></div>';
   const extraTabs = advanced.querySelector('.result-tabs');
@@ -216,11 +184,17 @@ renderCalculator = sectionName => {
     if (!['plots', 'inputs', 'math', 'values', 'frame'].includes(tab.dataset.resultTab)) extraTabs.append(tab);
   }
   advanced.open = [...extraTabs.children].some(tab => tab.dataset.resultTab === S.tab);
+  setResultTabStops(tabs);setResultTabStops(extraTabs);
   tabs.after(advanced);
   return host.innerHTML;
 };
 
-invalidate = () => { originalInvalidate(); S.previewDirty = true; };
+invalidate = () => {
+  originalInvalidate(); S.previewDirty = true;
+  const status=$('[data-review-status]');
+  if (status) status.textContent='Inputs changed. Select Check current inputs to refresh the review.';
+  $$('.input-review-details').forEach(detail=>detail.remove());
+};
 renderRoute = (scroll = true) => {
   if (calculatorOnly && !location.hash.startsWith('#calculator')) {
     if (location.hash && location.hash !== '#home') { location.href = fullWebsiteUrl + location.hash; return; }
@@ -232,14 +206,13 @@ renderRoute = (scroll = true) => {
 document.addEventListener('click', async event => {
   const button = event.target.closest('button'); if (!button) return;
   if (button.hasAttribute('data-preview-inputs')) {
-    try { S.form = readForm(); } catch (error) { toast(error.message); return; }
+    try { S.form = readForm(); applyRelation(S.form); } catch (error) { toast(error.message); return; }
     await runOperation('preflight', S.form, 'Reviewing axes and optical states', result => { S.preview = result; S.previewDirty = false; S.tab = 'inputs'; });
+    if(S.tab==='inputs')$('[data-preview-inputs]')?.focus({preventScroll:true});
   } else if (button.hasAttribute('data-reset-defaults')) {
-    S.form = clone(S.catalog.examples[S.catalog.default_example].config); S.selectedExample = S.catalog.default_example; S.relation = 'free'; S.preview = null; invalidate(); renderRoute(false); toast('Silicon (500), VV inputs restored. Review or calculate to update the result.');
+    S.form = clone(S.catalog.examples[S.catalog.default_example].config); S.selectedExample = S.catalog.default_example; S.relation = 'free'; S.preview = null; invalidate(); renderRoute(false); toast('Silicon (500), VV inputs restored.');
   } else if (button.hasAttribute('data-show-math')) {
     S.tab = 'math'; renderRoute(false); $('#result-pane')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } else if (button.hasAttribute('data-open-final')) {
-    const section = $('.worked-section.is-final'); if (section) { section.open = true; section.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   } else if (button.hasAttribute('data-cartesian-svg') && S.result && !S.dirty) download(cartesianPlotSvg(S.result),'Raman_Intensity_Cartesian.svg','image/svg+xml');
   else if (button.hasAttribute('data-copy-equation')) await copyText(button.dataset.copyEquation);
 });
@@ -330,7 +303,7 @@ function liveFrameContents(form){
     return '<div class="card-header"><div><h3>X, Y, Z and T</h3></div><span class="tag success">Frame checked</span></div>'+
       '<div class="live-frame-grid"><div class="live-axis-list">'+frame.axes.map((axis,i)=>'<div>'+math('XYZ'[i]+'='+matrix(axis.map(value=>[value])))+'</div>').join('')+'</div><div>'+math(String.raw`T=[X\ Y\ Z]=`+matrix(frame.T))+'</div></div>'+
       '<p class="small-note">Measurement axes in crystal coordinates. Y = Z × X. Checked: TᵀT = I and det(T) = +1.</p>'+
-      '<button class="text-button" data-preview-inputs>Review tensors and Jones states before calculating →</button><span hidden data-frame-matrix="'+esc(JSON.stringify(frame.T))+'"></span>';
+      '<span hidden data-frame-matrix="'+esc(JSON.stringify(frame.T))+'"></span>';
   }catch(error){return '<h3>X, Y, Z and T</h3><p role="status">'+esc(error.message)+'</p><p class="small-note">Correct the geometry before calculating intensity.</p>';}
 }
 function renderLiveFrame(){const host=document.querySelector('#live-frame');if(!host)return;try{host.innerHTML=liveFrameContents(readForm());typeset(host);}catch(error){host.innerHTML='<p role="status">'+esc(error.message)+'</p>';}}
@@ -345,24 +318,26 @@ renderCalculator=sectionName=>{
 };
 
 // Keep the established left explanation / right mathematics layout.
-derivationHtml=(entries,explained=true)=>{
-  const groups=[],seen=new Set();
+derivationHtml=(entries,explained=true,view='math')=>{
+  const groups=[],seen=new Set(),review=view==='review';
+  const reviewTitles={'01':'Crystal Raman tensors','02':'Surface and measurement axes','03':'Rotated Raman tensors','04':'Jones states'};
+  const badge=(className,label,step)=>'<span class="'+className+'"><span>'+label+'</span> '+esc(review?'A'+String(step).split('.').map(Number).join('.'):step)+'</span>';
   for(const entry of entries){if(entry.kind==='section')groups.push({title:entry.value,step:entry.step,entries:[]});else{if(!groups.length)groups.push({title:'Calculation',step:'01',entries:[]});groups.at(-1).entries.push(entry);}}
   return '<div class="worked-navigation"><button class="text-button" data-expand-math>Expand all steps</button><button class="text-button" data-collapse-math>Collapse all steps</button></div>'+
-    '<p class="analytical-color-key">Red equations: analytical Raman tensor and Raman intensity.</p>'+
+    (review?'':'<p class="analytical-color-key">Red equations: analytical Raman tensor and Raman intensity.</p>')+
     (explained?'<div class="worked-columns-label"><span>Explanation and definitions</span><span>Mathematical steps</span></div>':'')+
-    groups.map(group=>'<details class="result-math-section worked-section" open id="worked-step-'+esc(group.step)+'"><summary><span class="step-badge">'+esc(group.step)+'</span>'+esc(group.title)+'</summary><div class="result-math-body">'+group.entries.map(entry=>{
+    groups.map(group=>'<details class="result-math-section worked-section '+(review?'review-section':'')+'" '+(review?'':'open')+' id="'+(review?'review-step-':'worked-step-')+esc(group.step)+'"><summary>'+badge('step-badge',review?'Check':'Step',group.step)+esc((review&&reviewTitles[group.step])||group.title)+'</summary><div class="result-math-body">'+group.entries.map(entry=>{
       if(entry.kind!=='equation')return '<p class="worked-note">'+rich(entry.value)+'</p>';
+      const number=badge('operation-number',review?'Check':'Eq.',entry.step);
       return '<article class="worked-row '+(explained?'':'mathematics-only ')+(entry.analytical_kind?'analytical-expression':'')+'"'+(entry.analytical_kind?' data-analytical="'+esc(entry.analytical_kind)+'"':'')+'>'+
-       (explained?'<div class="worked-explanation"><span class="operation-number">STEP '+esc(entry.step)+'</span><p>'+esc(entry.explanation)+'</p>'+localDefinitions(entry.symbols,seen)+'<small class="paper-equation-ref">'+esc(entry.source_equation||entry.derivation_note||'')+'</small></div>':'')+
-       '<div class="worked-mathematics">'+math(entry.value)+'<button class="text-button copy-step" data-copy-equation="'+esc(entry.value)+'">Copy LaTeX</button></div></article>';
+       (explained?'<div class="worked-explanation">'+number+'<p>'+esc(entry.explanation)+'</p>'+localDefinitions(entry.symbols,seen)+'<small class="paper-equation-ref">'+esc(entry.source_equation||entry.derivation_note||'')+'</small></div>':'')+
+       '<div class="worked-mathematics">'+(explained?'':number)+math(entry.value)+'<button class="text-button copy-step" data-copy-equation="'+esc(entry.value)+'">Copy LaTeX</button></div></article>';
     }).join('')+'</div></details>').join('')+(explained||!S.result?'':derivationLegendHtml(S.result));
 };
 derivationModeHtml=()=>'<div class="derivation-view-picker"><div class="button-row" role="group" aria-label="Derivation view">'+[['explained','Explanation + mathematics'],['mathematics','Mathematics only']].map(([key,label])=>'<button class="button '+(S.derivationMode===key?'':'secondary ')+'small" data-derivation-mode="'+key+'" aria-pressed="'+(S.derivationMode===key)+'">'+label+'</button>').join('')+'</div></div>';
 const labIntensityCard=finalIntensityCard;
 finalIntensityCard=result=>{const host=document.createElement('div');host.innerHTML=labIntensityCard(result);host.querySelector('.final-intensity-card')?.classList.add('analytical-expression');return host.innerHTML;};
 calculationExplanation=()=>'<details class="card common-calculation"><summary>Common calculation</summary><p>Material → crystal tensor. Surface and in-plane reference → X, Y, Z and T. Rotate the tensor, insert the incident and detected states, multiply the amplitude by its conjugate, then draw I at each angle.</p><p>Changing the model keeps the declared material, orientation and optical method. For identical inputs, the complete-mode intensity agrees.</p></details>';
-calculationPipeline=()=>'<div class="calculation-pipeline" aria-label="Calculation stages">'+['Raman tensor','X, Y, Z and T','Rotated tensor','Polarization','Intensity','Polar plot'].map((label,i)=>'<div><span>0'+(i+1)+'</span><strong>'+label+'</strong></div>').join('')+'</div>';
 RAMAN_DOCS.tools['tensor-model']={title:'Calculation model',lead:'All three models use the selected material, orientation and polarization.',sections:[
  {title:modelLabel('NEW_SAN'),paragraphs:['Raman tensor rotation and polarization states for Si and GaAs. See Eqs. (4), (5), and (11) and the supplementary information.'],sources:['cubic']},
  {title:modelLabel('USER_PPT'),paragraphs:['Raman tensor rotation with separate Ag(xx), Ag(yy), and Ag(zz) contributions.']},

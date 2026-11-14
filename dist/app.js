@@ -163,7 +163,7 @@ function renderReferences(downloadOnly=false){
     ['IPYNB','261024 - Raman Tensor Rotation Ver 5.0','Version 5 · revision '+release.revision+' · all 22 code cells',release.files.notebook.filename],
     ['ZIP','All Python programs','Current notebook and Python source, supporting files and original references',release.files.bundle.filename],
     ['PY','261024 - Raman Tensor Rotation Ver 5.0 · Python source','Matching Version 5 source · 22 executable Python cell boundaries',release.files.python.filename],
-    ['MD','First run & numbered tools','Input formats, units, last-cell instructions and expected example outputs','QUICKSTART.md'],
+    ['MD','Version 5 quickstart','Input formats, units, notebook instructions and expected example outputs','QUICKSTART.md'],
     ['JSON','Silicon (500) startup input','The same Si T2g, VV, d = 1 example used by the notebook and website','example_input_v5.json'],
     ['MD','Symbols, units & derivation references','Short glossary in Full mathematics; detailed definitions and sources in Explained derivation','Symbols_And_References.md'],
     ['MD','Saito-sensei feedback audit','What was already available, what was added and which reviews remain pending','SAITO_FEEDBACK_AUDIT.md'],
@@ -186,14 +186,12 @@ function renderReferences(downloadOnly=false){
 function optionList(options,selected){return options.map(([value,label])=>'<option value="'+esc(value)+'" '+(value===selected?'selected':'')+'>'+esc(label)+'</option>').join('');}
 function numberedControl(id,label){
   const numbers={'framework':'1.1','optical-method':'1.2',
-    'material':'2.1','point-group':'2.2','ag-relation':'2.4','source-a':'2.1','source-A':'2.2','source-delta':'2.3','source-phi':'2.4',
-    'orientation-kind':'3.1','surface':'3.2','normal-side':'3.5','frame-angle':'3.6',
+    'material':'2.1','point-group':'2.2','mode-list':'2.3','ag-relation':'2.4','coefficient-value':'2.5','source-a':'2.1','source-A':'2.2','source-delta':'2.3','source-phi':'2.4',
+    'orientation-kind':'3.1','surface':'3.2','manual-frame':'3.2','hkl-indices':'3.3','uvw-indices':'3.4','normal-side':'3.5','frame-angle':'3.6',
     'direct-theta_i_deg':'4.1','direct-beta_i_deg':'4.2','direct-theta_s0_deg':'4.3','direct-beta_s_deg':'4.4','theta-zero':'4.5','analyzer-zero':'4.6',
     'circular-spin':'4.7','circular-order':'4.8','circular-ell':'4.9','circular-charges':'4.10','circular-absorption':'4.11','circular-scope':'4.12',
-    'angular-grid':'5.1','normalize':'5.2','cartesian':'5.3','show-frame':'5.4',
-    'comparison-channel':'9.3','comparison-normalized':'9.4',
-    'benchmark-d':'10.1','benchmark-grid':'10.2','benchmark-surface':'10.5','benchmark-protocol':'10.6'};
-  const number=numbers[id]||(/^index-[hkl]$/.test(id)?'3.3':/^index-[uvw]$/.test(id)?'3.4':/^lattice-[012]$/.test(id)?'3.7':/^lattice-[345]$/.test(id)?'3.8':null);
+    'angular-grid':'5.1','normalize':'5.2','cartesian':'5.3','show-frame':'5.4'};
+  const number=numbers[id]||(/^lattice-[012]$/.test(id)?'3.7':/^lattice-[345]$/.test(id)?'3.8':null);
   return number?number+' '+label:label;
 }
 function selectField(id,label,options,value,help='',disabled=false){return '<div class="field"><label for="'+id+'">'+numberedControl(id,label)+'</label><select id="'+id+'" '+(disabled?'disabled':'')+'>'+optionList(options,value)+'</select>'+(help?'<span class="field-help">'+help+'</span>':'')+'</div>';}
@@ -240,7 +238,7 @@ function renderControls(){
     material=selectField('material','Material',Object.entries(S.catalog.materials).map(([key,m])=>[key,m.label]),f.material)+
       selectField('point-group','Point group',Object.entries(S.catalog.groups).map(([key,g])=>[key,key+' / '+g.symbol]).concat([['CUSTOM','Custom Cartesian 3×3 tensor']]),f.point_group,'The material preset fixes its stated point group.',f.material!=='GENERAL')+
       '<p class="small-note">'+esc(info.note)+'</p>'+(groupInfo?'<p class="small-note"><strong>Axes:</strong> '+esc(groupInfo.axes)+'</p>':'')+
-      '<span class="field-label">2.3 Raman modes</span><div class="modes-grid">'+Object.keys(definitions(f)).map(name=>'<label class="checkbox-row"><input type="checkbox" data-mode-select="'+esc(name)+'" '+(f.modes.includes(name)?'checked':'')+'><span>'+esc(name)+'</span></label>').join('')+'</div>';
+      '<span class="field-label">'+numberedControl('mode-list','Raman modes')+'</span><div class="modes-grid">'+Object.keys(definitions(f)).map(name=>'<label class="checkbox-row"><input type="checkbox" data-mode-select="'+esc(name)+'" '+(f.modes.includes(name)?'checked':'')+'><span>'+esc(name)+'</span></label>').join('')+'</div>';
     if(f.point_group==='D2h'&&Object.values(definitions(f)).some(x=>x.irrep==='Ag'))material+=selectField('ag-relation','D2h Ag relation',[['free','Independent a, b, c'],['equal','a = b = c'],['ab','a = b'],['bc','b = c'],['ac','a = c']],S.relation,'Copies the complete complex value; this optional relation is not required by D₂h symmetry.');
     if(f.point_group==='CUSTOM')material+='<div class="field"><label for="custom-tensor">2.6 Custom 3×3 tensor JSON</label><textarea id="custom-tensor" rows="5">'+esc(JSON.stringify(f.custom_tensor||[['1','0','0'],['0','0.8','0'],['0','0','0.6']],null,2))+'</textarea><span class="field-help">Numeric entries or strings such as \"1+0.2j\". Source code is never evaluated.</span></div>';
     else material+=f.modes.map(name=>{
@@ -253,15 +251,20 @@ function renderControls(){
   let orientation='';
   if(!source){
     const manual=f.orientation==='matrix',surface=Object.entries(S.catalog.surfaces).find(([,v])=>v[0].every((x,i)=>x===f.hkl[i]))?.[0]||'Custom hkl';
-    orientation=selectField('orientation-kind','Orientation input',[['hkl','Surface (hkl) and in-plane direction [uvw]'],['matrix','Enter matrix T']],f.orientation||'hkl');
-    if(manual)orientation+='<div class="field"><label for="manual-frame">3.2 Frame columns X, Y, Z in crystal coordinates</label><textarea id="manual-frame" rows="5">'+esc(JSON.stringify(f.T_manual||[[1,0,0],[0,1,0],[0,0,1]],null,2))+'</textarea><span class="field-help">Real, orthonormal, determinant +1. hkl, uvw and ψ are inactive.</span></div>';
-    else orientation+=selectField('surface','Surface (hkl)',Object.keys(S.catalog.surfaces).concat('Custom hkl').map(x=>[x,x]),surface)+
+    orientation=selectField('orientation-kind','Orientation input',[['hkl','Surface (hkl) and in-plane X [uvw]'],['matrix','Enter matrix T']],f.orientation||'hkl');
+    if(manual)orientation+='<div class="field"><label for="manual-frame">'+numberedControl('manual-frame','Frame columns X, Y, Z in crystal coordinates')+'</label><textarea id="manual-frame" rows="5">'+esc(JSON.stringify(f.T_manual||[[1,0,0],[0,1,0],[0,0,1]],null,2))+'</textarea><span class="field-help">Real, orthonormal, determinant +1. (hkl), [uvw] and ψ are inactive.</span></div>';
+    else orientation+=selectField('surface','Surface plane (hkl)',Object.keys(S.catalog.surfaces).concat('Custom hkl').map(x=>[x,x]),surface)+
+      '<div class="orientation-input-group" role="group" aria-labelledby="hkl-label" aria-describedby="hkl-note"><span class="field-label" id="hkl-label">'+numberedControl('hkl-indices','Miller indices (hkl)')+'</span>'+
+      '<p class="field-help" id="hkl-note">(hkl) specifies the crystal surface. Z is perpendicular to that surface.</p>'+
       '<div class="field-row">'+['h','k','l'].map((name,i)=>numberField('index-'+name,name==='l'?'ℓ':name,f.hkl[i],{integer:true})).join('')+'</div>'+
-      '<span class="field-label">In-plane direction [uvw]</span>'+
+      (f.material==='Si'?'<p class="field-help">For silicon, (500) and (100) have the same surface normal.</p>':'')+'</div>'+
+      '<div class="orientation-input-group" role="group" aria-labelledby="uvw-label" aria-describedby="uvw-note uvw-condition"><span class="field-label" id="uvw-label">'+numberedControl('uvw-indices','In-plane X reference [uvw]')+'</span>'+
+      '<p class="field-help" id="uvw-note">Enter the crystal direction that becomes X at ψ = 0°. Both X and Y lie in the surface; Y = Z × X.</p>'+
       '<div class="field-row">'+['u','v','w'].map((name,i)=>numberField('index-'+name,name,f.uvw?.[i]??'',{integer:true})).join('')+'</div>'+
-      '<p class="field-help">Enter a nonzero [uvw] with hu + kv + ℓw = 0. Changing the surface keeps these values.</p>'+
+      '<p class="field-help" id="uvw-condition">Use a nonzero [uvw] with hu + kv + ℓw = 0. Check it again when you change (hkl).</p></div>'+
       selectField('normal-side','Direction of Z',[['1','Along the (hkl) normal'],['-1','Opposite to the (hkl) normal']],String(f.normal_sign))+
-      numberField('frame-angle','Rotation about Z: ψ (°)',f.azimuth_deg);
+      numberField('frame-angle','Rotation about Z: ψ (°)',f.azimuth_deg)+
+      '<p class="field-help">ψ turns X and Y within the surface without changing Z.</p>';
     orientation+='<hr><span class="field-label">Lattice lengths · one common unit</span><div class="field-row">'+['a₀','b₀','c₀'].map((name,i)=>numberField('lattice-'+i,name,f.lattice[i],{min:0})).join('')+'</div><span class="field-label">Lattice angles · degrees</span><div class="field-row">'+['α','β','γ'].map((name,i)=>numberField('lattice-'+(i+3),name,f.lattice[i+3])).join('')+'</div><p class="field-help">Illustrative ratios must be replaced for a physical tilted noncubic surface.</p>';
   }
   const p=f.paper_parameters||{},dj=f.direct_jones||{theta_i_deg:45,beta_i_deg:90,theta_s0_deg:45,beta_s_deg:0};
@@ -282,14 +285,13 @@ function renderControls(){
     checkbox('cartesian','Also generate Cartesian plots',f.cartesian_plots)+
     checkbox('show-frame','Show the 3D measurement frame',f.show_geometry!==false)+
     '<p class="field-help">CSV contains the unnormalized intensities.</p>';
-  return '<div class="calc-controls"><fieldset id="calculator-form" '+(S.busy?'disabled':'')+'>'+
+  return '<div class="calc-controls"><h2 class="calc-column-title" id="input-parameters-title">Input parameters</h2><fieldset id="calculator-form" aria-labelledby="input-parameters-title" '+(S.busy?'disabled':'')+'>'+
     section('01','Model and polarization',start,true,true)+
     section('02',source?'Source tensor parameters':'Material and Raman tensor',material,true)+
     (!source?section('03','Crystal orientation and lattice',orientation,false):'')+
     section('04','Jones vectors',optics,false)+
     section('05','Display settings',display,false)+
-    '<div class="calc-action-bar"><button class="button" type="button" data-calculate '+(S.busy?'disabled':'')+'>6. Calculate rotation + Raman <span aria-hidden="true">→</span></button></div></fieldset>'+
-    '<p class="small-note">The first run loads Python in your browser and may take a little longer.</p></div>';
+    '</fieldset></div>';
 }
 
 function valueNumber(id,fallback,integer=false){
@@ -418,15 +420,15 @@ function renderCheckingReport(report,reference=false){
   return '<div class="card"><div class="card-header"><div><h3>'+esc(report.kind)+'</h3><p>'+esc(!reference&&S.result?resultLabel(S.result.configuration):(report.case||'Reference equations from the notebook'))+'</p></div><span class="tag '+(report.status==='passed'?'success':'failed')+'">'+esc(report.status)+' · '+report.passed+'/'+report.total+'</span></div><p class="small-note">'+esc(report.scope)+'</p>'+(!reference&&(S.dirty||!S.runtimeHasRun)?'<div class="callout warning">'+(S.dirty?'This evidence belongs to the previous calculated inputs. Calculate to update it.':'Stored result. Calculate to regenerate this evidence in the current browser session.')+'</div>':'')+(report.not_applicable?'<p class="small-note">'+report.not_applicable+' source/model-specific check'+(report.not_applicable===1?' is':'s are')+' explicitly not applicable.</p>':'')+(report.notation_note?'<div class="callout warning">'+esc(report.notation_note)+'</div>':'')+'<div class="button-row">'+(reference?'<button class="button secondary small" data-download-validation '+(S.busy?'disabled':'')+'>Download reference validation JSON</button>':'<button class="button secondary small" data-result-download="checking" '+(S.dirty?'disabled':'')+'>Download checking report JSON</button>')+'<a class="text-link" href="#introduction/checking-procedures">Read the validation guide →</a></div>'+sourceLinks(['kumar-original','sympy-validation'])+'</div>'+renderProcedureRows(report.rows);
 }
 function renderValidation(){
-  return '<div class="card"><h3>Run the full model-validation suite</h3><p class="small-note">Checks source algebra, symmetry, complex rotations, independent reference equations, all implemented point groups and numerical edge cases. It also executes 25 procedures based on QWP source reference, including explicitly identified extensions, and records their purpose, expected identity and measured residual.</p><div class="button-row"><button class="button secondary" data-run-validation '+(S.busy?'disabled':'')+'>8. Run full validation</button><a class="text-link" href="#introduction/checking-procedures">Procedures and purposes →</a></div>'+
+  return '<div class="card"><h3>Run the full model-validation suite</h3><p class="small-note">Checks source algebra, symmetry, complex rotations, independent reference equations, all implemented point groups and numerical edge cases. It also executes 25 procedures based on QWP source reference, including explicitly identified extensions, and records their purpose, expected identity and measured residual.</p><div class="button-row"><button class="button secondary" data-run-validation '+(S.busy?'disabled':'')+'>Run full validation</button><a class="text-link" href="#introduction/checking-procedures">Procedures and purposes →</a></div>'+
     (S.validation?'<div style="margin-top:22px"><span class="tag '+(S.validation.status==='passed'?'success':'failed')+'">'+esc(S.validation.status)+'</span>'+S.validation.checks.map(x=>'<div class="check-item">'+esc(x)+'</div>').join('')+'</div>':'<p class="small-note" style="margin-top:16px">The reference procedures have not run in this browser session. The catalog describes expectations, not test results.</p>')+'</div>'+
     (S.validation?.optical_reference?renderCheckingReport(S.validation.optical_reference,true):'<details class="card"><summary>Inspect the 25 procedures before running</summary>'+renderProcedureRows(S.catalog.validation_procedures,true)+'</details>');
 }
 function renderComparisons(){
   const channels=[...new Set(S.comparisons.flatMap(x=>x.channels))];
-  return '<div class="card"><div class="card-header"><div><h3>Compare results</h3><p>Keep up to six calculated cases with their original physical inputs.</p></div><button class="button secondary small" data-clear-comparisons '+(!S.comparisons.length||S.busy?'disabled':'')+'>9.2 Clear</button></div>'+
+  return '<div class="card"><div class="card-header"><div><h3>Compare results</h3><p>Keep up to six calculated cases with their original physical inputs.</p></div><button class="button secondary small" data-clear-comparisons '+(!S.comparisons.length||S.busy?'disabled':'')+'>Clear</button></div>'+
     '<div class="snapshot-list">'+S.comparisons.map((x,i)=>'<div><strong>'+(i+1)+'. '+esc(x.label)+'</strong><small>'+esc(polarizationLabel(x.optics))+'</small></div>').join('')+'</div>'+
-    (channels.length?selectField('comparison-channel','Common channel',channels.map(x=>[x,x]),S.comparisonChannel||channels[0])+checkbox('comparison-normalized','Use common per-mode normalization',true)+'<button class="button secondary small" data-render-comparison '+(S.busy?'disabled':'')+'>9.5 Render comparison</button>':'<p class="small-note">Calculate a case, then use Save comparison above the result.</p>')+'</div>'+
+    (channels.length?selectField('comparison-channel','Common channel',channels.map(x=>[x,x]),S.comparisonChannel||channels[0])+checkbox('comparison-normalized','Use common per-mode normalization',true)+'<button class="button secondary small" data-render-comparison '+(S.busy?'disabled':'')+'>Render comparison</button>':'<p class="small-note">Calculate a case, then use Save comparison above the result.</p>')+'</div>'+
     (S.comparison?'<figure class="result-figure"><figcaption><strong>Saved results</strong><button class="text-button" data-download-comparison>SVG ↓</button></figcaption><img src="'+S.comparison.png+'" alt="Polar plots of saved results"></figure>':'');
 }
 function renderBenchmark(){
@@ -452,12 +454,15 @@ function resultBody(){
 }
 function renderCalculator(section){
   const r=S.result;
-  return heading('CALCULATOR','Raman intensity calculator','Choose your inputs in tools 1–5, then press 6. View the plots, equations and data in the result tabs.')+
-    '<details class="card doc-section" id="calculator-quickstart"><summary><strong>First run: numbered tools &amp; Silicon (500) inputs</strong></summary><p>Follow <strong>1 → 2 → 3 → 4 → 5 → 6</strong>, then inspect results and use <strong>7</strong> to download. Optional: <strong>8</strong> validates, <strong>9</strong> compares and <strong>10</strong> benchmarks silicon.</p><p>The initial example is <strong>Silicon (500), VV</strong>: full 3D tensor, Si / Oh / T2g, shared d = 1 with zero phase, hkl = (5,0,0), uvw = (0,−5,0), normal +1, ψ = 0°, equal lattice lengths and 90° lattice angles. Tool 1.3 also offers the other reference examples; press 1.4 to load the selected example and then 6 to calculate.</p><p>Expected: one T2g curve combining three orthogonal phonon components, 721 samples, zero at θ = 0° and 90°, and a maximum of 1 at θ = 45° (absolute tolerance 1e-10). For a VV/VH pair, change 1.2 to the paired linear profile and calculate again.</p><p>Mathematical steps offers 1. Full mathematics, with one short symbol list at the bottom, and 2. Explained derivation, with detailed definitions and sources after each equation. The downloaded notebook calculates the silicon example automatically after all 22 cells run, and every cell prints its own success message. On this webpage the first result is labeled as a saved reference; press 6 to run it in your browser.</p><div class="button-row"><a class="button secondary small" href="./downloads/QUICKSTART.md?v=5-si500-symbols" download>Download input guide</a><a class="text-link" href="./downloads/example_input_v5.json?v=5-si500-symbols" download>Silicon input JSON ↓</a><a class="text-link" href="./downloads/Symbols_And_References.md?v=5-si500-symbols" download>Symbols &amp; references ↓</a></div></details>'+
-    '<div class="calc-layout">'+renderControls()+'<section class="calc-results" id="calculator-results"><div class="calc-status" id="calculation-status">'+(S.dirty?'<strong>Inputs changed — calculate to update the result.</strong><p>Previous figures describe previous inputs. Current-result downloads are disabled.</p>':r?'<strong>'+esc(resultLabel(r.configuration))+'</strong><p>'+(!S.runtimeHasRun?'Example result. Run calculation to update it.':'Calculation complete.')+'</p>':'<strong>Ready for your inputs.</strong><p>Start a calculation to generate all outputs.</p>')+'</div>'+
+  return heading('CALCULATOR','Raman intensity calculator','Choose the crystal, orientation and polarization. Use Input review to check them before calculating.')+
+    '<div class="calc-layout">'+renderControls()+'<section class="calc-results" id="calculator-results" aria-labelledby="calculator-results-title"><h2 class="calc-column-title" id="calculator-results-title">Review and results</h2><div class="calc-status" id="calculation-status">'+(S.dirty?'<strong>Inputs changed — calculate to update the result.</strong><p>Previous figures describe previous inputs. Current-result downloads are disabled.</p>':r?'<strong>'+esc(resultLabel(r.configuration))+'</strong><p>'+(!S.runtimeHasRun?'Example result. Run calculation to update it.':'Calculation complete.')+'</p>':'<strong>Ready for your inputs.</strong><p>Start a calculation to generate all outputs.</p>')+'</div>'+
     (S.error?'<div class="engine-error"><strong>Calculation could not complete.</strong><p>'+esc(S.error.split('\n').filter(Boolean).at(-1))+'</p><details><summary>Show diagnostic details</summary><pre>'+esc(S.error)+'</pre></details></div>':'')+
-    '<div class="results-toolbar"><div class="button-row"><button class="button small" data-result-download="zip" '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>7.1 Download complete result ↓</button><button class="button secondary small" data-result-download="csv" '+(!r||S.dirty||S.busy?'disabled':'')+'>7.2 Raw CSV ↓</button><button class="button secondary small" data-add-comparison '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>9.1 Save comparison</button></div></div>'+
-    '<div class="result-tabs" role="tablist" aria-label="Calculation outputs">'+[['plots','Polar plots'],['math','Mathematical steps'],['values','Intensity values'],['frame','Measurement axes'],['procedures','Checking procedures'],['checks','Calculation checks'],['latex','LaTeX'],['validation','Validation'],['comparisons','Comparisons'],['benchmark','Si reference calculation']].map(([key,label])=>'<button class="result-tab" role="tab" data-result-tab="'+key+'" aria-selected="'+(S.tab===key)+'" tabindex="'+(S.tab===key?'0':'-1')+'">'+label+'</button>').join('')+'</div><div class="result-pane" role="tabpanel" id="result-pane">'+resultBody()+'</div></section></div>';
+    '<div class="results-toolbar"><div class="button-row"><button class="button small" data-result-download="zip" '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>Download complete result ↓</button><button class="button secondary small" data-result-download="csv" '+(!r||S.dirty||S.busy?'disabled':'')+'>Raw CSV ↓</button><button class="button secondary small" data-add-comparison '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>Save comparison</button></div></div>'+
+    '<div class="result-tabs" role="tablist" aria-label="Review and results">'+[['inputs','Input review','A'],['plots','Polar plots','B'],['math','Step-by-step calculation','C'],['values','Intensity values'],['frame','Measurement axes'],['procedures','Checking procedures'],['checks','Calculation checks'],['latex','LaTeX'],['validation','Validation'],['comparisons','Comparisons'],['benchmark','Si reference calculation']].map(([key,label,letter])=>'<button class="result-tab" id="result-tab-'+key+'" role="tab" data-result-tab="'+key+'" aria-controls="result-pane" aria-selected="'+(S.tab===key)+'" tabindex="'+(S.tab===key?'0':'-1')+'">'+(letter?'<span class="result-tab-letter" aria-hidden="true">'+letter+'</span>':'')+label+'</button>').join('')+'</div><div class="result-pane" role="tabpanel" aria-labelledby="result-tab-'+esc(S.tab)+'" id="result-pane">'+resultBody()+'</div></section></div>';
+}
+function setResultTabStops(tabList){
+  const tabs=$$('.result-tab',tabList),selected=tabs.find(tab=>tab.getAttribute('aria-selected')==='true')||tabs[0];
+  tabs.forEach(tab=>tab.tabIndex=tab===selected?0:-1);
 }
 function syncCalculatorTabRoute(){
   if(!location.hash.startsWith('#calculator'))return;
@@ -544,7 +549,7 @@ document.addEventListener('click',async event=>{
   if(button.hasAttribute('data-print')){$$('.walkthrough-block,.full-source').forEach(x=>x.open=true);window.print();return;}
   if(button.hasAttribute('data-load-example')){S.form=clone(S.catalog.examples[S.selectedExample].config);S.relation='free';if(S.form.tensor_model==='CRYSTAL_3D')S.lastCrystal=clone(S.form);invalidate();renderRoute(false);toast('Example loaded. Review inputs, then calculate.');return;}
   if(button.dataset.derivationMode){S.derivationMode=button.dataset.derivationMode;$('#result-pane').innerHTML=resultBody();typeset($('#result-pane'));return;}
-  if(button.dataset.resultTab){S.tab=button.dataset.resultTab;syncCalculatorTabRoute();$$('.result-tab').forEach(x=>{const active=x.dataset.resultTab===S.tab;x.setAttribute('aria-selected',String(active));x.tabIndex=active?0:-1;});$('#result-pane').innerHTML=resultBody();typeset($('#result-pane'));return;}
+  if(button.dataset.resultTab){S.tab=button.dataset.resultTab;syncCalculatorTabRoute();$$('.result-tab').forEach(tab=>tab.setAttribute('aria-selected',String(tab===button)));$$('.result-tabs').forEach(setResultTabStops);const pane=$('#result-pane');pane.setAttribute('aria-labelledby',button.id);pane.innerHTML=resultBody();typeset(pane);return;}
   if(button.hasAttribute('data-calculate')){
     try{S.form=readForm();applyRelation(S.form);}catch(error){S.error=error.message;renderRoute(false);return;}
     await runOperation('calculate',S.form,'Calculating rotation + Raman',result=>{S.result=result;S.dirty=false;S.runtimeHasRun=true;S.tab='plots';toast('Calculation complete. Plots and mathematical steps are ready.');});return;
@@ -580,7 +585,7 @@ document.addEventListener('click',async event=>{
 });
 document.addEventListener('keydown',event=>{
   if(!event.target.matches('.result-tab')||!['ArrowLeft','ArrowRight'].includes(event.key))return;
-  event.preventDefault();const tabs=$$('.result-tab'),i=tabs.indexOf(event.target),next=tabs[(i+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];next.click();next.focus();
+  event.preventDefault();const tabs=$$('.result-tab',event.target.closest('.result-tabs')),i=tabs.indexOf(event.target),next=tabs[(i+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length];next.click();next.focus();
 });
 function search(query){
   const node=$('#search-results');query=query.trim().toLowerCase();if(!query){node.hidden=true;return;}

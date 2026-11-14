@@ -31,9 +31,11 @@ for filename in ['raman_engine.py', 'web_bridge.py', 'calculator-ui.js']:
 [Open the calculator](https://faizal-07-script.github.io/raman-tensor-calculator/)
 · [Full website and documentation](https://faizal-07-script.github.io/rotation-raman-tensor-calculation/)
 
-This website opens directly in the calculator. Choose the crystal, surface,
-in-plane direction and polarization. Use **Review inputs** to check X, Y, Z and
-the frame matrix, then **Run calculation**.
+This website opens directly in the calculator. Choose the crystal, surface
+(hkl) for the normal Z, in-plane X reference [uvw], and polarization. In
+**A · Input review**, select **Check current inputs** to check the axes,
+rotated tensors and Jones states. Select **Run calculation** for
+**B · Polar plots** and **C · Step-by-step calculation**.
 
 The results include polar plots, the final intensity equation and numbered
 matrix steps. English explanations and new symbol definitions appear on the

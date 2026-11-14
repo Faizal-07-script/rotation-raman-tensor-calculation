@@ -21,10 +21,11 @@ run all 22 cells in order. Each cell prints its number and a completion message.
 The initial example is silicon (500), VV, with T2g coefficient d=1. Its polar
 plot appears in Cell 22. The matching Python file and input JSON are in the ZIP.
 
-In the website, choose the crystal, tensor, surface, in-plane X direction and
-polarization. Y is calculated from Z × X. Select **Review inputs** to inspect
-the axes, frame matrix, rotated tensors and Jones states before calculating.
-Then select **Run calculation**.
+On the website, choose the crystal, tensor and polarization. The plane (hkl)
+sets the normal Z; [uvw] sets X in the surface at ψ = 0°. Y is calculated
+from Z × X. In **A · Input review**, select **Check current inputs** to
+inspect the axes, rotated tensors and Jones states. Select **Run calculation**
+for **B · Polar plots** and **C · Step-by-step calculation**.
 
 ## Mathematical results
 
