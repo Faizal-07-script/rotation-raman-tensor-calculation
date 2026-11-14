@@ -1,9 +1,8 @@
-"""Browser adapter for the unchanged scientific functions in notebook version 5.
+"""Browser adapter for the scientific functions in notebook version 5.
 
 The notebook supplies all tensors, rotations, Jones states, amplitudes,
 mathematical traces, validation and scientific figures. This adapter validates
-JSON inputs and returns browser-readable results; it does not supply any
-reference intensity formula or fit a curve.
+JSON inputs, selects displayed channels and returns browser-readable results.
 """
 
 WEB_STATE = dict(run=None, derivation=None, figures=[], comparisons=[], benchmark=None, validation=None)
@@ -188,6 +187,60 @@ def web_preflight(input_json):
     return web_json(web_input_review_view(prepare_input_review(cfg)))
 
 
+def web_include_full_ag(run, derivation):
+    """Expose the already calculated coherent Ag mode as an additional plot."""
+    cfg=run['config']
+    if not cfg.get('show_full_ag') or cfg['point_group']!='D2h' or 'Ag' not in run['results']:
+        return
+    name, label = 'Ag', 'Ag (full tensor)'
+    family = run['families'][name]
+    result = run['results'][name]
+    final = next(item for item in derivation['complete_finals'] if item['source_mode']==name)
+    run['display_channels'][label]=dict(name=label,base_mode=name,source_mode=name,
+        component=None,kind='Complete coherent Ag tensor',optical=result['optical'],
+        records=result['terms'],values=family['values'],curve=run['curves'][name],
+        summary=run['summaries'][name],partner_curves=run['component_curves'][name],
+        normalization_group=name)
+    run['display_curves'][label]=run['curves'][name]
+    run['display_summaries'][label]=run['summaries'][name]
+    run['presentation_policy']['Ag']='The component plots are separate. The full Ag plot uses the coherent intensity of one complete tensor.'
+    run['presentation_policy']['complete_mode']='The full Ag tensor is also shown as a plot when selected; complete modes remain in the audit.'
+
+    for entry in derivation['entries']:
+        if entry.get('source_equation')=='Complete coherent Raman mode':
+            entry['value']=(r'\begin{gathered}'
+                r'\mathcal A_{\mu}=\hat e_s^*R^{\prime}_{\mu}\hat e_i,\quad'
+                r'\mu\in\{xx,yy,zz\}\\[4pt]'
+                r'\mathcal A_{A_g}=\mathcal A_{xx}+\mathcal A_{yy}+\mathcal A_{zz}\\[4pt]'
+                r'I_{A_g}=\left|\mathcal A_{A_g}\right|^2'
+                r'\end{gathered}')
+            entry['explanation']='Add the three complex amplitudes, including their relative phases, before squaring.'
+            entry['source_equation']=entry['derivation_note']='Full Ag tensor: coherent sum'
+            entry['reference_ids']=['PROGRAM_ALGEBRA']
+            entry['symbols']=[
+                dict(id='ag_component_amplitudes',latex=r'\mathcal A_{\mu}',
+                    meaning='Complex scattering amplitude from component μ of one Ag tensor.',units='relative amplitude'),
+                dict(id='ag_rotated_components',latex=r'R^{\prime}_{\mu}',
+                    meaning='Component μ (xx, yy or zz) after rotation to the measurement frame.',units='relative tensor units'),
+            ]
+            break
+    trace=CalculationTrace(final['variable'],cfg)
+    trace.entries=derivation['entries']
+    trace.section_number,trace.operation_number=map(int,trace.entries[-1]['step'].split('.'))
+    plot_expression=display_intensity(run['summaries'][name],final['variable'])
+    plot_equation='I_{A_g}('+raman_latex(final['variable'])+')'+r'\approx '+raman_latex(plot_expression)
+    _lab_tex(trace,plot_equation,
+        'The full Ag polar plot uses this intensity at each scan angle.',
+        'Full Ag tensor: polar plot',analytical='raman_intensity')
+    trace.entries[-1]['reference_ids']=['PROGRAM_ALGEBRA']
+    mathematics=trace.markdown(False)
+    derivation.update(markdown=mathematics,mathematics_markdown=mathematics,
+        explained_markdown=trace.markdown(True),symbol_legend=calculation_symbol_legend(trace.entries),
+        reference_ids=calculation_reference_ids(trace.entries))
+    derivation['finals'].append({**final,'channel':label,'plot_equation':plot_equation})
+    derivation['complete_finals'].remove(final)
+
+
 def web_result(run, derivation, figures):
     rows=[]
     for name,item in run['display_channels'].items():
@@ -211,7 +264,8 @@ def web_result(run, derivation, figures):
         input_review=web_input_review_view(prepare_input_review(run['config'])),
         analytical_intensity=[dict(channel=row['channel'],
             symbolic='I('+raman_latex(row['variable'])+')='+raman_latex(row['expression']),
-            numerical='I('+raman_latex(row['variable'])+')='+raman_latex(row['substituted']))
+            numerical=row['plot_equation'] if 'plot_equation' in row else
+                'I('+raman_latex(row['variable'])+')='+raman_latex(row['substituted']))
             for row in derivation['finals']],
         complete_mode_intensity=[dict(channel=row['channel'],source_mode=row['source_mode'],
             symbolic='I('+raman_latex(row['variable'])+')='+raman_latex(row['expression']),
@@ -237,6 +291,7 @@ def web_calculate(input_json):
     run["checking_procedures"]=checking_procedures_for_run(run)
     web_progress('Preparing the equations…')
     derivation=detailed_calculation(run)
+    web_include_full_ag(run, derivation)
     web_progress('Drawing the figures…')
     figures=publication_figures(run)
     if cfg.get('show_geometry'):
@@ -331,6 +386,8 @@ _lab_web_configuration = web_configuration
 def web_configuration(data):
     cfg=_lab_web_configuration(data)
     cfg["framework"]=framework_for(data)
+    if data.get("show_full_ag") is True and cfg.get("point_group")=="D2h" and "Ag" in cfg["modes"]:
+        cfg["show_full_ag"]=True
     return prepare_framework_config(cfg)
 
 _lab_web_catalog = web_catalog

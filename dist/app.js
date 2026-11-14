@@ -246,7 +246,8 @@ function renderControls(){
     else material+=f.modes.map(name=>{
       const def=definitions(f)[name];if(!def)return '';
       return '<div class="mode-card"><h4>'+esc(name)+'</h4><p class="tensor-component-label">'+technicalTerm((def.components||['Complete tensor']).join(' · '),'tensor','Nonzero entries in the original crystal-basis matrices')+'</p><div class="tensor-preview">'+def.tensors.map((tex,i)=>'<p class="small-note">'+esc(def.components?.[i]||'Complete tensor')+'</p>'+math(tex)).join('')+'</div>'+coefficientHelp(name)+
-      def.parameters.map(symbol=>{const value=f.mode_values[name][symbol],locked=def.irrep==='Ag'&&f.point_group==='D2h'&&((S.relation==='equal'&&symbol!=='a')||(S.relation==='ab'&&symbol==='b')||(S.relation==='bc'&&symbol==='c')||(S.relation==='ac'&&symbol==='c'));return coefficientEntryHtml(name,symbol,value,locked);}).join('')+'</div>';
+      def.parameters.map(symbol=>{const value=f.mode_values[name][symbol],locked=def.irrep==='Ag'&&f.point_group==='D2h'&&((S.relation==='equal'&&symbol!=='a')||(S.relation==='ab'&&symbol==='b')||(S.relation==='bc'&&symbol==='c')||(S.relation==='ac'&&symbol==='c'));return coefficientEntryHtml(name,symbol,value,locked);}).join('')+
+      (f.point_group==='D2h'&&def.irrep==='Ag'?checkbox('show-full-ag','Full Ag Tensor — Coherent Sum',f.show_full_ag):'')+'</div>';
     }).join('');
   }
   let orientation='';
@@ -304,6 +305,7 @@ function readForm(){
   }
   f.material=$('#material')?.value||f.material;f.point_group=$('#point-group')?.value||f.point_group;
   f.modes=$$('[data-mode-select]:checked').map(x=>x.dataset.modeSelect);
+  f.show_full_ag=!!$('#show-full-ag')?.checked;
   $$('[data-coefficient]').forEach(input=>{const mode=input.dataset.mode,symbol=input.dataset.coefficient;f.mode_values[mode]=f.mode_values[mode]||{};f.mode_values[mode][symbol]=f.mode_values[mode][symbol]||{};if(input.value===''||!Number.isFinite(input.valueAsNumber))throw new Error('Enter a finite coefficient value for '+mode+' '+symbol+'.');f.mode_values[mode][symbol][input.dataset.part]=input.valueAsNumber;});
   f.orientation=$('#orientation-kind')?.value||'hkl';f.lattice=f.lattice.map((x,i)=>valueNumber('lattice-'+i,x));
   if(f.orientation==='matrix')f.T_manual=JSON.parse($('#manual-frame').value);
@@ -354,8 +356,10 @@ function groupChange(group){
 }
 
 function resultFigures(figures,frameOnly=false){
-  return figures.map((figure,index)=>({figure,index})).filter(({figure})=>frameOnly?figure.name==='measurement_frame':figure.name!=='measurement_frame').map(({figure,index})=>
-    '<figure class="result-figure"><figcaption><strong>'+esc(figure.name.replaceAll('_',' '))+'</strong><div class="figure-actions"><button data-figure-svg="'+index+'" '+(S.dirty?'disabled':'')+'>SVG ↓</button><button data-figure-export="'+index+'" data-extension="png" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PNG 600 dpi ↓</button><button data-figure-export="'+index+'" data-extension="pdf" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PDF ↓</button></div></figcaption><img src="'+figure.png+'" alt="'+esc(figure.name.replaceAll('_',' '))+'"></figure>').join('')||'<div class="empty-state"><p>No 3D frame applies to this optical-source model.</p></div>';
+  return figures.map((figure,index)=>({figure,index})).filter(({figure})=>frameOnly?figure.name==='measurement_frame':figure.name!=='measurement_frame').map(({figure,index})=>{
+    const label=figure.name==='polar_Ag__full_tensor'?'Ag (full tensor) — polar plot':figure.name.replaceAll('_',' ');
+    return '<figure class="result-figure"><figcaption><strong>'+esc(label)+'</strong><div class="figure-actions"><button data-figure-svg="'+index+'" '+(S.dirty?'disabled':'')+'>SVG ↓</button><button data-figure-export="'+index+'" data-extension="png" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PNG 600 dpi ↓</button><button data-figure-export="'+index+'" data-extension="pdf" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PDF ↓</button></div></figcaption><img src="'+figure.png+'" alt="'+esc(label)+'"></figure>';
+  }).join('')||'<div class="empty-state"><p>No 3D frame applies to this optical-source model.</p></div>';
 }
 function equationNotes(entry){
   if(!entry.symbols?.length)return '';
@@ -388,7 +392,7 @@ function renderChecks(result){
   return '<div class="card"><h3>Independent current-result reconstructions</h3>'+table(['Channel','Direct error','Circular-basis error'],result.checks.map(x=>[esc(x.channel),compact(x.direct_error),compact(x.circular_error)]))+
     (result.frame?'<div class="chip-row" style="margin-top:18px"><span class="tag success">det(T) = '+compact(result.frame.determinant)+'</span><span class="tag">Orthogonality error '+compact(result.frame.orthogonality_error)+'</span></div>':'')+'</div>'+
     '<div class="card"><h3>Different detection-state scans</h3><p class="small-note">Projector distances at 0°, 45°, 90° and 135°. Zero identifies the same pure state up to global phase.</p>'+table(['Profiles','Distances','Same scan'],result.protocols.map(x=>[esc(x.first+' / '+x.second),x.projector_distances.map(compact).join(', '),x.same_states?'yes':'no']))+'</div>'+
-    '<div class="card"><h3>Complete-mode interference audit</h3><p class="small-note">These complete tensors retain within-mode interference. Main Ag plots remain separate component powers.</p>'+table(['Mode','Maximum |cross term|','Independent error'],result.interference.map(x=>[esc(x.mode),compact(x.maximum_cross_term),compact(x.absolute_error)]))+'</div>'+
+    '<div class="card"><h3>Complete-mode interference audit</h3><p class="small-note">These complete tensors retain interference within each mode. The optional full Ag plot uses the same calculation.</p>'+table(['Mode','Maximum |cross term|','Independent error'],result.interference.map(x=>[esc(x.mode),compact(x.maximum_cross_term),compact(x.absolute_error)]))+'</div>'+
     '<div class="card"><h3>Actual state convention and Stokes checks</h3><pre class="result-json">'+esc(JSON.stringify(result.states,null,2))+'</pre></div>'+
     (result.circular?'<div class="card"><h3>Conditional circular-selection record</h3><pre class="result-json">'+esc(JSON.stringify(result.circular,null,2))+'</pre></div>':'')+
     '<div class="card"><h3>Model assumptions</h3><ul class="compact-list">'+result.assumptions.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>'+sourceLinks(['complex','circular','cubic'])+'</div>';
@@ -440,7 +444,10 @@ function resultBody(){
   if(S.tab==='checks')return renderChecks(result);
   if(S.tab==='procedures')return renderCheckingReport(result.checking_report);
   if(S.tab==='latex')return renderLatex(result);
-  const agNote=result.channels.some(x=>x.kind==='Cartesian contribution of one Ag phonon')?'<div class="callout"><strong>Separate Ag Cartesian contributions</strong>No Ag component-power sum is plotted. Complete coherent modes are retained separately in the audit export.</div>':'';
+  const agNote=result.channels.some(x=>x.kind==='Cartesian contribution of one Ag phonon')?
+    (result.configuration.show_full_ag?
+      '<div class="callout"><strong>Full Ag tensor and its components</strong>The full plot adds the three complex amplitudes for one Ag mode before squaring. The component plots are shown separately.</div>':
+      '<div class="callout"><strong>Separate Ag Cartesian contributions</strong>'+(result.configuration.point_group==='D2h'?'Select Full Ag Tensor — Coherent Sum in the Ag inputs to add its full plot.':'The complete intensity is available in the final equations and audit export.')+'</div>'):'';
   return agNote+resultFigures(result.figures);
 }
 function renderCalculator(section){

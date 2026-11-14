@@ -89,7 +89,7 @@
 
   function resultsTour() {
     const tabs = [
-      ['plots','Polar plots','Inspect the selected Raman-mode intensity. Ag Cartesian contributions are labelled separately, with the complete coherent-mode intensity retained in the derivation and audit. Figures offer SVG, PNG and PDF export after calculating.'],
+      ['plots','Polar plots','Ag component plots are separate. For orthorhombic Ag, select Full Ag Tensor — Coherent Sum in the Ag inputs, then run the calculation to add the full plot. Figures can be exported as SVG, PNG or PDF.'],
       ['math','Step-by-step calculation','English explanations appear on the left and full matrix calculations on the right. Symbols are defined at first use. The displayed equations use the original tensor elements directly. Follow the numbered stages through the analytical intensity.'],
       ['values','Intensity values','Inspect the calculated maximum and minimum intensities and channel summaries. The raw CSV export contains angular samples rather than only fitted extrema.'],
       ['frame','Measurement axes','Inspect crystal and measurement axes, the selected surface normal, and the orientation matrix. This view requires the relevant 3D geometry output.'],
