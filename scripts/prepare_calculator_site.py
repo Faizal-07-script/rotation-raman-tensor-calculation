@@ -36,6 +36,8 @@ This website opens directly in the calculator. Choose the crystal, surface
 **A · Input review**, select **Check current inputs** to check the axes,
 rotated tensors and Jones states. Select **Run calculation** for
 **B · Polar plots** and **C · Step-by-step calculation**.
+The calculator starts with a blank result pane. The standard scan plots
+unnormalized intensity in 0.5° steps.
 
 The results include polar plots, the final intensity equation and numbered
 matrix steps. English explanations and new symbol definitions appear on the

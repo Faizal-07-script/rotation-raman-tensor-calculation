@@ -189,8 +189,7 @@ function numberedControl(id,label){
     'material':'2.1','point-group':'2.2','mode-list':'2.3','ag-relation':'2.4','coefficient-value':'2.5','source-a':'2.1','source-A':'2.2','source-delta':'2.3','source-phi':'2.4',
     'orientation-kind':'3.1','surface':'3.2','manual-frame':'3.2','hkl-indices':'3.3','uvw-indices':'3.4','normal-side':'3.5','frame-angle':'3.6',
     'direct-theta_i_deg':'4.1','direct-beta_i_deg':'4.2','direct-theta_s0_deg':'4.3','direct-beta_s_deg':'4.4','theta-zero':'4.5','analyzer-zero':'4.6',
-    'circular-spin':'4.7','circular-order':'4.8','circular-ell':'4.9','circular-charges':'4.10','circular-absorption':'4.11','circular-scope':'4.12',
-    'angular-grid':'5.1','normalize':'5.2','cartesian':'5.3','show-frame':'5.4'};
+    'circular-spin':'4.7','circular-order':'4.8','circular-ell':'4.9','circular-charges':'4.10','circular-absorption':'4.11','circular-scope':'4.12'};
   const number=numbers[id]||(/^lattice-[012]$/.test(id)?'3.7':/^lattice-[345]$/.test(id)?'3.8':null);
   return number?number+' '+label:label;
 }
@@ -280,17 +279,11 @@ function renderControls(){
     textField('circular-absorption','Absorption charge (optional)',p.absorption_delta_m??'')+
     checkbox('circular-scope','Declare the thin-2D / electronic assumptions for the separate rule check',p.thin_2d_assumptions)+
     '<p class="field-help">Curves remain ℓ = 0 plane-wave calculations. The rule never masks or rescales them.</p>';
-  const display=selectField('angular-grid','Angular grid',[['721','0.5 degree · 721 samples'],['361','1 degree · 361 samples'],['3601','0.1 degree · 3601 samples']],String(f.plot_points||721))+
-    checkbox('normalize','Use one common maximum per mode, including components and paired VV/VH',f.normalize)+
-    checkbox('cartesian','Also generate Cartesian plots',f.cartesian_plots)+
-    checkbox('show-frame','Show the 3D measurement frame',f.show_geometry!==false)+
-    '<p class="field-help">CSV contains the unnormalized intensities.</p>';
   return '<div class="calc-controls"><h2 class="calc-column-title" id="input-parameters-title">Input parameters</h2><fieldset id="calculator-form" aria-labelledby="input-parameters-title" '+(S.busy?'disabled':'')+'>'+
     section('01','Model and polarization',start,true,true)+
     section('02',source?'Source tensor parameters':'Material and Raman tensor',material,true)+
     (!source?section('03','Crystal orientation and lattice',orientation,false):'')+
     section('04','Jones vectors',optics,false)+
-    section('05','Display settings',display,false)+
     '</fieldset></div>';
 }
 
@@ -301,7 +294,7 @@ function valueNumber(id,fallback,integer=false){
 }
 function readForm(){
   const f=clone(S.form);f.framework=$('#framework')?.value||f.framework||'NEW_SAN';f.optics=$('#optical-method')?.value||f.optics;
-  f.plot_points=Number($('#angular-grid')?.value||f.plot_points);f.normalize=!!$('#normalize')?.checked;f.cartesian_plots=!!$('#cartesian')?.checked;f.show_geometry=!!$('#show-frame')?.checked;
+  Object.assign(f,{plot_points:721,normalize:false,cartesian_plots:false,show_geometry:true});
   if(f.tensor_model==='QWP_SOURCE_2D'){
     f.source_parameters={a:valueNumber('source-a',1),A:valueNumber('source-A',.4),delta_deg:valueNumber('source-delta',60),phi_deg:valueNumber('source-phi',60)};return f;
   }
@@ -357,12 +350,12 @@ function groupChange(group){
   S.form.modes=Object.keys(definitions(S.form));S.form.mode_values={};S.relation='free';ensureValues(S.form);invalidate();replaceControls();
 }
 
-function resultFigures(figures,frameOnly=false){
-  return figures.map((figure,index)=>({figure,index})).filter(({figure})=>frameOnly?figure.name==='measurement_frame':figure.name!=='measurement_frame').map(({figure,index})=>{
+function resultFigures(figures){
+  return figures.map((figure,index)=>({figure,index})).filter(({figure})=>figure.name!=='measurement_frame').map(({figure,index})=>{
     const label=/^(polar|cartesian)_Ag__xx___yy___zz$/.test(figure.name)?
       'Ag (xx + yy + zz) — '+figure.name.split('_')[0]+' plot':figure.name.replaceAll('_',' ');
     return '<figure class="result-figure"><figcaption><strong>'+esc(label)+'</strong><div class="figure-actions"><button data-figure-svg="'+index+'" '+(S.dirty?'disabled':'')+'>SVG ↓</button><button data-figure-export="'+index+'" data-extension="png" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PNG 600 dpi ↓</button><button data-figure-export="'+index+'" data-extension="pdf" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PDF ↓</button></div></figcaption><img src="'+figure.png+'" alt="'+esc(label)+'"></figure>';
-  }).join('')||'<div class="empty-state"><p>No 3D frame applies to this optical-source model.</p></div>';
+  }).join('');
 }
 function equationNotes(entry){
   if(!entry.symbols?.length)return '';
@@ -440,10 +433,9 @@ function resultBody(){
   if(S.tab==='benchmark')return renderBenchmark();
   if(S.tab==='comparisons')return renderComparisons();
   if(S.tab==='validation')return renderValidation();
-  const result=S.result;if(!result)return '<div class="empty-state"><h3>Your calculation will appear here.</h3><p>Choose the physical inputs, then calculate the rotation and Raman response.</p></div>';
+  const result=S.result;if(!result)return '';
   if(S.tab==='math')return '<div class="callout"><strong>'+result.equation_count+' calculated equations</strong>These expressions are generated from the current matrices and optical states. '+sourceLinks(['complex','cubic','optical-source'])+'</div>'+derivationModeHtml()+derivationHtml(result.equations,S.derivationMode==='explained');
   if(S.tab==='values')return renderValues(result);
-  if(S.tab==='frame')return resultFigures(result.figures,true)+(result.frame?'<div class="card"><h3>Measurement frame</h3>'+math('T='+result.frame.tensor_frame)+table(['Quantity','Value'],[['det(T)',compact(result.frame.determinant)],['Orthogonality error',compact(result.frame.orthogonality_error)]])+'</div>':'');
   if(S.tab==='checks')return renderChecks(result);
   if(S.tab==='procedures')return renderCheckingReport(result.checking_report);
   if(S.tab==='latex')return renderLatex(result);
@@ -455,11 +447,15 @@ function resultBody(){
 }
 function renderCalculator(section){
   const r=S.result;
+  const status=r?'<div class="calc-status" id="calculation-status">'+(S.dirty?
+    '<strong>Inputs changed — calculate to update the result.</strong><p>Previous figures describe previous inputs. Current-result downloads are disabled.</p>':
+    '<strong>'+esc(resultLabel(r.configuration))+'</strong><p>Calculation complete.</p>')+'</div>':'';
+  const exports=r?'<div class="results-toolbar"><div class="button-row"><button class="button small" data-result-download="zip" '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>Download complete result ↓</button><button class="button secondary small" data-result-download="csv" '+(S.dirty||S.busy?'disabled':'')+'>Raw CSV ↓</button><button class="button secondary small" data-add-comparison '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>Save comparison</button></div></div>':'';
+  const tabs=[['inputs','Input review','A'],['plots','Polar plots','B'],['math','Step-by-step calculation','C'],['values','Intensity values'],['procedures','Checking procedures'],['checks','Calculation checks'],['latex','LaTeX'],['validation','Validation'],['comparisons','Comparisons'],['benchmark','Si reference calculation']];
   return heading('CALCULATOR','Raman intensity calculator','Choose the crystal, orientation and polarization. Use Input review to check them before calculating.')+
-    '<div class="calc-layout">'+renderControls()+'<section class="calc-results" id="calculator-results" aria-labelledby="calculator-results-title"><h2 class="calc-column-title" id="calculator-results-title">Review and results</h2><div class="calc-status" id="calculation-status">'+(S.dirty?'<strong>Inputs changed — calculate to update the result.</strong><p>Previous figures describe previous inputs. Current-result downloads are disabled.</p>':r?'<strong>'+esc(resultLabel(r.configuration))+'</strong><p>'+(!S.runtimeHasRun?'Example result. Run calculation to update it.':'Calculation complete.')+'</p>':'<strong>Ready for your inputs.</strong><p>Start a calculation to generate all outputs.</p>')+'</div>'+
+    '<div class="calc-layout">'+renderControls()+'<section class="calc-results" id="calculator-results" aria-labelledby="calculator-results-title"><h2 class="calc-column-title" id="calculator-results-title">Review and results</h2>'+status+
     (S.error?'<div class="engine-error"><strong>Calculation could not complete.</strong><p>'+esc(S.error.split('\n').filter(Boolean).at(-1))+'</p><details><summary>Show diagnostic details</summary><pre>'+esc(S.error)+'</pre></details></div>':'')+
-    '<div class="results-toolbar"><div class="button-row"><button class="button small" data-result-download="zip" '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>Download complete result ↓</button><button class="button secondary small" data-result-download="csv" '+(!r||S.dirty||S.busy?'disabled':'')+'>Raw CSV ↓</button><button class="button secondary small" data-add-comparison '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>Save comparison</button></div></div>'+
-    '<div class="result-tabs" role="tablist" aria-label="Review and results">'+[['inputs','Input review','A'],['plots','Polar plots','B'],['math','Step-by-step calculation','C'],['values','Intensity values'],['frame','Measurement axes'],['procedures','Checking procedures'],['checks','Calculation checks'],['latex','LaTeX'],['validation','Validation'],['comparisons','Comparisons'],['benchmark','Si reference calculation']].map(([key,label,letter])=>'<button class="result-tab" id="result-tab-'+key+'" role="tab" data-result-tab="'+key+'" aria-controls="result-pane" aria-selected="'+(S.tab===key)+'" tabindex="'+(S.tab===key?'0':'-1')+'">'+(letter?'<span class="result-tab-letter" aria-hidden="true">'+letter+'</span>':'')+label+'</button>').join('')+'</div><div class="result-pane" role="tabpanel" aria-labelledby="result-tab-'+esc(S.tab)+'" id="result-pane">'+resultBody()+'</div></section></div>';
+    exports+'<div class="result-tabs" role="tablist" aria-label="Review and results">'+tabs.map(([key,label,letter])=>'<button class="result-tab" id="result-tab-'+key+'" role="tab" data-result-tab="'+key+'" aria-controls="result-pane" aria-selected="'+(S.tab===key)+'" tabindex="'+(S.tab===key?'0':'-1')+'">'+(letter?'<span class="result-tab-letter" aria-hidden="true">'+letter+'</span>':'')+label+'</button>').join('')+'</div><div class="result-pane" role="tabpanel" aria-labelledby="result-tab-'+esc(S.tab)+'" id="result-pane">'+resultBody()+'</div></section></div>';
 }
 function setResultTabStops(tabList){
   const tabs=$$('.result-tab',tabList),selected=tabs.find(tab=>tab.getAttribute('aria-selected')==='true')||tabs[0];
@@ -474,7 +470,7 @@ function syncCalculatorTabRoute(){
 async function runOperation(type,payload,title,onSuccess){
   if(S.busy)return;
   S.busy=true;S.error=null;$('#operation-status').hidden=false;$('#operation-title').textContent=title;$('#operation-message').textContent='Preparing the scientific engine…';
-  const form=$('#calculator-form');if(form)form.disabled=true;$$('[data-result-download],[data-run-validation],[data-run-benchmark],[data-export-benchmark],[data-add-comparison],[data-preview-inputs],[data-calculate],[data-reset-defaults]').forEach(x=>x.disabled=true);
+  const form=$('#calculator-form');if(form)form.disabled=true;$$('[data-result-download],[data-run-validation],[data-run-benchmark],[data-export-benchmark],[data-add-comparison],[data-preview-inputs],[data-calculate]').forEach(x=>x.disabled=true);
   try{const result=await engine.request(type,payload);await onSuccess(result);}
   catch(error){S.error=String(error.message||error);toast(S.error.split('\n').filter(Boolean).at(-1));}
   finally{S.busy=false;$('#operation-status').hidden=true;if((location.hash||'#home').startsWith('#calculator')){syncCalculatorTabRoute();renderRoute(false);}if(engine.ready)setEngineStatus('Python ready','');}
@@ -595,9 +591,9 @@ function search(query){
 }
 async function initialize(){
   try{
-    const [catalog,cells,tutorial,example,release,referenceChecks]=await Promise.all(['catalog','cells','tutorial','reference-example','release','reference-equation-checks'].map(async name=>{const response=await fetch('./data/'+name+'.json',{cache:'no-store'});if(!response.ok)throw new Error('Unable to load '+name+'.');return response.json();}));
+    const [catalog,cells,tutorial,release,referenceChecks]=await Promise.all(['catalog','cells','tutorial','release','reference-equation-checks'].map(async name=>{const response=await fetch('./data/'+name+'.json',{cache:'no-store'});if(!response.ok)throw new Error('Unable to load '+name+'.');return response.json();}));
     if(release.source_sha256!==cells.source_sha256)throw new Error('The notebook update is still publishing. Reload this page in a moment.');
-    S.catalog=catalog;S.release=release;S.referenceChecks=referenceChecks;S.cells=cells.cells;S.sourceHash=cells.source_sha256;S.tutorial=tutorial;S.form=clone(catalog.examples[catalog.default_example].config);S.selectedExample=catalog.default_example;S.result=example;S.lastCrystal=clone(S.form);
+    S.catalog=catalog;S.release=release;S.referenceChecks=referenceChecks;S.cells=cells.cells;S.sourceHash=cells.source_sha256;S.tutorial=tutorial;S.form=clone(catalog.examples[catalog.default_example].config);S.selectedExample=catalog.default_example;S.lastCrystal=clone(S.form);
     S.searchIndex=[...Object.entries(RAMAN_DOCS.tools).map(([key,d])=>({href:'#introduction/'+key,label:d.title,category:'Introduction',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()})),
       ...S.cells.map(c=>({href:'#tutorial/cell/'+c.number,label:'Cell '+c.number+' · '+c.title,category:'Python tutorial',text:('cell '+c.number+' cell'+c.number+' '+c.title+' '+c.source).toLowerCase()})),
       ...Object.entries(RAMAN_DOCS.physics).map(([key,d])=>({href:'#physics/'+key,label:d.title,category:'Physics & equations',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()}))];

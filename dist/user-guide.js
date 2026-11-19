@@ -77,13 +77,11 @@
       step('3.5–3.6 Direction of Z and rotation ψ','#frame-angle','The normal sign and in-plane frame angle define the measurement axes. Matching only hkl is insufficient when comparing an angular pattern with another convention.',{optional:true}),
       step('3.7–3.8 Supply the lattice metric','#lattice-0','Lengths use one common unit and lattice angles use degrees. A tilted noncubic plane normal is a reciprocal-lattice quantity; unity ratios are only the declared reference geometry.',{optional:true}),
       step('4. Jones vectors','[data-section-key="04"]','Expand this section to see the selected incident/detection states and relevant zero angles or phases. VV, VH and σ⁺α use the states shown in the derivation. Model 3 uses the XY block of the rotated Raman tensor.'),
-      step('5. Sampling and normalization','#angular-grid','The angular grid sets the plotted samples. Optional normalization uses a declared common scale. Raw CSV remains unnormalized, and maximum and minimum intensities are calculated separately.'),
-      step('See X, Y, Z and T','#live-frame','These measurement axes and the frame matrix update from the current inputs before an intensity calculation. They are not Jones vectors.'),
       step('A · Input review','[data-result-tab="inputs"]','Open Input review and select Check current inputs to see X, Y, Z, T, the rotated tensors and the Jones states before calculating intensity.'),
       step('Run calculation','[data-calculate]','Use the top button to run the intensity scan. The first review or calculation loads Python in your browser.',{tip:'The guide does not run calculations.'}),
-      step('Check result freshness','#calculation-status','A stored example or a previous run is not automatically the result of edited inputs. Review the status and recalculate after changes before exporting or comparing.'),
-      step('B · Polar plots and C · Step-by-step calculation','.result-tabs','B shows the plots. C shows the derivation with its own equation numbers. Intensity values and Measurement axes give the numerical summaries and frame.'),
-      step('Export results with their inputs','.results-toolbar','Download the complete result archive, unnormalized CSV, or a comparison snapshot after calculating.')
+      step('Check result freshness','#calculation-status','A previous run describes the inputs used for that run. Recalculate after editing before exporting or comparing.',{optional:true}),
+      step('B · Polar plots and C · Step-by-step calculation','.result-tabs','After calculating, B shows the plots and C shows the numbered derivation. The standard scan uses 0.5° steps with unnormalized intensity.'),
+      step('Export results with their inputs','.results-toolbar','Download the complete result archive, unnormalized CSV, or a comparison snapshot after calculating.',{optional:true})
     ],'Every input group, the physical configuration, calculation, result status, and exports.');
   }
 
@@ -93,7 +91,6 @@
       ['plots','B · Polar plots','For orthorhombic Ag, select Sum Ag Component Intensities in the Ag inputs and run the calculation. The added plot shows I(xx) + I(yy) + I(zz). The three individual plots remain available. Figures can be exported as SVG, PNG or PDF.'],
       ['math','C · Step-by-step calculation','English explanations appear on the left and the equations on the right. Each equation keeps its calculation number (for example, Eq. 02.04).'],
       ['values','Intensity values','Inspect the calculated maximum and minimum intensities and channel summaries. The raw CSV export contains angular samples rather than only fitted extrema.'],
-      ['frame','Measurement axes','Inspect crystal and measurement axes, the selected surface normal, and the orientation matrix. This view requires the relevant 3D geometry output.'],
       ['procedures','Checking procedures','Read each procedure’s purpose, scope, expected equation, and evidence. A stored reference report is identified until a new calculation regenerates current evidence.'],
       ['checks','Calculation checks','Independent reconstructions check the current amplitude, circular-basis transformation, frame orthogonality, and interference bookkeeping. Small floating-point residuals are expected.'],
       ['latex','LaTeX','Copy or download symbolic intensity and the complete mathematical derivation. These are calculated source equations, not a screenshot of a formula.'],
@@ -116,7 +113,7 @@
         benchmark:['Si reference calculation','Calculate six surfaces with three optical profiles, inspect a selected case, and export the reference data using one shared coefficient scale.']
       };
       const [title,text] = descriptions[parts[1]] || ['Calculator output','Inspect the current output and its assumptions.'];
-      return tour('page:'+r,title,r,[step(title,'#result-pane',text),step('Inputs remain explicit','#calculator-form','These controls still define the next main calculation. A benchmark inspection loads a case only when its explicit button is used.'),step('Scope and evidence','#result-pane','Read the explanation and status before using the result. Actions that start Python are optional; this guide never activates them.'),step('Download and retain your work','.results-toolbar','Export useful current results before reloading or stopping the worker. Guide progress is stored separately from calculation data.')],text);
+      return tour('page:'+r,title,r,[step(title,'#result-pane',text),step('Inputs remain explicit','#calculator-form','These controls still define the next main calculation. A benchmark inspection loads a case only when its explicit button is used.'),step('Scope and evidence','#result-pane','Read the explanation and status before using the result. Actions that start Python are optional; this guide never activates them.'),step('Download and retain your work','.results-toolbar','Export useful current results before reloading or stopping the worker. Guide progress is stored separately from calculation data.',{optional:true})],text);
     }
     if (root === 'tutorial') {
       const number = parts[1] === 'cell' ? Number(parts[2]) : null;

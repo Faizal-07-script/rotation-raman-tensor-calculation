@@ -89,16 +89,13 @@ renderControls = () => {
     while (current) { nodes.push(current); current = current.nextElementSibling; }
     tuckAway(nodes, 'Optional angular-momentum rule');
   }
-  const displayCard = host.querySelector('[data-section-key="05"]');
-  if (displayCard) displayCard.open = false;
   return host.innerHTML;
 };
 
 function calculationToolbar() {
   return '<div class="calculator-toolbar" aria-label="Calculation actions"><div><strong>Run the intensity scan</strong><small>The first run loads Python.</small></div><div class="button-row">' +
     '<button class="button" data-calculate ' + (S.busy ? 'disabled' : '') + '><span aria-hidden="true">▶</span> Run calculation</button>' +
-    '<button class="button secondary" data-reset-defaults ' + (S.busy ? 'disabled' : '') + '>Reset example</button>' +
-    '<button class="button secondary" data-result-download="csv" ' + (!S.result || S.dirty || S.busy ? 'disabled' : '') + '>Export CSV</button></div></div>';
+    (S.result?'<button class="button secondary" data-result-download="csv" ' + (S.dirty || S.busy ? 'disabled' : '') + '>Export CSV</button>':'')+'</div></div>';
 }
 
 function calculationPipeline() {
@@ -150,7 +147,7 @@ function localDefinitions(symbols, seen) {
 function renderInputReview() {
   const currentCheck=S.previewDirty?null:S.preview;
   const preview=currentCheck||(!S.dirty?S.result?.input_review:null);
-  const message=preview?(currentCheck||S.runtimeHasRun?'Review is up to date.':'Showing the axes and states for the displayed case.'):'Select Check current inputs to refresh the review.';
+  const message=preview?'Review is up to date.':'Select Check current inputs to see the review.';
   return '<section class="card input-review-card"><div class="card-header"><h3>Before calculating</h3><button class="button secondary small" data-preview-inputs '+(S.busy?'disabled':'')+'>Check current inputs</button></div><p>Check the measurement axes, rotated tensors and Jones states without running the intensity scan.</p><p class="small-note" data-review-status role="status">'+message+'</p>' +
     (preview?.axes?.length ? '<div class="input-review-details"><div class="axes-preview">' + preview.axes.map(axis => '<div><strong>' + esc(axis.label) + '</strong>' + math(axis.latex) + '</div>').join('') + '</div><p class="small-note">X and Y span the measurement plane. Z is perpendicular to it. T has X, Y and Z as columns.</p></div>' : '') + '</section>' +
     (preview ? '<div class="input-review-details">'+derivationHtml(preview.equations,true,'review')+'</div>' : '');
@@ -175,13 +172,13 @@ renderCalculator = sectionName => {
   const layout = host.querySelector('.calc-layout');
   layout.insertAdjacentHTML('beforebegin', calculationToolbar());
   const results = host.querySelector('.calc-results');
-  results.querySelector('.calc-column-title').insertAdjacentHTML('afterend', calculationPipeline());
+  if(S.result)results.querySelector('.calc-column-title').insertAdjacentHTML('afterend', calculationPipeline());
   const tabs = host.querySelector('.result-tabs');
   const advanced = document.createElement('details'); advanced.className = 'advanced-results';
   advanced.innerHTML = '<summary>Checks and comparisons</summary><div class="result-tabs" role="tablist" aria-label="Additional calculation outputs"></div>';
   const extraTabs = advanced.querySelector('.result-tabs');
   for (const tab of [...tabs.children]) {
-    if (!['plots', 'inputs', 'math', 'values', 'frame'].includes(tab.dataset.resultTab)) extraTabs.append(tab);
+    if (!['plots', 'inputs', 'math', 'values'].includes(tab.dataset.resultTab)) extraTabs.append(tab);
   }
   advanced.open = [...extraTabs.children].some(tab => tab.dataset.resultTab === S.tab);
   setResultTabStops(tabs);setResultTabStops(extraTabs);
@@ -209,8 +206,6 @@ document.addEventListener('click', async event => {
     try { S.form = readForm(); applyRelation(S.form); } catch (error) { toast(error.message); return; }
     await runOperation('preflight', S.form, 'Reviewing axes and optical states', result => { S.preview = result; S.previewDirty = false; S.tab = 'inputs'; });
     if(S.tab==='inputs')$('[data-preview-inputs]')?.focus({preventScroll:true});
-  } else if (button.hasAttribute('data-reset-defaults')) {
-    S.form = clone(S.catalog.examples[S.catalog.default_example].config); S.selectedExample = S.catalog.default_example; S.relation = 'free'; S.preview = null; invalidate(); renderRoute(false); toast('Silicon (500), VV inputs restored.');
   } else if (button.hasAttribute('data-show-math')) {
     S.tab = 'math'; renderRoute(false); $('#result-pane')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else if (button.hasAttribute('data-cartesian-svg') && S.result && !S.dirty) download(cartesianPlotSvg(S.result),'Raman_Intensity_Cartesian.svg','image/svg+xml');
@@ -249,73 +244,16 @@ renderControls=()=>{
     material.innerHTML='<optgroup label="Cubic crystals">'+options(order.slice(0,2))+'</optgroup><optgroup label="Other materials and custom tensors">'+options(order.slice(2))+'</optgroup>';
   }
   const orientation=host.querySelector('[data-section-key="03"] .form-section-body');
-  if(orientation)orientation.insertAdjacentHTML('beforeend','<p class="field-help">X, Y, Z and T update in the measurement-frame panel before intensity is calculated.</p>');
+  if(orientation)orientation.insertAdjacentHTML('beforeend','<p class="field-help">To see X, Y, Z and T before calculating, open A · Input review and select Check current inputs.</p>');
   return host.innerHTML;
 };
 document.addEventListener('change',event=>{
   if(event.target.id!=='framework')return;
   try{S.form=readForm();
-    S.preview=null;invalidate();replaceControls();renderLiveFrame();}
+    S.preview=null;invalidate();replaceControls();}
   catch(error){toast(error.message);}
   event.stopImmediatePropagation();
 },true);
-
-// Numeric frame preview only. The Python preflight independently checks this frame,
-// rotated tensors and Jones states before any intensity scan.
-function measurementFrame(form){
-  const dot=(a,b)=>a.reduce((sum,x,i)=>sum+x*b[i],0);
-  const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
-  const scale=(a,k)=>a.map(x=>x*k),plus=(a,b)=>a.map((x,i)=>x+b[i]);
-  const unit=a=>{const n=Math.hypot(...a);if(!Number.isFinite(n)||n<1e-13)throw Error('A frame axis cannot be zero.');return scale(a,1/n);};
-  let T;
-  if(form.orientation==='matrix'){
-    T=form.T_manual;
-    if(!Array.isArray(T)||T.length!==3||T.some(r=>!Array.isArray(r)||r.length!==3||r.some(x=>!Number.isFinite(x))))throw Error('Enter a real 3 × 3 frame matrix.');
-  }else{
-    const [a,b,c,ad,bd,gd]=form.lattice;
-    if(![a,b,c,ad,bd,gd].every(Number.isFinite)||Math.min(a,b,c)<=0||[ad,bd,gd].some(x=>x<=0||x>=180))throw Error('Check the lattice lengths and angles.');
-    const rad=Math.PI/180,ca=Math.cos(ad*rad),cb=Math.cos(bd*rad),cg=Math.cos(gd*rad),sg=Math.sin(gd*rad);
-    const cy=(ca-cb*cg)/sg,cz2=1-cb*cb-cy*cy;
-    if(cz2<=1e-14)throw Error('The lattice angles give a zero or invalid cell volume.');
-    const L=[[a,b*cg,c*cb],[0,b*sg,c*cy],[0,0,c*Math.sqrt(cz2)]];
-    const [h,k,l]=form.hkl;
-    const gx=h/a,gy=(k-L[0][1]*gx)/L[1][1],gz=(l-L[0][2]*gx-L[1][2]*gy)/L[2][2];
-    const Z=scale(unit([gx,gy,gz]),form.normal_sign);
-    const uvw=form.uvw;
-    if(!Array.isArray(uvw)||uvw.length!==3||!uvw.every(Number.isInteger)||uvw.every(value=>value===0))throw Error('Enter a nonzero integer direction [uvw].');
-    if(Math.abs(dot(form.hkl,uvw))>1e-10)throw Error('The in-plane direction must satisfy hu + kv + ℓw = 0.');
-    const tangent=L.map(row=>dot(row,uvw));
-    const X0=unit(tangent),Y0=cross(Z,X0),angle=(form.azimuth_deg||0)*rad;
-    const X=plus(scale(X0,Math.cos(angle)),scale(Y0,Math.sin(angle)));
-    const Y=plus(scale(X0,-Math.sin(angle)),scale(Y0,Math.cos(angle)));
-    T=[0,1,2].map(i=>[X[i],Y[i],Z[i]]);
-  }
-  const axes=[0,1,2].map(j=>T.map(row=>row[j]));
-  const error=Math.max(...axes.flatMap((a,i)=>axes.map((b,j)=>Math.abs(dot(a,b)-(i===j?1:0)))));
-  const determinant=dot(axes[0],cross(axes[1],axes[2]));
-  if(error>1e-9||Math.abs(determinant-1)>1e-9)throw Error('T must have orthonormal columns and determinant +1.');
-  return {T,axes,error,determinant};
-}
-function liveFrameContents(form){
-  try{
-    const frame=measurementFrame(form),fmt=x=>Math.abs(x)<5e-11?'0':Number(x.toPrecision(5)).toString();
-    const matrix=rows=>String.raw`\begin{pmatrix}`+rows.map(row=>row.map(fmt).join('&')).join(String.raw`\\`)+String.raw`\end{pmatrix}`;
-    return '<div class="card-header"><div><h3>X, Y, Z and T</h3></div><span class="tag success">Frame checked</span></div>'+
-      '<div class="live-frame-grid"><div class="live-axis-list">'+frame.axes.map((axis,i)=>'<div>'+math('XYZ'[i]+'='+matrix(axis.map(value=>[value])))+'</div>').join('')+'</div><div>'+math(String.raw`T=[X\ Y\ Z]=`+matrix(frame.T))+'</div></div>'+
-      '<p class="small-note">Measurement axes in crystal coordinates. Y = Z × X. Checked: TᵀT = I and det(T) = +1.</p>'+
-      '<span hidden data-frame-matrix="'+esc(JSON.stringify(frame.T))+'"></span>';
-  }catch(error){return '<h3>X, Y, Z and T</h3><p role="status">'+esc(error.message)+'</p><p class="small-note">Correct the geometry before calculating intensity.</p>';}
-}
-function renderLiveFrame(){const host=document.querySelector('#live-frame');if(!host)return;try{host.innerHTML=liveFrameContents(readForm());typeset(host);}catch(error){host.innerHTML='<p role="status">'+esc(error.message)+'</p>';}}
-document.addEventListener('input',event=>{if(event.target.closest('#calculator-form'))renderLiveFrame();});
-document.addEventListener('change',event=>{if(event.target.closest('#calculator-form'))renderLiveFrame();});
-const labRenderCalculator=renderCalculator;
-renderCalculator=sectionName=>{
-  const host=document.createElement('div');host.innerHTML=labRenderCalculator(sectionName);
-  const pipeline=host.querySelector('.calculation-pipeline');
-  if(pipeline)pipeline.insertAdjacentHTML('afterend','<section class="card live-frame" id="live-frame">'+liveFrameContents(S.form)+'</section>');
-  return host.innerHTML;
-};
 
 // Keep the established left explanation / right mathematics layout.
 derivationHtml=(entries,explained=true,view='math')=>{

@@ -26,6 +26,8 @@ sets the normal Z; [uvw] sets X in the surface at ψ = 0°. Y is calculated
 from Z × X. In **A · Input review**, select **Check current inputs** to
 inspect the axes, rotated tensors and Jones states. Select **Run calculation**
 for **B · Polar plots** and **C · Step-by-step calculation**.
+The calculator starts with a blank result pane. The standard scan plots
+unnormalized intensity in 0.5° steps.
 
 ## Mathematical results
 
