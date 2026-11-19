@@ -8,6 +8,19 @@ JSON inputs, selects displayed channels and returns browser-readable results.
 WEB_STATE = dict(run=None, derivation=None, figures=[], comparisons=[], benchmark=None, validation=None)
 
 
+_notebook_vector_samples = vector_samples
+
+
+def vector_samples(vector, angles):
+    """Keep exact matrices in the derivation and evaluate large radicals numerically."""
+    # Measured lattice lengths can produce exact radicals with integer arguments
+    # beyond NumPy's fixed-width range when lambdified in the orientation audit.
+    matrix = sp.Matrix(vector)
+    if any(abs(integer) > 2**63 - 1 for integer in matrix.atoms(sp.Integer)):
+        matrix = matrix.evalf(17)
+    return _notebook_vector_samples(matrix, angles)
+
+
 def web_progress(message):
     try:
         from js import pythonProgress
@@ -187,58 +200,119 @@ def web_preflight(input_json):
     return web_json(web_input_review_view(prepare_input_review(cfg)))
 
 
-def web_include_full_ag(run, derivation):
-    """Expose the already calculated coherent Ag mode as an additional plot."""
-    cfg=run['config']
-    if not cfg.get('show_full_ag') or cfg['point_group']!='D2h' or 'Ag' not in run['results']:
+WEB_AG_SUM = 'Ag (xx + yy + zz)'
+WEB_AG_COMPONENTS = ('xx', 'yy', 'zz')
+
+
+def web_ag_sum_step(trace, equation, explanation, source, symbols=()):
+    _lab_tex(trace, equation, explanation, source, symbols, analytical='raman_intensity')
+    trace.entries[-1]['reference_ids'] = ['PROGRAM_ALGEBRA']
+
+
+def web_ag_slide_steps(trace, run):
+    """Show the supplied closed forms when the active frame and scan match."""
+    if run['optical']['kind'] != 'CUBIC_SIGMA':
         return
-    name, label = 'Ag', 'Ag (full tensor)'
-    family = run['families'][name]
-    result = run['results'][name]
-    final = next(item for item in derivation['complete_finals'] if item['source_mode']==name)
-    run['display_channels'][label]=dict(name=label,base_mode=name,source_mode=name,
-        component=None,kind='Complete coherent Ag tensor',optical=result['optical'],
-        records=result['terms'],values=family['values'],curve=run['curves'][name],
-        summary=run['summaries'][name],partner_curves=run['component_curves'][name],
-        normalization_group=name)
-    run['display_curves'][label]=run['curves'][name]
-    run['display_summaries'][label]=run['summaries'][name]
-    run['presentation_policy']['Ag']='The component plots are separate. The full Ag plot uses the coherent intensity of one complete tensor.'
-    run['presentation_policy']['complete_mode']='The full Ag tensor is also shown as a plot when selected; complete modes remain in the audit.'
+    reference_frame = build_orientation(COMPONENT_REFERENCE_GEOMETRY)['T']
+    if not np.allclose(numeric(run['geometry']['T']), numeric(reference_frame), rtol=0, atol=1e-12):
+        return
+    data = component_ag_symbolics()
+    source = 'Supplied slide: (211) reference frame'
+    trace.note('These closed forms use the slide reference: equal lattice lengths, X along [0 1 −1], '
+        'Z opposite the (211) normal, and the stated Jones states. Here a, b and c are coefficient magnitudes.')
+    eq = []
+    for index, (axis, coeff, (inc, det)) in enumerate(zip(WEB_AG_COMPONENTS, data['coefficients'], data['weights'])):
+        label = 'I_{A_g('+axis+')}'
+        if index == 0:
+            factors = (raman_latex(coeff**2 / 36)
+                + r'\left['+raman_latex(sp.expand(6*inc))+r'\right]'
+                + r'\left['+raman_latex(sp.expand(6*det))+r'\right]')
+            equation = label+'='+factors
+        else:
+            factors = (raman_latex(coeff**2)
+                + r'\left['+raman_latex(inc)+r'\right]\\ &\quad{}\times\left['
+                + raman_latex(det)+r'\right]')
+            equation = r'\begin{aligned}'+label+'&='+factors+r'\end{aligned}'
+        web_ag_sum_step(trace, equation,
+            'Multiply the incident and detected projection powers for the '+axis+' component.', source)
+        eq.append(factors)
+    web_ag_sum_step(trace, r'\begin{aligned}I_{A_g}&='+r'\\ &\quad{}+'.join(eq)+r'\end{aligned}',
+        'Insert the three component intensities into the sum.', source)
+
+    angles = (alpha, data['theta'], data['beta'], data['beta_prime'])
+    terms = sp.Add.make_args(data['expanded_numerator'])
+    constant = sum(term for term in terms if not term.has(*angles))
+    lines = [raman_latex(constant)]
+    for term in terms:
+        if term.has(*angles):
+            sign = '-' if term.could_extract_minus_sign() else '+'
+            lines.append(sign+raman_latex(-term if sign=='-' else term))
+    denominator = raman_latex(data['denominator'])
+    web_ag_sum_step(trace,
+        r'\begin{aligned}I_{A_g}&=\frac{1}{'+denominator+r'}\Bigl['
+        +r'\\ &\qquad{}'.join(lines)+r'\Bigr]\end{aligned}',
+        'Expand the products and collect the angular terms over a common denominator.', source)
+    web_ag_sum_step(trace,
+        r'I_{A_g}(\alpha)=\frac{'+raman_latex(data['final_numerator'])+'}{'+denominator+'}',
+        'For σ⁺α, set θ = π/4 and β = β′ = π/2 in the expanded expression.', source)
+
+
+def web_include_ag_sum(run, derivation):
+    """Add the slide's sum of the three calculated Cartesian intensities."""
+    cfg=run['config']
+    if not cfg.get('show_ag_sum'):
+        return
+    names = [f'Ag({axis})' for axis in WEB_AG_COMPONENTS]
+    parts = [run['display_channels'][name] for name in names]
+    records = [record for part in parts for record in part['records']]
+    values = parts[0]['values']
+    summed = evaluate_terms(dict(terms=records), values, run['angles'])
+    run['display_channels'][WEB_AG_SUM]=dict(name=WEB_AG_SUM,base_mode='Ag',source_mode='Ag',
+        component=None,kind='Ag component intensity sum',optical=parts[0]['optical'],
+        records=records,values=values,curve=summed['total'],summary=summed['summary'],
+        partner_curves=summed['components'],normalization_group='Ag')
+    run['display_curves'][WEB_AG_SUM]=summed['total']
+    run['display_summaries'][WEB_AG_SUM]=summed['summary']
+    run['presentation_policy']['Ag']='The three component plots and their intensity sum follow the supplied slide convention.'
+    run['presentation_policy']['complete_mode']='Complete-mode calculations are kept separately in the audit.'
 
     for entry in derivation['entries']:
         if entry.get('source_equation')=='Complete coherent Raman mode':
-            entry['value']=(r'\begin{gathered}'
-                r'\mathcal A_{\mu}=\hat e_s^*R^{\prime}_{\mu}\hat e_i,\quad'
-                r'\mu\in\{xx,yy,zz\}\\[4pt]'
-                r'\mathcal A_{A_g}=\mathcal A_{xx}+\mathcal A_{yy}+\mathcal A_{zz}\\[4pt]'
-                r'I_{A_g}=\left|\mathcal A_{A_g}\right|^2'
-                r'\end{gathered}')
-            entry['explanation']='Add the three complex amplitudes, including their relative phases, before squaring.'
-            entry['source_equation']=entry['derivation_note']='Full Ag tensor: coherent sum'
+            entry['value']=(r'\begin{aligned}'
+                r'I_{A_g(\mu)}&=\left|\hat e_s^*R^{\prime}_{\mu}\hat e_i\right|^2,'
+                r'\qquad \mu\in\{xx,yy,zz\}\\[4pt]'
+                r'I_{A_g}&=I_{A_g(xx)}+I_{A_g(yy)}+I_{A_g(zz)}'
+                r'\end{aligned}')
+            entry['explanation']='Square each component amplitude separately, then add the three intensities at the same angle.'
+            entry['source_equation']=entry['derivation_note']='Ag component intensity sum (slide convention)'
             entry['reference_ids']=['PROGRAM_ALGEBRA']
             entry['symbols']=[
-                dict(id='ag_component_amplitudes',latex=r'\mathcal A_{\mu}',
-                    meaning='Complex scattering amplitude from component μ of one Ag tensor.',units='relative amplitude'),
+                dict(id='ag_component_powers',latex=r'I_{A_g(\mu)}',
+                    meaning='Intensity calculated from just component μ of the crystal-frame Ag tensor.',units='relative intensity'),
                 dict(id='ag_rotated_components',latex=r'R^{\prime}_{\mu}',
                     meaning='Component μ (xx, yy or zz) after rotation to the measurement frame.',units='relative tensor units'),
             ]
             break
-    trace=CalculationTrace(final['variable'],cfg)
+
+    component_finals = [item for item in derivation['finals'] if item['channel'] in names]
+    variable = component_finals[0]['variable']
+    expression = sp.factor_terms(sum(item['expression'] for item in component_finals))
+    plot_expression = display_intensity(summed['summary'], variable)
+    plot_equation = 'I_{A_g}('+raman_latex(variable)+')'+r'\approx '+raman_latex(plot_expression)
+    trace=CalculationTrace(variable,cfg)
     trace.entries=derivation['entries']
     trace.section_number,trace.operation_number=map(int,trace.entries[-1]['step'].split('.'))
-    plot_expression=display_intensity(run['summaries'][name],final['variable'])
-    plot_equation='I_{A_g}('+raman_latex(final['variable'])+')'+r'\approx '+raman_latex(plot_expression)
-    _lab_tex(trace,plot_equation,
-        'The full Ag polar plot uses this intensity at each scan angle.',
-        'Full Ag tensor: polar plot',analytical='raman_intensity')
-    trace.entries[-1]['reference_ids']=['PROGRAM_ALGEBRA']
+    trace.section('Ag component intensity sum')
+    web_ag_slide_steps(trace, run)
+    web_ag_sum_step(trace, plot_equation,
+        'The Ag sum polar plot uses this intensity at each scan angle after substituting the entered coefficients.',
+        'Ag component intensity sum: polar plot')
     mathematics=trace.markdown(False)
     derivation.update(markdown=mathematics,mathematics_markdown=mathematics,
         explained_markdown=trace.markdown(True),symbol_legend=calculation_symbol_legend(trace.entries),
         reference_ids=calculation_reference_ids(trace.entries))
-    derivation['finals'].append({**final,'channel':label,'plot_equation':plot_equation})
-    derivation['complete_finals'].remove(final)
+    derivation['finals'].append(dict(channel=WEB_AG_SUM,variable=variable,expression=expression,
+        substituted=plot_expression,summary=symbolic_intensity_summary(records),plot_equation=plot_equation))
 
 
 def web_result(run, derivation, figures):
@@ -287,11 +361,11 @@ def web_calculate(input_json):
     cfg=web_configuration(data)
     web_progress('Calculating the rotated tensor and intensity…')
     run=calculate_general(cfg)
-    web_progress('Checking the result…')
-    run["checking_procedures"]=checking_procedures_for_run(run)
     web_progress('Preparing the equations…')
     derivation=detailed_calculation(run)
-    web_include_full_ag(run, derivation)
+    web_include_ag_sum(run, derivation)
+    web_progress('Checking the result…')
+    run["checking_procedures"]=checking_procedures_for_run(run)
     web_progress('Drawing the figures…')
     figures=publication_figures(run)
     if cfg.get('show_geometry'):
@@ -310,8 +384,22 @@ def web_export():
     validation=WEB_STATE["validation"] or dict(
         status="full suite not run",scope="Current-run checks are separate from the complete reference suite.",
         checks=matching_protocol_audit(WEB_STATE['run']))
-    return make_general_archive(WEB_STATE['run'],WEB_STATE['figures'],WEB_STATE['derivation'],
+    run=WEB_STATE['run']
+    archive=make_general_archive(run,WEB_STATE['figures'],WEB_STATE['derivation'],
         validation,WEB_STATE['comparisons'])
+    if WEB_AG_SUM not in run['display_curves']:
+        return archive
+    # The notebook archive description predates the website-only sum option.
+    output=io.BytesIO()
+    with zipfile.ZipFile(io.BytesIO(archive)) as original, zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as updated:
+        for entry in original.infolist():
+            contents=original.read(entry)
+            if entry.filename=='README.txt':
+                contents=contents.replace(
+                    b'They are not summed in this file or in the main plots.',
+                    b'Ag (xx + yy + zz) sums their intensities at every angle using the supplied slide convention.')
+            updated.writestr(entry,contents)
+    return output.getvalue()
 
 
 def web_download_figure(index, extension):
@@ -386,8 +474,8 @@ _lab_web_configuration = web_configuration
 def web_configuration(data):
     cfg=_lab_web_configuration(data)
     cfg["framework"]=framework_for(data)
-    if data.get("show_full_ag") is True and cfg.get("point_group")=="D2h" and "Ag" in cfg["modes"]:
-        cfg["show_full_ag"]=True
+    if data.get("show_ag_sum",data.get("show_full_ag")) is True and cfg.get("point_group")=="D2h" and "Ag" in cfg["modes"]:
+        cfg["show_ag_sum"]=True
     return prepare_framework_config(cfg)
 
 _lab_web_catalog = web_catalog

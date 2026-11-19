@@ -90,7 +90,7 @@
   function resultsTour() {
     const tabs = [
       ['inputs','A · Input review','Select Check current inputs to inspect the axes, tensors and Jones states before running the intensity scan. Review checks are labeled A1, A2 and so on.'],
-      ['plots','B · Polar plots','Ag component plots are separate. For orthorhombic Ag, select Full Ag Tensor — Coherent Sum in the Ag inputs, then run the calculation to add the full plot. Figures can be exported as SVG, PNG or PDF.'],
+      ['plots','B · Polar plots','For orthorhombic Ag, select Sum Ag Component Intensities in the Ag inputs and run the calculation. The added plot shows I(xx) + I(yy) + I(zz). The three individual plots remain available. Figures can be exported as SVG, PNG or PDF.'],
       ['math','C · Step-by-step calculation','English explanations appear on the left and the equations on the right. Each equation keeps its calculation number (for example, Eq. 02.04).'],
       ['values','Intensity values','Inspect the calculated maximum and minimum intensities and channel summaries. The raw CSV export contains angular samples rather than only fitted extrema.'],
       ['frame','Measurement axes','Inspect crystal and measurement axes, the selected surface normal, and the orientation matrix. This view requires the relevant 3D geometry output.'],

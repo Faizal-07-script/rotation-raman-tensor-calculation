@@ -42,6 +42,9 @@ matrix steps. English explanations and new symbol definitions appear on the
 left; the complete mathematics appears on the right. The two columns stack
 on narrow screens. Silicon (500), VV, is the starting example.
 
+For orthorhombic Ag, **Sum Ag Component Intensities** adds a plot and CSV
+column for I(xx) + I(yy) + I(zz), following the supplied slide.
+
 The Python notebook is **261024 - Raman Tensor Rotation Ver 5.0**.
 The scientific engine and downloads match the full website. Run its 22 cells
 in order; each cell prints a completion message. The program ZIP includes

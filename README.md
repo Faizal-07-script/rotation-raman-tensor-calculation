@@ -38,10 +38,10 @@ columns stack. A mathematics-only view is also available.
 
 Cartesian and polar plots use the same sampled intensities and normalization.
 The result ZIP contains CSV data, figures, both derivation views and symbolic
-LaTeX. Individual equations can be copied as LaTeX. Separate Ag Cartesian
-powers are shown as contributions of one phonon; their powers are not added
-as if they were separate modes. Unresolved orthogonal phonon components are
-summed as intensities.
+LaTeX. Individual equations can be copied as LaTeX. The Ag component plots
+are shown separately. For orthorhombic Ag, **Sum Ag Component Intensities**
+adds an extra curve and CSV column for I(xx) + I(yy) + I(zz), following the
+supplied slide. The complete tensor response stays in the separate audit.
 
 ## Program and sources
 
