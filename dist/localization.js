@@ -1,7 +1,7 @@
 /* Translate the interface without reloading or changing a calculation. */
 (() => {
   'use strict';
-  const locales = ['id', 'zh-Hant-TW', 'ja', 'ta'];
+  const locales = ['id', 'zh-Hant-TW', 'ja', 'ta', 'vi'];
   const supported = new Set(['en', ...locales]);
   const catalog = window.RAMAN_TRANSLATIONS;
   const phrases = new Map(Object.entries(catalog).map(([source, target]) => [source.toLowerCase(), target]));

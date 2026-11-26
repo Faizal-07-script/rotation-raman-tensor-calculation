@@ -40,8 +40,8 @@ The calculator starts with a blank result pane. The standard scan plots
 unnormalized intensity in 0.5° steps.
 
 The language selector supports English, Indonesian, Traditional Chinese
-(Taiwan), Japanese and Tamil. The footer includes the calculator Python
-script and the build scripts. Both sites use the same scientific source.
+(Taiwan), Japanese, Tamil and Vietnamese. The footer includes the calculator
+Python script and the build scripts. Both sites use the same scientific source.
 
 The results include polar plots, the final intensity equation and numbered
 matrix steps. English explanations and new symbol definitions appear on the
