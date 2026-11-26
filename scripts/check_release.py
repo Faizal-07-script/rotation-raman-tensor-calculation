@@ -51,10 +51,14 @@ with zipfile.ZipFile(DOWNLOADS / release['files']['bundle']['filename']) as name
 assert (DOWNLOADS / 'RELEASE_MANIFEST.json').read_bytes() == (DIST / 'data/release.json').read_bytes()
 python_source = (DOWNLOADS / release['files']['python']['filename']).read_text()
 assert len(re.findall(r'^# %% Code cell \d+:', python_source, re.M)) == 22
-for name in ['app.js','content.js','optical-guide.js','user-guide.js','styles.css','user-guide.css','calculator-ui.js','calculator.css']:
+for name in ['app.js','content.js','optical-guide.js','user-guide.js','styles.css','user-guide.css','calculator-ui.js','calculator.css','locale-messages.js','localization.js','localization.css']:
     fingerprint = hashlib.sha256((DIST / name).read_bytes()).hexdigest()[:12]
-    assert f'./{name}?v=5-{fingerprint}' in (DIST / 'index.html').read_text()
+    for page in ('index.html','calculator.html'):
+        assert f'./{name}?v=5-{fingerprint}' in (DIST / page).read_text()
 assert "VERSION 5" in (DIST / "index.html").read_text()
+for asset, source in [('prepare_content.py', ROOT/'prepare_content.py'),
+                      ('prepare_calculator_site.py', ROOT/'scripts/prepare_calculator_site.py')]:
+    assert (DOWNLOADS/asset).read_bytes() == source.read_bytes()
 assert "version: '5'" in (DIST / "engine-worker.js").read_text()
 
 startup = book['metadata']['rotation_raman_revision']['validation']['startup_test']

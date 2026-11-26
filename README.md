@@ -29,6 +29,11 @@ for **B · Polar plots** and **C · Step-by-step calculation**.
 The calculator starts with a blank result pane. The standard scan plots
 unnormalized intensity in 0.5° steps.
 
+Use the language selector for English, Indonesian, Traditional Chinese
+(Taiwan), Japanese or Tamil. The selection is shared by both sites.
+The footer links directly to the calculator Python script and website build
+scripts. The calculation code and detailed reference notes are in English.
+
 ## Mathematical results
 
 Numbered steps show the direct and reciprocal lattice, X/Y/Z axes, frame

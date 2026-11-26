@@ -1,0 +1,64 @@
+.language-control {flex:none;}
+.language-control select {
+  appearance:none;
+  background: #ffffff10 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' fill='none' stroke='%23fff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right .55rem center no-repeat;
+  border:1px solid #ffffff61;
+  border-radius:5px;
+  color:#fff;
+  min-height:36px;
+  max-width:10.75rem;
+  padding:.3rem 1.55rem .3rem .55rem;
+  font-size:.86rem;
+  cursor:pointer;
+}
+.language-control select option {background:#fff;color:#172d39;}
+.language-control select:focus-visible {outline:2px solid #a9e4ed;outline-offset:3px;}
+html[lang="zh-Hant-TW"] {font-family:Arial,"Microsoft JhengHei","Noto Sans CJK TC",sans-serif;}
+html[lang="ja"] {font-family:Arial,"Yu Gothic","Meiryo","Noto Sans CJK JP",sans-serif;}
+html[lang="ta"] {font-family:Arial,"Nirmala UI","Noto Sans Tamil","Latha",sans-serif;}
+.site-credits.page-footer {
+  display:block;
+  padding:32px clamp(20px,4.5vw,60px) 18px;
+  border-top:0;
+  background:#152539;
+  color:#f1f6fb;
+  font-size:1rem;
+  line-height:1.65;
+}
+.credits-grid {display:grid;grid-template-columns:1.25fr 1fr 1.1fr;gap:24px 38px;}
+.credits-grid > section {min-width:0;}
+.site-credits h2 {
+  margin:0 0 .4rem;
+  color:#9bdde8;
+  font-size:.88rem;
+  font-weight:760;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+}
+.site-credits .credit-name {font-size:1.125rem;line-height:1.45;}
+.site-credits p {margin:.4rem 0 0;}
+.site-credits .update-date span {display:inline;margin:0 .2rem 0 0;font-weight:600;}
+.site-credits .update-date time {display:inline-block;}
+.project-files {list-style:none;margin:0;padding:0;}
+.project-files a {color:#f1f6fb;text-decoration:underline;text-underline-offset:.22rem;text-decoration-color:#9bdde8;}
+.site-credits .credits-note {border-top:1px solid #ffffff30;margin-top:1.4rem;padding-top:.65rem;font-size:.86rem;color:#d6e3eb;}
+@media (max-width:990px) {
+  .header-actions {gap:12px;}
+  .header-actions .version-pill {display:none;}
+}
+@media (max-width:800px) {
+  .credits-grid {grid-template-columns:1fr 1fr;}
+  .header-actions .header-calculator {display:none;}
+}
+@media (max-width:620px) {
+  .header-actions {gap:.4rem;padding-right:.55rem;}
+  .language-control select {min-height:34px;max-width:7.25rem;font-size:.75rem;padding-left:.4rem;}
+  .topbar .brand {flex:1;min-width:0;padding-inline:.6rem;}
+  .topbar .brand strong {letter-spacing:.035em;overflow-wrap:anywhere;}
+  .guide-header-button {max-width:6.75rem;overflow:hidden;text-overflow:ellipsis;}
+  .credits-grid {grid-template-columns:1fr;row-gap:1.35rem;}
+}
+@media (max-width:370px) {
+  .language-control select {width:6.25rem;}
+  .guide-header-button {max-width:4.4rem;}
+}

@@ -91,6 +91,8 @@ ns['plt'].close(guide_figure)
 (DOWNLOADS/'Optical_Methods_Guide.md').write_text(ns['optical_methods_overview_markdown']()+'\n\n'+'\n\n'.join(ns['optical_method_markdown'](key) for key in ns['LAB_PROFILE_LABELS']))
 (DOWNLOADS/'Symbols_And_References.md').write_text(ns['symbols_and_references_markdown']())
 shutil.copy2(PROJECT/'QUICKSTART.md',DOWNLOADS/'QUICKSTART.md')
+shutil.copy2(PROJECT/'prepare_content.py',DOWNLOADS/'prepare_content.py')
+shutil.copy2(PROJECT/'scripts/prepare_calculator_site.py',DOWNLOADS/'prepare_calculator_site.py')
 feedback_path=PROJECT/'Saito-sensei feedback.md'
 if not feedback_path.is_file():
     feedback_path=PROJECT/'SAITO_FEEDBACK_AUDIT.md'
@@ -209,7 +211,7 @@ app_path.write_text(app_text)
 index=(DIST/'index.html').read_text()
 index=re.sub(r' data-(?:full-site|calculator-site)="[^"]*"', '', index)
 index=index.replace('<body class="desktop-nav-hidden">', '<body class="desktop-nav-hidden" data-full-site="https://faizal-07-script.github.io/rotation-raman-tensor-calculation/" data-calculator-site="https://faizal-07-script.github.io/raman-tensor-calculator/">')
-for name in ('app.js','content.js','optical-guide.js','user-guide.js','styles.css','user-guide.css','calculator-ui.js','calculator.css'):
+for name in ('app.js','content.js','optical-guide.js','user-guide.js','styles.css','user-guide.css','calculator-ui.js','calculator.css','locale-messages.js','localization.js','localization.css'):
     fingerprint=hashlib.sha256((DIST/name).read_bytes()).hexdigest()[:12]
     index=re.sub(re.escape('./'+name)+r'(?:\?[^"\s]*)?', './'+name+'?v=5-'+fingerprint,index)
 (DIST/'index.html').write_text(index)

@@ -12,20 +12,29 @@
   <script defer src="./vendor/katex.min.js"></script>
   <script defer src="./vendor/highlight.min.js"></script>
   <script defer src="./vendor/python.min.js"></script>
+  <script defer src="./locale-messages.js?v=5-e8e65b81eace"></script>
+  <script defer src="./localization.js?v=5-773e01aeb5f5"></script>
   <script defer src="./content.js?v=5-ddbb98f474a5"></script>
   <script defer src="./optical-guide.js?v=5-fef9645bf344"></script>
-  <script defer src="./app.js?v=5-09e87f2e36ae"></script>
+  <script defer src="./app.js?v=5-d9fe35ee500d"></script>
   <link rel="stylesheet" href="./calculator.css?v=5-9e61b5ab3345">
   <script defer src="./calculator-ui.js?v=5-74875dde4e9b"></script>
   <link rel="stylesheet" href="./user-guide.css?v=5-67af1f17e304">
   <script defer src="./user-guide.js?v=5-e0d3849a2e3d"></script>
+  <link rel="stylesheet" href="./localization.css?v=5-2c17ad709e88">
 </head>
 <body class="desktop-nav-hidden calculator-only" data-calculator-only="true" data-full-site="https://faizal-07-script.github.io/rotation-raman-tensor-calculation/" data-calculator-site="https://faizal-07-script.github.io/raman-tensor-calculator/">
   <a class="skip-link" href="#main-content">Skip to content</a>
   <header class="topbar">
     <button id="menu-toggle" class="menu-toggle" aria-label="Toggle navigation" aria-controls="sidebar" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <a class="brand" href="#home" aria-label="Rotation Raman Tensor Calculation home"><svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 3 35 11.5v17L20 37 5 28.5v-17Z M5 11.5 20 20l15-8.5M20 20v17M20 3v17"/><circle cx="20" cy="20" r="6"/></svg><span><strong>Rotation Raman Tensor Calculation</strong></span></a>
-    <div class="header-actions"><button type="button" id="user-guide-open" class="guide-header-button" aria-haspopup="dialog"><span aria-hidden="true">?</span> User guide</button><span class="version-pill">VERSION 5</span><a class="header-calculator" href="#calculator">Open calculator <span aria-hidden="true">↗</span></a></div>
+    <div class="header-actions"><button type="button" id="user-guide-open" class="guide-header-button" aria-haspopup="dialog"><span aria-hidden="true">?</span> User guide</button><span class="version-pill">VERSION 5</span><div class="language-control"><select id="site-language" aria-label="Website language">
+      <option value="en" lang="en" data-no-localize>English</option>
+      <option value="id" lang="id" data-no-localize>Bahasa Indonesia</option>
+      <option value="zh-Hant-TW" lang="zh-Hant-TW" data-no-localize>繁體中文（台灣）</option>
+      <option value="ja" lang="ja" data-no-localize>日本語</option>
+      <option value="ta" lang="ta" data-no-localize>தமிழ்</option>
+    </select></div><a class="header-calculator" href="#calculator">Open calculator <span aria-hidden="true">↗</span></a></div>
   </header>
   <div id="nav-backdrop" class="nav-backdrop"></div>
   <aside id="sidebar" class="sidebar" aria-label="Site navigation">
@@ -37,7 +46,30 @@
   <div class="content-shell">
     <div class="breadcrumb-bar"><div id="breadcrumbs">Home</div><div id="engine-indicator" class="engine-indicator"><span class="status-dot neutral"></span> Python on demand</div></div>
     <main id="main-content" tabindex="-1"><div class="boot-screen"><div class="spinner"></div><p>Loading…</p></div></main>
-    <footer class="page-footer"><span>Rotation Raman Tensor Calculation</span><span>Raman tensors · Jones polarization · Python</span></footer>
+    <footer class="page-footer site-credits">
+      <div class="credits-grid">
+        <section>
+          <h2>Developer</h2>
+          <strong class="credit-name" data-no-localize>Muhammad Faizal</strong>
+          <p>Department of Physics<br>National Taiwan Normal University, Taiwan</p>
+        </section>
+        <section>
+          <h2>Research group</h2>
+          <strong class="credit-name">Prof. Liu's Research Group</strong>
+          <p class="update-date"><span>Last updated</span> <time datetime="2026-11-12">12 November 2026</time></p>
+        </section>
+        <section>
+          <h2>Project files</h2>
+          <ul class="project-files">
+            <li><a href="./downloads/261024%20-%20Raman%20Tensor%20Rotation%20Ver%205.0.py" download>Download the calculator Python program</a></li>
+            <li><a href="./downloads/prepare_content.py" download>Download the website build script (.py)</a></li>
+            <li><a href="./downloads/prepare_calculator_site.py" download>Download the calculator site build script (.py)</a></li>
+            <li><a href="https://github.com/Faizal-07-script/rotation-raman-tensor-calculation">Website source on GitHub</a></li>
+          </ul>
+        </section>
+      </div>
+      <p class="credits-note">The Python source, detailed references and equation notes are in English.</p>
+    </footer>
   </div>
   <div id="toast" role="status" aria-live="polite" hidden></div>
   <div id="download-ready" class="download-ready" role="status" aria-live="polite" hidden><div><strong>File ready</strong><small id="download-name"></small></div><a id="download-link" class="button small">Save file ↓</a><button id="dismiss-download" class="text-button" aria-label="Dismiss prepared download">×</button></div>

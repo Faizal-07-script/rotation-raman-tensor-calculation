@@ -86,12 +86,12 @@ $('.skip-link').addEventListener('click',event=>{event.preventDefault();$('#main
 $('#dismiss-download').addEventListener('click',()=>{$('#download-ready').hidden=true;if(preparedDownloadUrl)URL.revokeObjectURL(preparedDownloadUrl);preparedDownloadUrl=null;});
 
 function renderHome(){
-  return '<section class="hero"><div><span class="kicker">RAMAN TENSOR CALCULATION</span><h1>Raman intensity<br>for your crystal.</h1><p class="lead">Choose the crystal orientation, tensor coefficients and polarization. Calculate polar plots and follow the equations in Python.</p><div class="button-row"><a class="button" href="#calculator">Open the calculator <span aria-hidden="true">→</span></a><a class="text-link" href="#tutorial">Explore the Python code ↗</a></div></div><div class="hero-visual"><img src="./polar_T2g.svg" alt="Silicon (500), T2g polar intensity with VV polarization"><div class="figure-label"><strong>Silicon (500) · VV</strong>Si / Oh · T2g triplet<br>Shared d = 1 · relative intensity</div></div></section>'+
+  return '<section class="hero"><div><span class="kicker">RAMAN TENSOR CALCULATION</span><h1>Raman intensity for your crystal.</h1><p class="lead">Choose the crystal orientation, tensor coefficients and polarization. Calculate polar plots and follow the equations in Python.</p><div class="button-row"><a class="button" href="#calculator">Open the calculator <span aria-hidden="true">→</span></a><a class="text-link" href="#tutorial">Explore the Python code ↗</a></div></div><div class="hero-visual"><img src="./polar_T2g.svg" alt="Silicon (500), T2g polar intensity with VV polarization"><div class="figure-label"><strong>Silicon (500) · VV</strong>Si / Oh · T2g triplet<br>Shared d = 1 · relative intensity</div></div></section>'+
     '<div class="stats-row"><div class="stat"><strong>21</strong><span>Point-group templates<br>Cartesian axis conventions</span></div><div class="stat"><strong>9</strong><span>Optical profiles<br>linear and circular polarization</span></div><div class="stat"><strong>22</strong><span>Python code cells<br>source and notes</span></div></div>'+
     renderOpticalGuide()+
     '<div class="section-heading"><h2>Getting started</h2></div><div class="grid-3 paths"><a class="path-card" href="#introduction"><span class="path-number">UNDERSTAND THE TOOLS</span><h3>Choose your inputs</h3><p>Tensor models, optical methods, crystal axes, coefficients and output conventions.</p><span class="path-action">Read the introduction →</span></a><a class="path-card" href="#tutorial"><span class="path-number">INSPECT THE CODE</span><h3>Read the Python program</h3><p>Read the exact source beside its purpose, call sequence, mathematics and checks.</p><span class="path-action">Open the tutorial →</span></a><a class="path-card" href="#physics"><span class="path-number">CHECK THE PHYSICS</span><h3>Equations and references</h3><p>Jones vectors, full tensor rotations, coherent interference and independent validation.</p><span class="path-action">Explore the equations →</span></a></div>'+
     '<div class="section-heading"><h2>Calculation steps</h2></div><div class="card"><div class="workflow-strip"><div class="workflow-item"><strong>Crystal frame</strong><p>Lattice → surface normal → T</p></div><div class="workflow-item"><strong>Rotated tensor</strong><p>Full 3×3 response in the measurement frame</p></div><div class="workflow-item"><strong>Optical amplitude</strong><p>Incident state → tensor → detected state</p></div><div class="workflow-item"><strong>Intensity & export</strong><p>Polar plots, mathematical steps and raw data</p></div></div>'+math(String.raw`R_{lab}=T^TR_cT,\qquad \mathcal A=e_s^\dagger R_\perp E_i,\qquad I=|\mathcal A|^2`)+equationNotes(S.catalog.home_equation)+'</div>'+
-    '<div class="feature-kernel"><div><h3>Start with Silicon (500)</h3><p>The initial example uses the Si T2g triplet, VV polarization and d = 1. Choose Full mathematics for one short symbol list, or Explained derivation for English explanations beside the equations. Other material examples are available in tool 1.3.</p></div><a class="button secondary" href="#calculator">Open the silicon example</a></div>'+
+    '<div class="feature-kernel"><div><h3>Start with Silicon (500)</h3><p>The calculator opens with silicon, the (500) plane, VV polarization and d = 1. Run the calculation to see its equations and polar plots.</p></div><a class="button secondary" href="#calculator">Open the silicon example</a></div>'+
     '<p class="small-note" style="margin-top:22px">Ideal transverse plane-wave model. Coefficients and noncubic lattice ratios are declared inputs; the program does not infer them from a material name.</p>';
 }
 function renderIntroduction(){
@@ -352,8 +352,10 @@ function groupChange(group){
 
 function resultFigures(figures){
   return figures.map((figure,index)=>({figure,index})).filter(({figure})=>figure.name!=='measurement_frame').map(({figure,index})=>{
-    const label=/^(polar|cartesian)_Ag__xx___yy___zz$/.test(figure.name)?
-      'Ag (xx + yy + zz) — '+figure.name.split('_')[0]+' plot':figure.name.replaceAll('_',' ');
+    const plot=figure.name.match(/^(polar|cartesian)_(.+)$/);
+    const kind=plot?.[1]==='polar'?'Polar plot':'Cartesian plot';
+    const channel=plot?.[2]==='Ag__xx___yy___zz'?'Ag (xx + yy + zz)':plot?.[2].replaceAll('_',' ');
+    const label=plot?kind+' · '+channel:figure.name.replaceAll('_',' ');
     return '<figure class="result-figure"><figcaption><strong>'+esc(label)+'</strong><div class="figure-actions"><button data-figure-svg="'+index+'" '+(S.dirty?'disabled':'')+'>SVG ↓</button><button data-figure-export="'+index+'" data-extension="png" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PNG 600 dpi ↓</button><button data-figure-export="'+index+'" data-extension="pdf" '+(!S.runtimeHasRun||S.dirty?'disabled':'')+'>PDF ↓</button></div></figcaption><img src="'+figure.png+'" alt="'+esc(label)+'"></figure>';
   }).join('');
 }
@@ -586,17 +588,22 @@ document.addEventListener('keydown',event=>{
 });
 function search(query){
   const node=$('#search-results');query=query.trim().toLowerCase();if(!query){node.hidden=true;return;}
-  const words=query.split(/\s+/),matches=S.searchIndex.filter(x=>words.every(w=>x.text.includes(w))).slice(0,9);
+  const translate=text=>window.RamanLocale?.translate(text)??text;
+  const words=query.split(/\s+/),matches=S.searchIndex.filter(x=>{
+    const localized=(translate(x.label)+' '+translate(x.category)+' '+translate(x.lead||'')).toLowerCase();
+    return words.every(w=>x.text.includes(w)||localized.includes(w));
+  }).slice(0,9);
   node.innerHTML=matches.length?matches.map(x=>'<a href="'+x.href+'">'+esc(x.label)+'<small>'+esc(x.category)+'</small></a>').join(''):'<p class="small-note" style="padding:12px;color:#becbd3">No matches. Try orientation, QWP, tensor or Cell 12.</p>';node.hidden=false;
 }
+document.addEventListener('raman:language-change',()=>{const value=$('#site-search').value;if(value)search(value);});
 async function initialize(){
   try{
     const [catalog,cells,tutorial,release,referenceChecks]=await Promise.all(['catalog','cells','tutorial','release','reference-equation-checks'].map(async name=>{const response=await fetch('./data/'+name+'.json',{cache:'no-store'});if(!response.ok)throw new Error('Unable to load '+name+'.');return response.json();}));
     if(release.source_sha256!==cells.source_sha256)throw new Error('The notebook update is still publishing. Reload this page in a moment.');
     S.catalog=catalog;S.release=release;S.referenceChecks=referenceChecks;S.cells=cells.cells;S.sourceHash=cells.source_sha256;S.tutorial=tutorial;S.form=clone(catalog.examples[catalog.default_example].config);S.selectedExample=catalog.default_example;S.lastCrystal=clone(S.form);
-    S.searchIndex=[...Object.entries(RAMAN_DOCS.tools).map(([key,d])=>({href:'#introduction/'+key,label:d.title,category:'Introduction',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()})),
+    S.searchIndex=[...Object.entries(RAMAN_DOCS.tools).map(([key,d])=>({href:'#introduction/'+key,label:d.title,lead:d.lead,category:'Introduction',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()})),
       ...S.cells.map(c=>({href:'#tutorial/cell/'+c.number,label:'Cell '+c.number+' · '+c.title,category:'Python tutorial',text:('cell '+c.number+' cell'+c.number+' '+c.title+' '+c.source).toLowerCase()})),
-      ...Object.entries(RAMAN_DOCS.physics).map(([key,d])=>({href:'#physics/'+key,label:d.title,category:'Physics & equations',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()}))];
+      ...Object.entries(RAMAN_DOCS.physics).map(([key,d])=>({href:'#physics/'+key,label:d.title,lead:d.lead,category:'Physics & equations',text:(d.title+' '+d.lead+' '+JSON.stringify(d.sections)).toLowerCase()}))];
     renderNavigation();setMenu(false);renderRoute();
   }catch(error){$('#main-content').innerHTML='<div class="card"><h1>The page could not load.</h1><p>'+esc(error.message)+'</p><button class="button" onclick="location.reload()">Reload page</button></div>';}
 }
