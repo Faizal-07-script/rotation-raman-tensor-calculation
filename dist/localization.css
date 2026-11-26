@@ -20,8 +20,8 @@ html[lang="ta"] {font-family:Arial,"Nirmala UI","Noto Sans Tamil","Latha",sans-s
   display:block;
   padding:32px clamp(20px,4.5vw,60px) 18px;
   border-top:0;
-  background:#152539;
-  color:#f1f6fb;
+  background:var(--burgundy);
+  color:var(--paper);
   font-size:1rem;
   line-height:1.65;
 }
@@ -29,7 +29,7 @@ html[lang="ta"] {font-family:Arial,"Nirmala UI","Noto Sans Tamil","Latha",sans-s
 .credits-grid > section {min-width:0;}
 .site-credits h2 {
   margin:0 0 .4rem;
-  color:#9bdde8;
+  color:var(--burgundy-soft);
   font-size:.88rem;
   font-weight:760;
   letter-spacing:.075em;
@@ -40,8 +40,8 @@ html[lang="ta"] {font-family:Arial,"Nirmala UI","Noto Sans Tamil","Latha",sans-s
 .site-credits .update-date span {display:inline;margin:0 .2rem 0 0;font-weight:600;}
 .site-credits .update-date time {display:inline-block;}
 .project-files {list-style:none;margin:0;padding:0;}
-.project-files a {color:#f1f6fb;text-decoration:underline;text-underline-offset:.22rem;text-decoration-color:#9bdde8;}
-.site-credits .credits-note {border-top:1px solid #ffffff30;margin-top:1.4rem;padding-top:.65rem;font-size:.86rem;color:#d6e3eb;}
+.project-files a {color:var(--paper);text-decoration:underline;text-underline-offset:.22rem;text-decoration-color:var(--burgundy-soft);}
+.site-credits .credits-note {border-top:1px solid #ffffff30;margin-top:1.4rem;padding-top:.65rem;font-size:.86rem;color:var(--burgundy-soft);}
 @media (max-width:990px) {
   .header-actions {gap:12px;}
   .header-actions .version-pill {display:none;}
