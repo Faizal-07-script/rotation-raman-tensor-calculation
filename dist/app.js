@@ -27,7 +27,7 @@ if(document.body.dataset.calculatorOnly==='true'&&!location.hash)history.replace
 class PythonEngine {
   constructor(){this.worker=null;this.pending=new Map();this.sequence=0;this.ready=false;this.loading=null;}
   create(){
-    this.worker=new Worker('./engine-worker.js?v=5-e26bae0363c0');
+    this.worker=new Worker('./engine-worker.js?v=5-6327dcc10adc');
     this.worker.onmessage=event=>{
       const data=event.data;
       if(data.kind==='progress'){$('#operation-message').textContent=data.message;return;}
@@ -40,7 +40,7 @@ class PythonEngine {
     this.worker.onerror=event=>{for(const item of this.pending.values())item.reject(new Error(event.message||'The Python worker could not start.'));this.pending.clear();this.worker?.terminate();this.worker=null;this.ready=false;this.loading=null;clearRuntimeRecords();setEngineStatus('Engine needs restart','error');};
   }
   send(type,payload){if(!this.worker)this.create();const id=++this.sequence;return new Promise((resolve,reject)=>{this.pending.set(id,{resolve,reject});this.worker.postMessage({id,type,payload});});}
-  async ensure(){if(this.ready)return;if(!this.loading){setEngineStatus('Starting Python…','busy');this.loading=this.send('init',{}).then(()=>{this.ready=true;setEngineStatus('Python ready','');}).catch(error=>{this.worker?.terminate();this.worker=null;this.loading=null;clearRuntimeRecords();setEngineStatus('Python needs retry','error');throw error;});}return this.loading;}
+  async ensure(){if(this.ready)return;if(!this.loading){setEngineStatus('Starting Python…','busy');const started=this.send('init',{}),worker=this.worker;this.loading=started.then(()=>{if(this.worker!==worker)return;this.ready=true;setEngineStatus('Python ready','');}).catch(error=>{if(this.worker===worker){this.worker.terminate();this.worker=null;this.loading=null;clearRuntimeRecords();setEngineStatus('Python needs retry','error');}throw error;});}return this.loading;}
   async request(type,payload={}){await this.ensure();return this.send(type,payload);}
   stop(){if(this.worker)this.worker.terminate();this.worker=null;this.ready=false;this.loading=null;for(const item of this.pending.values())item.reject(new Error('Operation stopped. Runtime snapshots were cleared. Calculate again to restart Python.'));this.pending.clear();clearRuntimeRecords();setEngineStatus('Python stopped','neutral');}
 }
@@ -335,19 +335,23 @@ function applyRelation(form){
 function invalidate(){S.dirty=true;S.error=null;S.runtimeHasRun=false;updateStaleStatus();}
 function updateStaleStatus(){
   const status=$('#calculation-status');if(status&&S.dirty)status.innerHTML='<strong>Inputs changed — calculate to update the result.</strong><p>Any previous figures describe the previous declared inputs. Current-result downloads are disabled.</p>';
-  $$('[data-result-download],[data-add-comparison],[data-figure-export],[data-figure-svg]').forEach(button=>button.disabled=S.dirty||S.busy||(!S.runtimeHasRun&&(button.dataset.resultDownload==='zip'||button.hasAttribute('data-figure-export')||button.hasAttribute('data-add-comparison'))));
+  $$('[data-result-download],[data-add-comparison],[data-figure-export],[data-figure-svg],[data-load-calculation-details]').forEach(button=>button.disabled=S.dirty||S.busy||(!S.runtimeHasRun&&(button.dataset.resultDownload==='zip'||button.hasAttribute('data-figure-export')||button.hasAttribute('data-add-comparison')||button.hasAttribute('data-load-calculation-details'))));
 }
 function replaceControls(){const node=$('.calc-controls');if(node){const opened=new Set($$('.form-section[open]',node).map(x=>x.dataset.sectionKey));node.outerHTML=renderControls();$$('.calc-controls .form-section').forEach(x=>x.open=opened.has(x.dataset.sectionKey));typeset($('.calc-controls'));}}
 function readAndInvalidate(){try{S.form=readForm();applyRelation(S.form);}catch{/* Keep incomplete edits visible until calculate validates them. */}invalidate();}
+function defaultModeSelection(form){
+  const modes=Object.keys(definitions(form));
+  return modes.includes('Ag')?['Ag']:modes.slice(0,1);
+}
 function materialChange(material){
   const old=clone(S.form),info=S.catalog.materials[material];const group=material==='GENERAL'&&S.catalog.groups[old.point_group]?old.point_group:info.group;
   S.form={...old,material,point_group:group,lattice:material==='GENERAL'?(['trigonal','hexagonal'].includes(S.catalog.groups[group]?.system)?[1,1,1,90,90,120]:[1,1,1,90,90,90]):clone(info.lattice)};
-  S.form.modes=Object.keys(definitions(S.form));S.form.mode_values=material==='GENERAL'?{}:clone(info.defaults.mode_values);S.relation='free';ensureValues(S.form);invalidate();replaceControls();
+  S.form.modes=defaultModeSelection(S.form);S.form.mode_values=material==='GENERAL'?{}:clone(info.defaults.mode_values);S.relation='free';ensureValues(S.form);invalidate();replaceControls();
 }
 function groupChange(group){
   S.form.point_group=group;const system=S.catalog.groups[group]?.system;
   S.form.lattice=['trigonal','hexagonal'].includes(system)?[1,1,1,90,90,120]:[1,1,1,90,90,90];
-  S.form.modes=Object.keys(definitions(S.form));S.form.mode_values={};S.relation='free';ensureValues(S.form);invalidate();replaceControls();
+  S.form.modes=defaultModeSelection(S.form);S.form.mode_values={};S.relation='free';ensureValues(S.form);invalidate();replaceControls();
 }
 
 function resultFigures(figures){
@@ -549,9 +553,19 @@ document.addEventListener('click',async event=>{
   if(button.hasAttribute('data-load-example')){S.form=clone(S.catalog.examples[S.selectedExample].config);S.relation='free';if(S.form.tensor_model==='CRYSTAL_3D')S.lastCrystal=clone(S.form);invalidate();renderRoute(false);toast('Example loaded. Review inputs, then calculate.');return;}
   if(button.dataset.derivationMode){S.derivationMode=button.dataset.derivationMode;$('#result-pane').innerHTML=resultBody();typeset($('#result-pane'));return;}
   if(button.dataset.resultTab){S.tab=button.dataset.resultTab;syncCalculatorTabRoute();$$('.result-tab').forEach(tab=>tab.setAttribute('aria-selected',String(tab===button)));$$('.result-tabs').forEach(setResultTabStops);const pane=$('#result-pane');pane.setAttribute('aria-labelledby',button.id);pane.innerHTML=resultBody();typeset(pane);return;}
+  if(button.hasAttribute('data-plot-all-modes')){
+    try{S.form=readForm();}catch(error){toast(error.message);return;}
+    S.form.modes=Object.keys(definitions(S.form));invalidate();replaceControls();return;
+  }
   if(button.hasAttribute('data-calculate')){
     try{S.form=readForm();applyRelation(S.form);}catch(error){S.error=error.message;renderRoute(false);return;}
-    await runOperation('calculate',S.form,'Calculating rotation + Raman',result=>{S.result=result;S.dirty=false;S.runtimeHasRun=true;S.tab='plots';toast('Calculation complete. Plots and mathematical steps are ready.');});return;
+    await runOperation('calculateQuick',S.form,'Calculating rotation + Raman',result=>{S.result=result;S.dirty=false;S.runtimeHasRun=true;S.tab='plots';toast('Calculation complete.');});return;
+  }
+  if(button.hasAttribute('data-load-calculation-details')&&!S.dirty&&S.runtimeHasRun&&S.result?.preview&&!S.result.detailsReady){
+    await runOperation('details',{},'Preparing the equations…',details=>{
+      const {figures, ...report}=details;
+      Object.assign(S.result,report,{detailsReady:true});
+    });return;
   }
   if(button.dataset.resultDownload){
     if(S.dirty||!S.result)return;
@@ -565,7 +579,12 @@ document.addEventListener('click',async event=>{
   }
   if(button.hasAttribute('data-copy-latex')&&S.result){await copyText(S.result.latex.symbolic);return;}
   if(button.dataset.figureSvg!==undefined&&S.result&&!S.dirty){const figure=S.result.figures[Number(button.dataset.figureSvg)];download(figure.svg,figure.name+'.svg','image/svg+xml');return;}
-  if(button.dataset.figureExport!==undefined&&S.result&&!S.dirty){const index=Number(button.dataset.figureExport),extension=button.dataset.extension;await runOperation('figure',{index,extension},'Exporting a scientific figure',buffer=>download(buffer,S.result.figures[index].name+'.'+extension,extension==='png'?'image/png':'application/pdf'));return;}
+  if(button.dataset.figureExport!==undefined&&S.result&&!S.dirty){
+    const index=Number(button.dataset.figureExport),extension=button.dataset.extension;
+    const name=S.result.figures[index]?.name || 'raman_'+index;
+    await runOperation('figure',{index,extension},'Exporting a scientific figure',buffer=>
+      download(buffer,name+'.'+extension,({png:'image/png',pdf:'application/pdf',svg:'image/svg+xml'})[extension]));return;
+  }
   if(button.hasAttribute('data-run-validation')){await runOperation('validate',{},'Running the full validation suite',result=>{S.validation=result;S.tab='validation';toast(result.status==='passed'?'Model and source-reference procedures passed.':'Validation contains failed or unresolved checks.');});return;}
   if(button.hasAttribute('data-download-validation')&&S.validation){download(JSON.stringify(S.validation,null,2),'optical_reference_validation.json','application/json');return;}
   if(button.hasAttribute('data-add-comparison')&&!S.dirty){await runOperation('addComparison',{},'Saving a calculation snapshot',result=>{S.comparisons=result;S.tab='comparisons';});return;}
@@ -607,4 +626,7 @@ async function initialize(){
     renderNavigation();setMenu(false);renderRoute();
   }catch(error){$('#main-content').innerHTML='<div class="card"><h1>The page could not load.</h1><p>'+esc(error.message)+'</p><button class="button" onclick="location.reload()">Reload page</button></div>';}
 }
+document.addEventListener('raman:route',event=>{
+  if(event.detail.page==='calculator')engine.ensure().catch(()=>{ /* Run can retry. */ });
+});
 initialize();

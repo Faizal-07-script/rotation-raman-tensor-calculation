@@ -72,6 +72,10 @@ function tuckAway(nodes, label, open = false) {
 renderControls = () => {
   const host = document.createElement('div');
   host.innerHTML = originalControls();
+  const modes=host.querySelector('.modes-grid');
+  if(modes && modes.querySelectorAll('[data-mode-select]').length>1){
+    modes.insertAdjacentHTML('afterend','<button class="text-button" type="button" data-plot-all-modes>Select all modes</button>');
+  }
   host.querySelectorAll('.mode-card .tensor-preview').forEach(node => tuckAway([node], 'View tensor matrices'));
   const orientation = host.querySelector('[data-section-key="03"] .form-section-body');
   if (orientation) {
@@ -135,6 +139,42 @@ function cartesianPlotCard(result) {
   return '<figure class="result-figure cartesian-figure"><figcaption><strong>Cartesian plot</strong><div class="figure-actions"><button data-cartesian-svg '+(S.dirty?'disabled':'')+'>SVG ↓</button></div></figcaption>'+cartesianPlotSvg(result)+'<div class="curve-legend">'+result.channels.map((channel,i)=>'<span><i style="background:'+curveColors[i%curveColors.length]+'"></i>'+esc(channel.name)+'</span>').join('')+'</div><p class="small-note">Same samples and normalization as the polar plots.</p></figure>';
 }
 
+function fastPolarPlots(result) {
+  return result.channels.map((channel,i)=>{
+    const scale=channel.scale>0?channel.scale:1;
+    const max=channel.points.reduce((a,b)=>Math.max(a,b),0)/scale;
+    const limit=max>0?max*1.08:1;
+    const coordinate=(angle,r)=>{
+      const radians=angle*Math.PI/180;
+      return (220+r*Math.cos(radians)).toFixed(2)+' '+(187-r*Math.sin(radians)).toFixed(2);
+    };
+    let grid='';
+    for(let j=1;j<=4;j++){
+      const r=j*145/4;
+      grid+='<circle cx="220" cy="187" r="'+r+'" fill="none" stroke="#e3eaf0"/>'+
+        '<text x="226" y="'+(187-r+10)+'">'+esc(compact(limit*j/4))+'</text>';
+    }
+    for(let angle=0;angle<360;angle+=45){
+      const [x,y]=coordinate(angle,164).split(' ');
+      grid+='<path d="M220 187L'+coordinate(angle,145)+'" stroke="#e3eaf0"/>'+
+        '<text x="'+x+'" y="'+y+'" dy=".32em" text-anchor="middle">'+angle+'°</text>';
+    }
+    const path=channel.points.map((value,j)=>(j?'L':'M')+coordinate(result.angles[j],145*(value/scale)/limit)).join(' ');
+    const label='Polar plot · '+channel.name, index=i*(result.configuration.cartesian_plots?2:1);
+    const downloads=['svg','png','pdf'].map(ext=>'<button data-figure-export="'+index+'" data-extension="'+ext+'" '+(!S.runtimeHasRun||S.dirty||S.busy?'disabled':'')+'>'+({svg:'SVG',png:'PNG 600 dpi',pdf:'PDF'}[ext])+' ↓</button>').join('');
+    return '<figure class="result-figure"><figcaption><strong>'+esc(label)+'</strong><div class="figure-actions">'+downloads+'</div></figcaption>'+
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 385" style="display:block;width:100%;height:auto" role="img" aria-label="'+esc(label)+'"><title>'+esc(label)+'</title>'+
+      '<g font-family="Arial,sans-serif" font-size="12" fill="#63747d">'+grid+
+      '<text x="220" y="375" text-anchor="middle">'+(result.configuration.normalize?'Normalized intensity':'Relative intensity (a.u.)')+'</text></g>'+
+      '<path d="'+path+'" stroke="'+curveColors[i%curveColors.length]+'" fill="none" stroke-width="2.5"/></svg></figure>';
+  }).join('');
+}
+
+function calculationDetailsButton() {
+  return '<div class="card"><button class="button secondary" data-load-calculation-details '+
+    (S.busy||S.dirty||!S.runtimeHasRun?'disabled':'')+'>Prepare equations and checks</button></div>';
+}
+
 function localDefinitions(symbols, seen) {
   return (symbols || []).filter(symbol => {
     const key = JSON.stringify([symbol.id, symbol.latex, symbol.meaning, symbol.units]);
@@ -157,8 +197,9 @@ resultBody = () => {
   if (S.tab === 'inputs') return renderInputReview();
   if (S.tab === 'validation') return referenceEquationChecks()+originalResultBody();
   if (S.tab === 'benchmark') return referenceEquationChecks()+originalResultBody();
+  if (S.result?.preview && !S.result.detailsReady && ['math','checks','procedures','latex'].includes(S.tab)) return calculationDetailsButton();
   if (S.tab === 'math' && S.result) return finalIntensityCard(S.result) + derivationModeHtml() + derivationHtml(S.result.equations, S.derivationMode === 'explained');
-  if (S.tab === 'plots' && S.result) return extremaCards(S.result) + finalIntensityCard(S.result) + '<div class="visualization-grid">'+cartesianPlotCard(S.result)+'<div class="polar-figures">'+originalResultBody()+'</div></div>';
+  if (S.tab === 'plots' && S.result) return extremaCards(S.result) + finalIntensityCard(S.result) + '<div class="visualization-grid">'+cartesianPlotCard(S.result)+'<div class="polar-figures">'+(S.result.preview?fastPolarPlots(S.result):originalResultBody())+'</div></div>';
   return originalResultBody();
 };
 
@@ -207,7 +248,7 @@ document.addEventListener('click', async event => {
     await runOperation('preflight', S.form, 'Reviewing axes and optical states', result => { S.preview = result; S.previewDirty = false; S.tab = 'inputs'; });
     if(S.tab==='inputs')$('[data-preview-inputs]')?.focus({preventScroll:true});
   } else if (button.hasAttribute('data-show-math')) {
-    S.tab = 'math'; renderRoute(false); $('#result-pane')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    S.tab = 'math'; renderRoute(false); $('[data-load-calculation-details]:enabled')?.click(); $('#result-pane')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else if (button.hasAttribute('data-cartesian-svg') && S.result && !S.dirty) download(cartesianPlotSvg(S.result),'Raman_Intensity_Cartesian.svg','image/svg+xml');
   else if (button.hasAttribute('data-copy-equation')) await copyText(button.dataset.copyEquation);
 });

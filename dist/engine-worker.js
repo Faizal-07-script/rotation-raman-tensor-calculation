@@ -7,17 +7,23 @@ async function initializePython() {
   const base = new URL('./vendor/pyodide/', self.location.href).href;
   self.pythonProgress('Starting Python. The first run may take a moment…');
   importScripts(base + 'pyodide.js');
-  const python = await loadPyodide({indexURL: base, stdout: () => {}, stderr: text => {
-    if (!text.startsWith('findfont:')) self.postMessage({kind: 'log', message: text});
-  }});
-  self.pythonProgress('Loading NumPy, SymPy and Matplotlib…');
-  await python.loadPackage(['numpy', 'sympy', 'matplotlib']);
-  const paths = ['./raman_engine.py', './web_bridge.py'];
-  for (const path of paths) {
-    const response = await fetch(new URL(path, self.location.href), {cache: 'no-cache'});
-    if (!response.ok) throw new Error(`Could not load ${path}: HTTP ${response.status}`);
-    await python.runPythonAsync(await response.text());
-  }
+  const paths = ['./raman_engine.py', './web_bridge.py', './web-fast.py?v=b984edf08127'];
+  const [python, sources] = await Promise.all([
+    (async () => {
+      const py = await loadPyodide({indexURL: base, stdout: () => {}, stderr: text => {
+        if (!text.startsWith('findfont:')) self.postMessage({kind: 'log', message: text});
+      }});
+      self.pythonProgress('Loading NumPy, SymPy and Matplotlib…');
+      await py.loadPackage(['numpy', 'sympy', 'matplotlib']);
+      return py;
+    })(),
+    Promise.all(paths.map(async path => {
+      const response = await fetch(new URL(path, self.location.href));
+      if (!response.ok) throw new Error(`Could not load ${path}: HTTP ${response.status}`);
+      return response.text();
+    })),
+  ]);
+  for (const source of sources) await python.runPythonAsync(source);
   self.pythonProgress('Python ready.');
   return python;
 }
@@ -34,6 +40,8 @@ self.onmessage = async event => {
       py.globals.set('web_input_json', JSON.stringify(payload));
       const expressions = {
         calculate: 'web_calculate(web_input_json)',
+        calculateQuick: 'web_quick_calculate(web_input_json)',
+        details: 'web_calculation_details()',
         preflight: 'web_preflight(web_input_json)',
         export: 'web_export()',
         figure: 'web_download_figure(json.loads(web_input_json)["index"], json.loads(web_input_json)["extension"])',
